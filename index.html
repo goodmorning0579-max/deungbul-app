@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>등불 — 성경연구 앱</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0d0a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root{
+    --ink:#0f0d0a; --ink2:#171310; --ink3:#211b15;
+    --gold:#c9972a; --gold-b:#e8b94a;
+    --it:#e9e4d6; --itd:#a9a596;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(ellipse at top, #1a1512, var(--ink));
+    color:var(--it); font-family:-apple-system,"Pretendard",sans-serif;
+    text-align:center; padding:24px;
+  }
+  .wrap{max-width:420px;}
+  .logo{font-size:44px; margin-bottom:6px;}
+  h1{font-size:24px; margin:0 0 6px; color:var(--gold-b); letter-spacing:.02em;}
+  .verse{font-size:12.5px; color:var(--itd); margin-bottom:36px; line-height:1.6;}
+  .card{
+    display:block; text-decoration:none; color:var(--it);
+    background:var(--ink2); border:1px solid rgba(201,151,42,.25); border-radius:14px;
+    padding:20px; margin-bottom:14px; transition:.2s; text-align:left;
+  }
+  .card:hover{border-color:var(--gold); background:var(--ink3);}
+  .card .ic{font-size:22px; margin-bottom:6px;}
+  .card .t{font-size:15px; font-weight:700; margin-bottom:3px;}
+  .card .d{font-size:12px; color:var(--itd);}
+  .auto{font-size:11px; color:var(--itd); margin-top:20px;}
+  .auto b{color:var(--gold-b);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">🪔</div>
+    <h1>등불</h1>
+    <div class="verse">"주의 말씀은 내 발에 등이요 내 길에 빛이니이다" — 시편 119:105</div>
+
+    <a class="card" href="mobile.html" id="link-mobile">
+      <div class="ic">📱</div>
+      <div class="t">모바일 버전</div>
+      <div class="d">휴대폰·태블릿 화면에 최적화된 레이아웃</div>
+    </a>
+    <a class="card" href="desktop.html" id="link-desktop">
+      <div class="ic">🖥️</div>
+      <div class="t">데스크탑 버전</div>
+      <div class="d">넓은 화면에서 2단 레이아웃으로 보기</div>
+    </a>
+
+    <div class="auto">화면 크기를 감지하는 중... <b id="autotext"></b></div>
+  </div>
+
+<script>
+  // 화면 너비 기준 자동 추천 강조 (자동 이동은 하지 않음 — 사용자가 원하는 쪽을 직접 선택)
+  var isMobile = window.innerWidth < 820;
+  var autotext = document.getElementById("autotext");
+  if(isMobile){
+    document.getElementById("link-mobile").style.borderColor = "var(--gold)";
+    autotext.textContent = "모바일 버전을 추천합니다.";
+  } else {
+    document.getElementById("link-desktop").style.borderColor = "var(--gold)";
+    autotext.textContent = "데스크탑 버전을 추천합니다.";
+  }
+</script>
+</body>
+</html>
