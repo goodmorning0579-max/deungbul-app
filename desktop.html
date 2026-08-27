@@ -869,15 +869,8 @@ async function deleteDayNoteD(key){ try{ await window.storage.delete(key); }catc
 ========================================================= */
 document.querySelectorAll(".nav-item").forEach(item=>{
   item.addEventListener("click", ()=>{
-    document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-    item.classList.add("active");
     const view = item.dataset.view;
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-    document.getElementById("view-"+view).classList.add("active");
-    if(view==="calendar") renderCalendar();
-    if(view==="people") renderPeopleGrid();
-    if(view==="places") { renderPlacesGrid(); renderMap(); }
-    if(view==="settings") loadSettingsIntoView();
+    switchToView(view, true);
   });
 });
 
@@ -1100,12 +1093,22 @@ function renderStudyPanels(notes){
   });
 }
 
-function switchToView(view){
+function switchToView(view, pushHistory){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.toggle("active", i.dataset.view===view));
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="view-"+view));
+  if(view==="calendar") renderCalendar();
   if(view==="people") renderPeopleGrid();
   if(view==="places"){ renderPlacesGrid(); renderMap(); }
+  if(view==="settings") loadSettingsIntoView();
+  if(pushHistory !== false){
+    try{ history.pushState({dvView:view}, "", ""); }catch(e){}
+  }
 }
+try{ history.replaceState({dvView:"read"}, "", ""); }catch(e){}
+window.addEventListener("popstate", (e)=>{
+  const v = (e.state && e.state.dvView) || "read";
+  switchToView(v, false);
+});
 
 populateBookSelect();
 document.getElementById("book-select").addEventListener("change", e=>{

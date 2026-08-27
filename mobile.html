@@ -574,15 +574,29 @@ async function deleteDayNote(key){ try{ await stor.delete(key); }catch(e){} }
 
 
 
+let curBniView = "read";
+function goToView(v, pushHistory){
+  document.querySelectorAll(".bni").forEach(x=>x.classList.toggle("active", x.dataset.v===v));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  const target = document.getElementById("v-"+v);
+  if(target) target.classList.add("active");
+  if(v==="cal"){initCal();renderCal();}
+  if(v==="set")loadSetView();
+  curBniView = v;
+  if(pushHistory !== false){
+    try{ history.pushState({dvView:v}, "", ""); }catch(e){}
+  }
+}
+try{ history.replaceState({dvView:"read"}, "", ""); }catch(e){}
+window.addEventListener("popstate", (e)=>{
+  const v = (e.state && e.state.dvView) || "read";
+  goToView(v, false);
+});
 document.querySelectorAll(".bni").forEach(b=>{
   b.addEventListener("click",()=>{
-    document.querySelectorAll(".bni").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
     const v=b.dataset.v;
-    document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
-    document.getElementById("v-"+v).classList.add("active");
-    if(v==="cal"){initCal();renderCal();}
-    if(v==="set")loadSetView();
+    if(v===curBniView) return;
+    goToView(v, true);
   });
 });
 
@@ -1485,11 +1499,7 @@ function runSearch(){
 /* ===== 공통 점프 (인물/지명/원어/기록에서 본문으로 이동) ===== */
 function jumpToKey(key){
   const [bk,ch]=key.split(".");
-  document.querySelectorAll(".bni").forEach(x=>x.classList.remove("active"));
-  const btn=document.querySelector(".bni[data-v='read']");
-  if(btn) btn.classList.add("active");
-  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
-  document.getElementById("v-read").classList.add("active");
+  goToView("read", true);
   renderPassage(bk, parseInt(ch,10));
 }
 
