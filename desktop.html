@@ -130,8 +130,8 @@ select:hover, .btn:hover{border-color:var(--gold);}
 }
 .verse:hover{background:rgba(201,151,42,0.12);}
 .verse.selected{background:rgba(201,151,42,0.22); box-shadow: inset 3px 0 0 var(--gold);}
-.verse.tts-active-d{background:rgba(90,151,201,.22); box-shadow: inset 3px 0 0 #5a97c9;}
-.verse.tts-active-d .v-en,.verse.tts-active-d .v-kr{color:#8fc4ee;}
+.verse.tts-active-d{background:#f0d68a; box-shadow: inset 3px 0 0 var(--gold-bright); border-radius:6px;}
+.verse.tts-active-d .v-en,.verse.tts-active-d .v-kr{color:#3a2e0a !important; font-weight:700;}
 .vnum{font-family:var(--mono); font-size:11px; color:var(--gold); font-weight:600; margin-right:6px;}
 .v-en{font-family:var(--serif-en); font-size:calc(15px * var(--fs-scale));}
 .v-kr{font-family:var(--serif-kr); font-size:calc(15.5px * var(--fs-scale));}
@@ -206,6 +206,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
   border:1px solid transparent; gap:1px; padding:4px 2px; overflow:hidden;
 }
 .cal-day .cal-daynum{font-weight:700; font-size:12.5px; line-height:1.3;}
+.cal-day .cal-done-mark{width:16px;height:2px;background:var(--gold-bright);border-radius:2px;margin:2px 0 1px;}
 .cal-day .cal-evchip{font-size:9px; line-height:1.2; background:rgba(201,151,42,.22); color:var(--gold-bright); border-radius:4px; padding:0 3px; margin-top:1px; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;}
 .cal-day .cal-evmore{font-size:8.5px; color:var(--ink-text-dim);}
 .cal-day.empty{visibility:hidden;}
@@ -1469,7 +1470,7 @@ function buildCalGridHtmlD(){
     const evHtml = evs.slice(0,2).map(t=>`<div class="cal-evchip">${escapeHtml(t)}</div>`).join("")
       + (evs.length>2 ? `<div class="cal-evmore">+${evs.length-2}</div>` : "");
     html += `<div class="cal-day ${isToday?"today":""} ${done?"done":""}" data-date="${dateStr}">
-      <span class="cal-daynum">${day}${done?" 🪔":""}</span>${evHtml}
+      <span class="cal-daynum">${day}</span>${done?'<span class="cal-done-mark" title="성경읽기 완료"></span>':''}${evHtml}
     </div>`;
   }
   document.getElementById("cal-grid").innerHTML = html;
