@@ -161,6 +161,7 @@ a.bni{text-decoration:none;}
 .ttsbtn:hover{border-color:#5a97c9;}
 .ttsbtn.playing{background:rgba(90,151,201,.35);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn.ttsstop{border-color:rgba(220,120,120,.4);color:#e8a0a0;}
+.ttsvoicesel{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:8px;padding:6px 8px;color:var(--it);font-size:11.5px;max-width:100%;}
 .readmarkbtn{background:var(--ink2);border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:7px 14px;color:var(--it);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
 .readmarkbtn:hover{border-color:var(--gold);}
 .readmarkbtn.done{background:rgba(201,151,42,.35);color:var(--gold-b);border-color:var(--gold);}
@@ -219,6 +220,7 @@ a.bni{text-decoration:none;}
     <button class="ttsbtn" id="ttsKr" data-lang="kr">🇰🇷 한글로 듣기</button>
     <button class="ttsbtn" id="ttsEn" data-lang="en">🇺🇸 영어로 듣기</button>
     <button class="ttsbtn ttsstop" id="ttsStop" style="display:none;">⏹ 정지</button>
+    <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
   </div>
   <div class="readmarkbox" id="readmarkbox">
     <span style="font-size:12px;color:var(--itd);margin-right:2px;">이 장을 다 읽으셨나요?</span>
@@ -1390,6 +1392,43 @@ async function toggleReadMark(lang){
 }
 
 /* ===== 음성으로 듣기 (브라우저 내장 TTS, 별도 오디오 파일 없음) ===== */
+let availableVoices=[];
+let selectedVoiceURI={kr:null, en:null};
+
+function loadVoiceList(){
+  if(!("speechSynthesis" in window)) return;
+  availableVoices = window.speechSynthesis.getVoices() || [];
+}
+if("speechSynthesis" in window){
+  loadVoiceList();
+  window.speechSynthesis.onvoiceschanged = loadVoiceList;
+}
+
+// 이름에 이 키워드가 포함되면 더 자연스러운(고품질) 음성으로 간주해 우선순위를 높임
+const HQ_VOICE_HINTS = ["google","neural","natural","premium","enhanced","yuna","heami","sun-hi","injoon"];
+function scoreVoice(v){
+  const name=(v.name||"").toLowerCase();
+  let score=0;
+  HQ_VOICE_HINTS.forEach(h=>{ if(name.includes(h)) score+=10; });
+  if(v.localService===false) score+=3; // 온라인 음성이 대체로 더 자연스러운 경우가 많음
+  return score;
+}
+function voicesForLang(lang){
+  const prefix = lang==="en" ? "en" : "ko";
+  return availableVoices
+    .filter(v=>v.lang && v.lang.toLowerCase().startsWith(prefix))
+    .sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+}
+function populateVoiceSelect(lang){
+  const sel=document.getElementById("ttsVoiceSel");
+  if(!sel) return;
+  const voices=voicesForLang(lang);
+  if(!voices.length){ sel.style.display="none"; sel.innerHTML=""; return; }
+  sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${i===0?" ⭐추천":""}</option>`).join("");
+  const saved = selectedVoiceURI[lang];
+  if(saved && voices.some(v=>v.voiceURI===saved)) sel.value=saved;
+  sel.style.display="";
+}
 function startTTS(lang){
   if(!("speechSynthesis" in window)){
     alert("이 브라우저는 음성 읽기 기능을 지원하지 않습니다.");
@@ -1405,9 +1444,17 @@ function startTTS(lang){
     alert("이 언어의 본문을 찾을 수 없습니다.");
     return;
   }
+  populateVoiceSelect(lang);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = 0.95;
+  const sel=document.getElementById("ttsVoiceSel");
+  const chosenURI = (sel && sel.value) || null;
+  if(chosenURI){
+    const v = availableVoices.find(vv=>vv.voiceURI===chosenURI);
+    if(v) utter.voice = v;
+    selectedVoiceURI[lang]=chosenURI;
+  }
   utter.onend = ()=>{ setTTSButtonState(null); };
   utter.onerror = ()=>{ setTTSButtonState(null); };
   ttsUtterance = utter;
@@ -1424,6 +1471,14 @@ function setTTSButtonState(lang){
   if(enBtn) enBtn.classList.toggle("playing", lang==="en");
   if(stopBtn) stopBtn.style.display = lang ? "" : "none";
 }
+document.addEventListener("change", (e)=>{
+  if(e.target.id==="ttsVoiceSel"){
+    // 재생 중이던 언어를 판단해 선택한 음성으로 즉시 다시 읽기
+    const playingLang = document.getElementById("ttsKr").classList.contains("playing") ? "kr"
+                        : document.getElementById("ttsEn").classList.contains("playing") ? "en" : null;
+    if(playingLang){ selectedVoiceURI[playingLang]=e.target.value; startTTS(playingLang); }
+  }
+});
 
 /* ===== 즐겨찾기(별) ===== */
 async function markFavStars(){
