@@ -206,6 +206,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .cal-day:hover{background:rgba(201,151,42,0.08);}
 .cal-day.today{border-color:var(--gold); color:var(--ink-text);}
 .cal-day.done{background:rgba(201,151,42,0.16); color:var(--gold-bright);}
+.cal-day.selected{background:#c9972a; color:#1a1408; font-weight:800; box-shadow:0 0 0 2px #e8b94a;}
 .cal-day .lamp{font-size:13px;}
 .streak-box{background:linear-gradient(135deg, rgba(201,151,42,0.14), rgba(201,151,42,0.04)); border:1px solid rgba(201,151,42,0.25); border-radius:var(--radius); padding:20px; text-align:center; margin-bottom:18px;}
 .streak-num{font-family:var(--serif-en); font-size:38px; color:var(--gold-bright); font-weight:600;}
@@ -391,16 +392,16 @@ textarea:focus{outline:none; border-color:var(--gold);}
 
     <div class="ttsbox-d" id="ttsbox-d">
       <span style="font-size:13px;color:var(--ink-text-dim);margin-right:4px;">🔊 음성으로 듣기</span>
-      <button class="ttsbtn-d" id="ttsKrD" data-lang="kr">🇰🇷 한글로 듣기</button>
       <button class="ttsbtn-d" id="ttsEnD" data-lang="en">🇺🇸 영어로 듣기</button>
+      <button class="ttsbtn-d" id="ttsKrD" data-lang="kr">🇰🇷 한글로 듣기</button>
       <button class="ttsbtn-d ttsstop-d" id="ttsStopD" style="display:none;">⏹ 정지</button>
       <select id="ttsVoiceSelD" class="ttsvoicesel-d" style="display:none;"></select>
     </div>
 
     <div class="readmarkbox-d" id="readmarkbox-d">
       <span style="font-size:13px;color:var(--ink-text-dim);margin-right:4px;">이 장을 다 읽으셨나요?</span>
-      <button class="readmarkbtn-d" id="rmKrD" data-lang="kr">🇰🇷 한글 읽음</button>
       <button class="readmarkbtn-d" id="rmEnD" data-lang="en">🇺🇸 영어 읽음</button>
+      <button class="readmarkbtn-d" id="rmKrD" data-lang="kr">🇰🇷 한글 읽음</button>
     </div>
 
     <div class="study-drawer">
@@ -1292,9 +1293,11 @@ document.addEventListener("click", (e)=>{
 /* ===== 음성으로 듣기 (브라우저 내장 TTS, 별도 오디오 파일 없음) ===== */
 let availableVoicesD=[];
 let selectedVoiceURID={kr:null, en:null};
+let curTTSDropdownLangD="kr";
 function loadVoiceListD(){
   if(!("speechSynthesis" in window)) return;
   availableVoicesD = window.speechSynthesis.getVoices() || [];
+  populateVoiceSelectD(curTTSDropdownLangD);
 }
 if("speechSynthesis" in window){
   loadVoiceListD();
@@ -1317,11 +1320,13 @@ function voicesForLangD(lang){
 function populateVoiceSelectD(lang){
   const sel=document.getElementById("ttsVoiceSelD");
   if(!sel) return;
+  curTTSDropdownLangD=lang;
   const voices=voicesForLangD(lang);
   if(!voices.length){ sel.style.display="none"; sel.innerHTML=""; return; }
   sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${i===0?" ⭐추천":""}</option>`).join("");
   const saved = selectedVoiceURID[lang];
   if(saved && voices.some(v=>v.voiceURI===saved)) sel.value=saved;
+  else selectedVoiceURID[lang]=sel.value;
   sel.style.display="";
 }
 function startTTSD(lang){
@@ -1339,16 +1344,14 @@ function startTTSD(lang){
     alert("이 언어의 본문을 찾을 수 없습니다.");
     return;
   }
-  populateVoiceSelectD(lang);
+  if(curTTSDropdownLangD!==lang) populateVoiceSelectD(lang);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = 0.95;
-  const sel=document.getElementById("ttsVoiceSelD");
-  const chosenURI = (sel && sel.value) || null;
+  const chosenURI = selectedVoiceURID[lang];
   if(chosenURI){
     const v = availableVoicesD.find(vv=>vv.voiceURI===chosenURI);
     if(v) utter.voice = v;
-    selectedVoiceURID[lang]=chosenURI;
   }
   utter.onend = ()=>{ setTTSButtonStateD(null); };
   utter.onerror = ()=>{ setTTSButtonStateD(null); };
@@ -1368,8 +1371,9 @@ function setTTSButtonStateD(lang){
 }
 document.addEventListener("change", (e)=>{
   if(e.target.id==="ttsVoiceSelD"){
-    const playingLang = document.getElementById("ttsKrD").classList.contains("playing") ? "kr"
-                        : document.getElementById("ttsEnD").classList.contains("playing") ? "en" : null;
+    selectedVoiceURID[curTTSDropdownLangD]=e.target.value;
+    const playingLang = document.getElementById("ttsEnD").classList.contains("playing") ? "en"
+                        : document.getElementById("ttsKrD").classList.contains("playing") ? "kr" : null;
     if(playingLang){ selectedVoiceURID[playingLang]=e.target.value; startTTSD(playingLang); }
   }
 });
@@ -1416,7 +1420,11 @@ async function renderCalendar(){
   document.getElementById("cal-grid").innerHTML = html;
 
   document.querySelectorAll(".cal-day:not(.empty)").forEach(el=>{
-    el.addEventListener("click", ()=>showDayDetail(el.dataset.date));
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll(".cal-day.selected").forEach(x=>x.classList.remove("selected"));
+      el.classList.add("selected");
+      showDayDetail(el.dataset.date);
+    });
   });
 
   renderStreak(progress);
@@ -1665,6 +1673,7 @@ function loadSettingsIntoView(){
   var st  = document.getElementById("apikey-status");
   if(inp && window._apiBibleKey) inp.value = window._apiBibleKey;
   if(st) updateSettingsStatus();
+  restoreGDriveTokenIfValidD().then(updateGDriveStatusUID);
 }
 function updateSettingsStatus(){
   var st = document.getElementById("apikey-status");
@@ -2300,6 +2309,7 @@ document.addEventListener("change", function(e){
    ============================================================ */
 let gTokenClientD = null;
 let gAccessTokenD = null;
+let gTokenExpiresAtD = 0;
 const GDRIVE_FILE_NAME_D = "deungbul_backup.json";
 const GDRIVE_SCOPE_D = "https://www.googleapis.com/auth/drive.file";
 
@@ -2321,6 +2331,38 @@ async function loadGDriveClientIdD(){
   try{ const r = await window.storage.get("gdrive_client_id"); return r ? r.value : ""; }catch(e){ return ""; }
 }
 
+/* 토큰과 만료 시각을 저장소에 함께 보관 — 화면을 전환해도(같은 세션 안에서는) 연결 상태가 끊기지 않도록 함 */
+async function saveGDriveTokenD(token, expiresInSec){
+  gAccessTokenD = token;
+  gTokenExpiresAtD = Date.now() + (Number(expiresInSec||3600) * 1000) - 30000;
+  try{ await window.storage.set("gdrive_token_cache", JSON.stringify({token, expiresAt: gTokenExpiresAtD})); }catch(e){}
+}
+async function restoreGDriveTokenIfValidD(){
+  if(gAccessTokenD && Date.now() < gTokenExpiresAtD) return true;
+  try{
+    const r = await window.storage.get("gdrive_token_cache");
+    if(r && r.value){
+      const parsed = JSON.parse(r.value);
+      if(parsed && parsed.token && parsed.expiresAt && Date.now() < parsed.expiresAt){
+        gAccessTokenD = parsed.token;
+        gTokenExpiresAtD = parsed.expiresAt;
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+function updateGDriveStatusUID(){
+  const st = document.getElementById("gdrive-status");
+  if(!st) return;
+  if(gAccessTokenD && Date.now() < gTokenExpiresAtD){
+    const minsLeft = Math.max(0, Math.round((gTokenExpiresAtD - Date.now())/60000));
+    st.textContent = "✅ 구글 드라이브에 연결되었습니다. (약 "+minsLeft+"분 더 유지)";
+  } else {
+    st.textContent = "연결되지 않음";
+  }
+}
+
 async function connectGoogleDriveD(){
   const st = document.getElementById("gdrive-status");
   const idInput = document.getElementById("gdrive-clientid-input");
@@ -2340,10 +2382,10 @@ async function connectGoogleDriveD(){
     gTokenClientD = google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: GDRIVE_SCOPE_D,
-      callback: (resp)=>{
+      callback: async (resp)=>{
         if(resp && resp.access_token){
-          gAccessTokenD = resp.access_token;
-          if(st) st.textContent = "✅ 구글 드라이브에 연결되었습니다.";
+          await saveGDriveTokenD(resp.access_token, resp.expires_in);
+          updateGDriveStatusUID();
         } else {
           if(st) st.textContent = "⚠️ 인증에 실패했습니다.";
         }
@@ -2356,10 +2398,10 @@ async function connectGoogleDriveD(){
 }
 
 async function ensureGDriveTokenD(){
-  if(gAccessTokenD) return gAccessTokenD;
+  if(await restoreGDriveTokenIfValidD()) return gAccessTokenD;
   await connectGoogleDriveD();
   for(let i=0;i<50;i++){
-    if(gAccessTokenD) return gAccessTokenD;
+    if(gAccessTokenD && Date.now() < gTokenExpiresAtD) return gAccessTokenD;
     await new Promise(r=>setTimeout(r,100));
   }
   throw new Error("구글 인증이 완료되지 않았습니다. 다시 시도해주세요.");

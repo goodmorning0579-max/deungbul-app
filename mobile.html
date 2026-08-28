@@ -87,6 +87,7 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .calbody{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cdow{text-align:center;font-size:10px;color:var(--itd);padding-bottom:4px;}
 .cday{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.02);font-size:11px;color:var(--itd);}
+.cday.selected{background:var(--gold);color:#1a1408;font-weight:800;box-shadow:0 0 0 2px var(--gold-b);}
 .cday.today{border:1px solid var(--gold);color:var(--it);}
 .cday.done{background:rgba(201,151,42,.16);color:var(--gold-b);}
 .cday.empty{visibility:hidden;}
@@ -889,6 +890,7 @@ function loadSetView(){
   var st  = document.getElementById("apikey-status");
   if(inp && window._apiBibleKey) inp.value = window._apiBibleKey;
   if(st)  st.textContent = window._apiBibleKey ? "✅ 키가 저장되어 있습니다." : "저장된 키가 없습니다.";
+  restoreGDriveTokenIfValid().then(updateGDriveStatusUI);
 }
 
 
@@ -1396,10 +1398,12 @@ async function toggleReadMark(lang){
 /* ===== 음성으로 듣기 (브라우저 내장 TTS, 별도 오디오 파일 없음) ===== */
 let availableVoices=[];
 let selectedVoiceURI={kr:null, en:null};
+let curTTSDropdownLang="kr";
 
 function loadVoiceList(){
   if(!("speechSynthesis" in window)) return;
   availableVoices = window.speechSynthesis.getVoices() || [];
+  populateVoiceSelect(curTTSDropdownLang);
 }
 if("speechSynthesis" in window){
   loadVoiceList();
@@ -1424,11 +1428,13 @@ function voicesForLang(lang){
 function populateVoiceSelect(lang){
   const sel=document.getElementById("ttsVoiceSel");
   if(!sel) return;
+  curTTSDropdownLang=lang;
   const voices=voicesForLang(lang);
   if(!voices.length){ sel.style.display="none"; sel.innerHTML=""; return; }
   sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${i===0?" ⭐추천":""}</option>`).join("");
   const saved = selectedVoiceURI[lang];
   if(saved && voices.some(v=>v.voiceURI===saved)) sel.value=saved;
+  else selectedVoiceURI[lang]=sel.value; // 저장된 선택이 없으면 추천(첫 항목)을 기본 선택으로 저장
   sel.style.display="";
 }
 function startTTS(lang){
@@ -1446,16 +1452,14 @@ function startTTS(lang){
     alert("이 언어의 본문을 찾을 수 없습니다.");
     return;
   }
-  populateVoiceSelect(lang);
+  if(curTTSDropdownLang!==lang) populateVoiceSelect(lang);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = 0.95;
-  const sel=document.getElementById("ttsVoiceSel");
-  const chosenURI = (sel && sel.value) || null;
+  const chosenURI = selectedVoiceURI[lang];
   if(chosenURI){
     const v = availableVoices.find(vv=>vv.voiceURI===chosenURI);
     if(v) utter.voice = v;
-    selectedVoiceURI[lang]=chosenURI;
   }
   utter.onend = ()=>{ setTTSButtonState(null); };
   utter.onerror = ()=>{ setTTSButtonState(null); };
@@ -1475,9 +1479,10 @@ function setTTSButtonState(lang){
 }
 document.addEventListener("change", (e)=>{
   if(e.target.id==="ttsVoiceSel"){
-    // 재생 중이던 언어를 판단해 선택한 음성으로 즉시 다시 읽기
-    const playingLang = document.getElementById("ttsKr").classList.contains("playing") ? "kr"
-                        : document.getElementById("ttsEn").classList.contains("playing") ? "en" : null;
+    // 재생 중이 아니어도 선택은 항상 저장되며, 재생 중이면 즉시 그 음성으로 다시 읽기 시작
+    selectedVoiceURI[curTTSDropdownLang]=e.target.value;
+    const playingLang = document.getElementById("ttsEn").classList.contains("playing") ? "en"
+                        : document.getElementById("ttsKr").classList.contains("playing") ? "kr" : null;
     if(playingLang){ selectedVoiceURI[playingLang]=e.target.value; startTTS(playingLang); }
   }
 });
@@ -1764,7 +1769,12 @@ document.addEventListener("click", function(e){
   }
 
   const cday=e.target.closest(".cday");
-  if(cday && cday.dataset.date){ renderDayDetail(cday.dataset.date); return; }
+  if(cday && cday.dataset.date){
+    document.querySelectorAll(".cday.selected").forEach(x=>x.classList.remove("selected"));
+    cday.classList.add("selected");
+    renderDayDetail(cday.dataset.date);
+    return;
+  }
 
   if(e.target.id==="dayNoteSaveBtn"){
     const ta=document.getElementById("dayNoteInput");
@@ -1868,6 +1878,7 @@ document.addEventListener("change", function(e){
    ============================================================ */
 let gTokenClient = null;
 let gAccessToken = null;
+let gTokenExpiresAt = 0;
 const GDRIVE_FILE_NAME = "deungbul_backup.json";
 const GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
@@ -1889,6 +1900,38 @@ async function loadGDriveClientId(){
   try{ const r = await stor.get("gdrive_client_id"); return r ? r.value : ""; }catch(e){ return ""; }
 }
 
+/* 토큰과 만료 시각을 저장소에 함께 보관 — 화면을 전환해도(같은 세션 안에서는) 연결 상태가 끊기지 않도록 함 */
+async function saveGDriveToken(token, expiresInSec){
+  gAccessToken = token;
+  gTokenExpiresAt = Date.now() + (Number(expiresInSec||3600) * 1000) - 30000; // 30초 여유
+  try{ await stor.set("gdrive_token_cache", JSON.stringify({token, expiresAt: gTokenExpiresAt})); }catch(e){}
+}
+async function restoreGDriveTokenIfValid(){
+  if(gAccessToken && Date.now() < gTokenExpiresAt) return true;
+  try{
+    const r = await stor.get("gdrive_token_cache");
+    if(r && r.value){
+      const parsed = JSON.parse(r.value);
+      if(parsed && parsed.token && parsed.expiresAt && Date.now() < parsed.expiresAt){
+        gAccessToken = parsed.token;
+        gTokenExpiresAt = parsed.expiresAt;
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+function updateGDriveStatusUI(){
+  const st = document.getElementById("gdrive-status");
+  if(!st) return;
+  if(gAccessToken && Date.now() < gTokenExpiresAt){
+    const minsLeft = Math.max(0, Math.round((gTokenExpiresAt - Date.now())/60000));
+    st.textContent = "✅ 구글 드라이브에 연결되었습니다. (약 "+minsLeft+"분 더 유지)";
+  } else {
+    st.textContent = "연결되지 않음";
+  }
+}
+
 async function connectGoogleDrive(){
   const st = document.getElementById("gdrive-status");
   const idInput = document.getElementById("gdrive-clientid-input");
@@ -1908,10 +1951,10 @@ async function connectGoogleDrive(){
     gTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: GDRIVE_SCOPE,
-      callback: (resp)=>{
+      callback: async (resp)=>{
         if(resp && resp.access_token){
-          gAccessToken = resp.access_token;
-          if(st) st.textContent = "✅ 구글 드라이브에 연결되었습니다.";
+          await saveGDriveToken(resp.access_token, resp.expires_in);
+          updateGDriveStatusUI();
         } else {
           if(st) st.textContent = "⚠️ 인증에 실패했습니다.";
         }
@@ -1924,11 +1967,11 @@ async function connectGoogleDrive(){
 }
 
 async function ensureGDriveToken(){
-  if(gAccessToken) return gAccessToken;
+  if(await restoreGDriveTokenIfValid()) return gAccessToken;
   await connectGoogleDrive();
   // 콜백이 비동기이므로 잠깐 대기
   for(let i=0;i<50;i++){
-    if(gAccessToken) return gAccessToken;
+    if(gAccessToken && Date.now() < gTokenExpiresAt) return gAccessToken;
     await new Promise(r=>setTimeout(r,100));
   }
   throw new Error("구글 인증이 완료되지 않았습니다. 다시 시도해주세요.");
