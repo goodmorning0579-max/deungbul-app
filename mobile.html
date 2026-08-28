@@ -155,9 +155,11 @@ a.bni{text-decoration:none;}
 .favstar{cursor:pointer;user-select:none;border-radius:5px;padding:0 2px;}
 .favstar.faved{font-weight:900;color:#1a1408;}
 .chnav{display:flex;justify-content:center;gap:10px;margin:4px 0 14px;}
-.readmarkbox{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:10px 12px;background:var(--ink3);border-radius:10px;border:1px solid rgba(201,151,42,.15);}
-.ttsbox{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px;padding:10px 12px;background:var(--ink3);border-radius:10px;border:1px solid rgba(90,151,201,.2);}
-.ttsbtn{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:20px;padding:7px 14px;color:var(--it);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
+.readmarkbox{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:0 0 10px;padding:9px 10px;background:var(--ink3);border-radius:10px;border:1px solid rgba(201,151,42,.15);overflow-x:auto;}
+.ttsbox{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:0 0 8px;padding:9px 10px;background:var(--ink3);border-radius:10px;border:1px solid rgba(90,151,201,.2);overflow-x:auto;}
+.widgetlabel{font-size:11.5px;color:var(--itd);white-space:nowrap;flex-shrink:0;}
+.ttsbtn{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:20px;padding:6px 11px;color:var(--it);font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0;}
+.readmarkbtn{background:var(--ink2);border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:6px 11px;color:var(--it);font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;flex-shrink:0;}
 .ttsbtn:hover{border-color:#5a97c9;}
 .ttsbtn.playing{background:rgba(90,151,201,.35);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn.ttsstop{border-color:rgba(220,120,120,.4);color:#e8a0a0;}
@@ -216,16 +218,16 @@ a.bni{text-decoration:none;}
   </div>
   <div class="pcard" id="pcard"></div>
   <div class="ttsbox" id="ttsbox">
-    <span style="font-size:12px;color:var(--itd);margin-right:2px;">🔊 음성으로 듣기</span>
-    <button class="ttsbtn" id="ttsKr" data-lang="kr">🇰🇷 한글로 듣기</button>
-    <button class="ttsbtn" id="ttsEn" data-lang="en">🇺🇸 영어로 듣기</button>
-    <button class="ttsbtn ttsstop" id="ttsStop" style="display:none;">⏹ 정지</button>
+    <span class="widgetlabel">🔊 듣기</span>
+    <button class="ttsbtn" id="ttsEn" data-lang="en">🇺🇸 영어</button>
+    <button class="ttsbtn" id="ttsKr" data-lang="kr">🇰🇷 한글</button>
+    <button class="ttsbtn ttsstop" id="ttsStop" style="display:none;">⏹</button>
     <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
   </div>
   <div class="readmarkbox" id="readmarkbox">
-    <span style="font-size:12px;color:var(--itd);margin-right:2px;">이 장을 다 읽으셨나요?</span>
-    <button class="readmarkbtn" id="rmKr" data-lang="kr">🇰🇷 한글 읽음</button>
-    <button class="readmarkbtn" id="rmEn" data-lang="en">🇺🇸 영어 읽음</button>
+    <span class="widgetlabel">✅ 읽음</span>
+    <button class="readmarkbtn" id="rmEn" data-lang="en">🇺🇸 영어</button>
+    <button class="readmarkbtn" id="rmKr" data-lang="kr">🇰🇷 한글</button>
   </div>
   <div class="stabs">
     <div class="stab active" data-t="lang">🔤 원어</div>
