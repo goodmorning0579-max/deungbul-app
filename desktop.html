@@ -207,7 +207,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 }
 .cal-day .cal-daynum{font-weight:700; font-size:12.5px; line-height:1.3;}
 .cal-day .cal-done-mark{width:16px;height:2px;background:var(--gold-bright);border-radius:2px;margin:2px 0 1px;}
-.cal-day .cal-evchip{font-size:9px; line-height:1.2; background:rgba(201,151,42,.22); color:var(--gold-bright); border-radius:4px; padding:0 3px; margin-top:1px; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;}
+.cal-day .cal-evchip{font-size:9px; line-height:1.2; background:rgba(201,151,42,.22); color:var(--gold-bright); border-radius:4px; padding:0 3px; margin-top:1px; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; cursor:pointer;}
 .cal-day .cal-evmore{font-size:8.5px; color:var(--ink-text-dim);}
 .cal-day.empty{visibility:hidden;}
 .cal-day:hover{background:rgba(201,151,42,0.08);}
@@ -511,10 +511,12 @@ textarea:focus{outline:none; border-color:var(--gold);}
         <div class="cal-head">
           <h3 id="cal-month-label"></h3>
           <div style="display:flex; gap:8px;">
+            <button class="btn small" id="cal-add-event-btn">➕ 일정 추가</button>
             <button class="btn small" id="cal-prev">‹ 이전달</button>
             <button class="btn small" id="cal-next">다음달 ›</button>
           </div>
         </div>
+        <div id="cal-gstatus" style="font-size:12px;color:var(--ink-text-dim);margin-bottom:6px;min-height:16px;"></div>
         <div class="cal-grid" id="cal-dow-row"></div>
         <div class="cal-grid" id="cal-grid" style="margin-top:6px;"></div>
       </div>
@@ -1500,6 +1502,8 @@ async function renderCalendar(){
   renderLampPath(progMap);
 }
 
+const CAL_COLOR_MAP={ "11":"#d5453a", "6":"#e8a13c", null:"#7a8ba0", undefined:"#7a8ba0" }; // 매우중요=빨강, 중요=주황, 보통=회청색
+function calEventColor(colorId){ return CAL_COLOR_MAP[colorId] || CAL_COLOR_MAP[null]; }
 function buildCalGridHtmlD(){
   const progMap = window._calProgMapD || {};
   const firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -1511,7 +1515,7 @@ function buildCalGridHtmlD(){
     const isToday = dateStr === todayStr();
     const done = !!progMap[dateStr];
     const evs = (CAL_EVENTS_CACHE_D[dateStr]||[]);
-    const evHtml = evs.slice(0,2).map(t=>`<div class="cal-evchip">${escapeHtml(t)}</div>`).join("")
+    const evHtml = evs.slice(0,2).map(ev=>`<div class="cal-evchip" style="background:${calEventColor(ev.colorId)}22;color:${calEventColor(ev.colorId)};border-left:3px solid ${calEventColor(ev.colorId)};" data-evid="${ev.id}" data-evdate="${dateStr}">${ev.time?ev.time+" ":""}${escapeHtml(ev.title)}</div>`).join("")
       + (evs.length>2 ? `<div class="cal-evmore">+${evs.length-2}</div>` : "");
     html += `<div class="cal-day ${isToday?"today":""} ${done?"done":""}" data-date="${dateStr}">
       <span class="cal-daynum">${day}</span>${done?'<span class="cal-done-mark" title="성경읽기 완료"></span>':''}${evHtml}
@@ -1519,24 +1523,111 @@ function buildCalGridHtmlD(){
   }
   document.getElementById("cal-grid").innerHTML = html;
   document.querySelectorAll(".cal-day:not(.empty)").forEach(el=>{
-    el.addEventListener("click", ()=>{
+    el.addEventListener("click", (e)=>{
+      if(e.target.closest(".cal-evchip")) return; // 일정 칩 클릭은 별도 핸들러가 처리
       document.querySelectorAll(".cal-day.selected").forEach(x=>x.classList.remove("selected"));
       el.classList.add("selected");
       showDayDetail(el.dataset.date);
     });
   });
+  document.querySelectorAll(".cal-evchip").forEach(chip=>{
+    chip.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      openEventModalD(chip.dataset.evid, chip.dataset.evdate);
+    });
+  });
 }
+
+/* ===== 일정 추가/수정/삭제 (Google Calendar API) ===== */
+function openEventModalD(eventId, dateStr){
+  const modal=document.getElementById("cal-event-modal");
+  if(!modal) return;
+  let ev=null;
+  if(eventId){
+    const list=CAL_EVENTS_CACHE_D[dateStr]||[];
+    ev=list.find(x=>x.id===eventId);
+  }
+  document.getElementById("cal-ev-id").value = eventId||"";
+  document.getElementById("cal-ev-title").value = ev? ev.title : "";
+  document.getElementById("cal-ev-date").value = dateStr || todayStr();
+  document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
+  document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
+  document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
+  document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
+  modal.style.display="flex";
+}
+function closeEventModalD(){
+  const modal=document.getElementById("cal-event-modal");
+  if(modal) modal.style.display="none";
+}
+async function saveEventD(){
+  const id=document.getElementById("cal-ev-id").value;
+  const title=document.getElementById("cal-ev-title").value.trim();
+  const date=document.getElementById("cal-ev-date").value;
+  const time=document.getElementById("cal-ev-time").value;
+  const colorId=document.getElementById("cal-ev-color").value;
+  if(!title){ alert("일정 제목을 입력해주세요."); return; }
+  if(!date){ alert("날짜를 선택해주세요."); return; }
+  const token = await ensureCalendarTokenD();
+  if(!token){ alert("구글 인증이 필요합니다."); return; }
+  const body = { summary: title };
+  if(colorId) body.colorId = colorId;
+  if(time){
+    body.start = { dateTime: date+"T"+time+":00", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+    body.end = { dateTime: date+"T"+time+":00", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+  }else{
+    body.start = { date: date };
+    body.end = { date: date };
+  }
+  try{
+    const url = id
+      ? `https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`
+      : `https://www.googleapis.com/calendar/v3/calendars/primary/events`;
+    const res = await fetch(url, {
+      method: id ? "PATCH" : "POST",
+      headers: { "Authorization":"Bearer "+token, "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){ alert("일정 저장에 실패했습니다."); return; }
+    closeEventModalD();
+    CAL_EVENTS_MONTH_KEY_D = ""; // 캐시 무효화하여 다시 불러오게 함
+    loadCalendarEventsD();
+  }catch(e){ alert("일정 저장 중 오류: "+e.message); }
+}
+async function deleteEventD(){
+  const id=document.getElementById("cal-ev-id").value;
+  if(!id) return;
+  if(!confirm("이 일정을 삭제할까요?")) return;
+  const token = await ensureCalendarTokenD();
+  if(!token){ alert("구글 인증이 필요합니다."); return; }
+  try{
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`, {
+      method:"DELETE", headers:{ "Authorization":"Bearer "+token }
+    });
+    if(!res.ok && res.status!==410){ alert("삭제에 실패했습니다."); return; }
+    closeEventModalD();
+    CAL_EVENTS_MONTH_KEY_D = "";
+    loadCalendarEventsD();
+  }catch(e){ alert("삭제 중 오류: "+e.message); }
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="cal-add-event-btn"){ openEventModalD(null, todayStr()); return; }
+  if(e.target.id==="cal-ev-save-btn"){ saveEventD(); return; }
+  if(e.target.id==="cal-ev-delete-btn"){ deleteEventD(); return; }
+  if(e.target.id==="cal-ev-cancel-btn" || e.target.id==="cal-event-modal"){ closeEventModalD(); return; }
+});
 
 /* ===== 실제 구글 캘린더 일정 연동 (기존 구글 로그인 재사용, 캘린더 읽기 권한 추가) ===== */
 let CAL_EVENTS_CACHE_D = {};
 let CAL_EVENTS_MONTH_KEY_D = "";
 async function loadCalendarEventsD(){
   const monthKey = calYear+"-"+calMonth;
-  if(!(await isGDriveAuthorizedD())){ return; }
+  if(!(await isGDriveAuthorizedD())){ updateCalStatusD(""); return; }
   if(CAL_EVENTS_MONTH_KEY_D === monthKey){ return; }
+  updateCalStatusD("🔍 구글 캘린더 일정을 불러오는 중...");
   try{
     const token = await ensureCalendarTokenD();
-    if(!token) return;
+    if(!token){ updateCalStatusD("⚠️ 구글 인증에 실패했습니다."); return; }
     const start = new Date(calYear, calMonth, 1);
     const end = new Date(calYear, calMonth+1, 1);
     const params = new URLSearchParams({
@@ -1546,19 +1637,33 @@ async function loadCalendarEventsD(){
     const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?"+params.toString(), {
       headers: { Authorization: "Bearer "+token }
     });
-    if(!res.ok) return;
+    if(!res.ok){
+      if(res.status===403 || res.status===401){
+        updateCalStatusD("⚠️ 캘린더 접근 권한이 없습니다. 설정에서 '연결 해제' 후 다시 연결해주세요 (권한이 추가되어 재승인이 필요합니다).");
+      }else{
+        updateCalStatusD("⚠️ 일정을 불러오지 못했습니다 (오류 "+res.status+").");
+      }
+      return;
+    }
     const data = await res.json();
     const map = {};
     (data.items||[]).forEach(ev=>{
       const dateStr = (ev.start && (ev.start.date || (ev.start.dateTime||"").slice(0,10)));
       if(!dateStr) return;
       map[dateStr] = map[dateStr] || [];
-      map[dateStr].push(ev.summary || "일정");
+      map[dateStr].push({id:ev.id, title:ev.summary||"일정", colorId:ev.colorId||null, time:(ev.start&&ev.start.dateTime)?ev.start.dateTime.slice(11,16):null});
     });
     CAL_EVENTS_CACHE_D = map;
     CAL_EVENTS_MONTH_KEY_D = monthKey;
+    updateCalStatusD("");
     buildCalGridHtmlD();
-  }catch(e){ /* 조용히 무시 — 캘린더 연동은 선택 기능 */ }
+  }catch(e){
+    updateCalStatusD("⚠️ 일정을 불러오는 중 오류가 발생했습니다: "+e.message);
+  }
+}
+function updateCalStatusD(msg){
+  const el=document.getElementById("cal-gstatus");
+  if(el) el.textContent=msg;
 }
 async function ensureCalendarTokenD(){
   if(gAccessTokenD && Date.now() < gTokenExpiresAtD) return gAccessTokenD;
@@ -3302,5 +3407,38 @@ window.loadApiKey().then(async function(){
   });
 })();
 </script>
+
+<!-- 구글 캘린더 일정 추가/수정 모달 -->
+<div id="cal-event-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#1a1f2e;border:1px solid rgba(201,151,42,.35);border-radius:14px;padding:22px;width:min(380px,90vw);">
+    <h3 id="cal-event-modal-title" style="color:var(--gold-bright);margin-bottom:14px;">➕ 새 일정 추가</h3>
+    <input type="hidden" id="cal-ev-id">
+    <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">제목</label>
+    <input type="text" id="cal-ev-title" placeholder="일정 제목" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13.5px;margin-bottom:12px;">
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="flex:1;">
+        <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">날짜</label>
+        <input type="date" id="cal-ev-date" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 8px;color:var(--ink-text);font-size:13px;">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">시간 (선택)</label>
+        <input type="time" id="cal-ev-time" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 8px;color:var(--ink-text);font-size:13px;">
+      </div>
+    </div>
+    <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">중요도</label>
+    <select id="cal-ev-color" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13px;margin-bottom:18px;">
+      <option value="">🔵 보통</option>
+      <option value="6">🟠 중요</option>
+      <option value="11">🔴 매우 중요</option>
+    </select>
+    <div style="display:flex;gap:8px;justify-content:space-between;">
+      <button id="cal-ev-delete-btn" class="btn small" style="border-color:rgba(220,120,120,.4);color:#e8a0a0;">🗑 삭제</button>
+      <div style="display:flex;gap:8px;">
+        <button id="cal-ev-cancel-btn" class="btn small">취소</button>
+        <button id="cal-ev-save-btn" class="btn small" style="background:var(--gold);color:#1a1408;font-weight:700;">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
