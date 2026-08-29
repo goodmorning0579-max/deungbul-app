@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>등불 - 성경연구앱 (모바일)</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f0d0a">
@@ -87,17 +87,17 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .calhead h3{font-size:17px;color:var(--gold-b);font-weight:800;}
 .cbtn{background:var(--ink3);border:1px solid rgba(201,151,42,.2);color:var(--it);border-radius:50%;width:32px;height:32px;font-size:15px;display:flex;align-items:center;justify-content:center;padding:0;}
-.calbody{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
-.calbody#calgrid{grid-auto-rows:1fr;}
+.calbody{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.calbody#calgrid{grid-auto-rows:minmax(64px,1fr);}
 .cdow{text-align:center;font-size:11px;color:var(--itd);padding-bottom:5px;font-weight:700;}
 .cdow:first-child{color:#c9767a;}
 .cdow:last-child{color:#6ea3c9;}
-.cday{aspect-ratio:0.85;border-radius:8px;display:flex;flex-direction:column;align-items:center;padding:4px 1px 2px;background:rgba(255,255,255,.03);font-size:11px;color:var(--itd);overflow:hidden;position:relative;border:1px solid transparent;}
-.cday .cdaynum{font-weight:700;font-size:12.5px;line-height:1.3;color:var(--it);}
-.cday .cdone-mark{width:14px;height:2px;background:var(--gold);border-radius:2px;margin:2px 0 1px;}
-.cday .cnotemark{font-size:8px;vertical-align:middle;}
-.cday .cevchip{font-size:7px;line-height:1.15;background:rgba(201,151,42,.22);color:var(--gold-b);border-radius:3px;padding:0 2px;margin-top:1px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
-.cday .cevmore{font-size:6.5px;color:var(--itd);}
+.cday{border-radius:8px;display:flex;flex-direction:column;align-items:center;padding:5px 2px 3px;background:rgba(255,255,255,.03);font-size:11px;color:var(--itd);overflow:hidden;position:relative;border:1px solid transparent;}
+.cday .cdaynum{font-weight:700;font-size:13.5px;line-height:1.3;color:var(--it);}
+.cday .cdone-mark{width:16px;height:2.5px;background:var(--gold);border-radius:2px;margin:3px 0 2px;}
+.cday .cnotemark{font-size:9px;vertical-align:middle;}
+.cday .cevchip{font-size:8px;line-height:1.25;background:rgba(201,151,42,.22);color:var(--gold-b);border-radius:3px;padding:1px 2px;margin-top:2px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
+.cday .cevmore{font-size:7px;color:var(--itd);}
 .cday.selected{background:var(--gold);border-color:var(--gold-b);box-shadow:0 0 0 2px rgba(201,151,42,.3);}
 .cday.selected .cdaynum{color:#1a1408;}
 .cday.selected .cdone-mark{background:#1a1408;}
@@ -178,6 +178,9 @@ a.bni{text-decoration:none;}
 .ttsbtn.playing{background:rgba(90,151,201,.35);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn.ttsstop{border-color:rgba(220,120,120,.4);color:#e8a0a0;}
 .ttsbtn.ttscontinuous.on{background:rgba(201,151,42,.32);color:var(--gold-b);border-color:var(--gold);}
+.ttsratewrap{display:flex;gap:3px;}
+.ttsratebtn{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:14px;padding:6px 9px;color:var(--it);font-size:11px;font-weight:600;cursor:pointer;}
+.ttsratebtn.active{background:rgba(90,151,201,.35);color:#8fc4ee;border-color:#5a97c9;}
 .ttsvoicesel{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:8px;padding:6px 8px;color:var(--it);font-size:11.5px;max-width:100%;}
 .readmarkbtn{background:var(--ink2);border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:7px 14px;color:var(--it);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
 .readmarkbtn:hover{border-color:var(--gold);}
@@ -244,6 +247,12 @@ a.bni{text-decoration:none;}
       <option value="5">5번 반복</option>
       <option value="-1">계속 반복</option>
     </select>
+    <span class="ttsratewrap">
+      <button class="ttsratebtn" data-rate="0.7">x0.7</button>
+      <button class="ttsratebtn active" data-rate="1.0">x1.0</button>
+      <button class="ttsratebtn" data-rate="1.5">x1.5</button>
+      <button class="ttsratebtn" data-rate="2.0">x2.0</button>
+    </span>
     <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
   </div>
   <div class="pcard" id="pcard"></div>
@@ -1427,7 +1436,7 @@ async function renderCal(){
     const done=PROG_CACHE[ds] && PROG_CACHE[ds].length;
     const hasNote=noteDates.has(ds);
     const evs = (CAL_EVENTS_CACHE[ds]||[]);
-    const evHtml = evs.slice(0,2).map(t=>`<div class="cevchip">${esc(t)}</div>`).join("")
+    const evHtml = evs.slice(0,2).map(ev=>`<div class="cevchip" style="background:${calEventColor(ev.colorId)}22;color:${calEventColor(ev.colorId)};border-left:2px solid ${calEventColor(ev.colorId)};" data-evid="${ev.id}" data-evdate="${ds}">${ev.time?ev.time+" ":""}${esc(ev.title)}</div>`).join("")
       + (evs.length>2 ? `<div class="cevmore">+${evs.length-2}</div>` : "");
     const cls="cday"+(done?" done":"")+(ds===todayS?" today":"");
     cells+=`<div class="${cls}" data-date="${ds}"><span class="cdaynum">${d}${hasNote?' <span class="cnotemark" title="메모 있음">📝</span>':''}</span>${done?'<span class="cdone-mark" title="성경읽기 완료"></span>':''}${evHtml}</div>`;
@@ -1576,6 +1585,7 @@ async function renderDayDetail(ds){
   const pks=(PROG_CACHE && PROG_CACHE[ds]) || [];
   const entries=(await allJ()).filter(e=>e.date===ds);
   const notes=await getDayNotes(ds);
+  const gEvents=(CAL_EVENTS_CACHE && CAL_EVENTS_CACHE[ds]) || [];
   let pkLangHtml="";
   if(pks.length){
     const langChips=await Promise.all(pks.map(async k=>{
@@ -1587,8 +1597,13 @@ async function renderDayDetail(ds){
   } else {
     pkLangHtml='<p style="font-size:12px;color:var(--itd);">이 날 읽은 기록이 없습니다.</p>';
   }
+  const gEventsHtml = gEvents.length ? `<div style="margin:8px 0;">
+      <div style="font-size:12px;font-weight:700;color:var(--gold-b);margin-bottom:5px;">📅 구글 캘린더 일정</div>
+      ${gEvents.map(ev=>`<div class="cevchip" style="display:block;margin-bottom:4px;padding:6px 8px;cursor:pointer;background:${calEventColor(ev.colorId)}22;color:${calEventColor(ev.colorId)};border-left:3px solid ${calEventColor(ev.colorId)};" data-evid="${ev.id}" data-evdate="${ds}">${ev.time?ev.time+" · ":""}${esc(ev.title)}</div>`).join("")}
+    </div>` : "";
   det.innerHTML=`<h4>${ds}</h4>
     ${pkLangHtml}
+    ${gEventsHtml}
     ${entries.length?entries.map(e=>`<div class="ecard"><div class="emeta"><span class="edot" style="background:${JC[e.type]||'#888'}"></span>${TL[e.type]||e.type} · ${passageLabel(e.pk)}</div><div class="etext">${esc(e.text)}</div></div>`).join(""):""}
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(201,151,42,.12);">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">📌 이 날의 메모</div>
@@ -1683,6 +1698,7 @@ function populateVoiceSelect(lang){
 let ttsPlaybackId = 0; // 정지 시 이 값을 바꿔서 진행 중이던 절 재생 큐를 무효화함
 let ttsContinuous = false; // true면 한 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생
 let ttsRepeatTotal = 1; // 같은 장을 반복할 총 횟수 (1=반복 없음, -1=무한)
+let ttsRate = 1.0; // 재생 속도 (0.7 / 1.0 / 1.5 / 2.0)
 let ttsRepeatLeft = 1; // 현재 재생 중 남은 반복 횟수
 let ttsAutoAdvancing = false; // 연속재생으로 인해 자동으로 장이 넘어가는 중임을 표시 (이때는 재생을 끊지 않음)
 function clearTTSHighlight(){
@@ -1726,7 +1742,7 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   highlightVerse(v.n);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
-  utter.rate = 0.95;
+  utter.rate = ttsRate;
   utter.volume = 1;
   const chosenURI = selectedVoiceURI[lang];
   if(chosenURI){
@@ -2141,6 +2157,19 @@ document.addEventListener("click", function(e){
     ttsContinuous = !ttsContinuous;
     e.target.classList.toggle("on", ttsContinuous);
     try{ stor.set("ttsContinuous", ttsContinuous ? "1" : "0"); }catch(err){}
+    return;
+  }
+  const rateBtn=e.target.closest(".ttsratebtn");
+  if(rateBtn){
+    ttsRate = parseFloat(rateBtn.dataset.rate);
+    document.querySelectorAll(".ttsratebtn").forEach(b=>b.classList.toggle("active", b===rateBtn));
+    try{ stor.set("ttsRate", String(ttsRate)); }catch(err){}
+    // 재생 중이면 현재 utterance의 rate만 즉시 바꿀 수 없으므로(Web Speech API 제약), 같은 절부터 새 속도로 다시 시작
+    if(window.speechSynthesis && window.speechSynthesis.speaking){
+      const playingLang = document.getElementById("ttsEn").classList.contains("playing") ? "en"
+                          : document.getElementById("ttsKr").classList.contains("playing") ? "kr" : null;
+      if(playingLang) startTTS(playingLang);
+    }
     return;
   }
 
@@ -2795,6 +2824,13 @@ window.loadApiKey().then(async ()=>{
       if(sel) sel.value = String(ttsRepeatTotal);
     }
   }catch(e){}
+  try{
+    const rateSaved = await stor.get("ttsRate");
+    if(rateSaved && rateSaved.value){
+      ttsRate = parseFloat(rateSaved.value) || 1.0;
+      document.querySelectorAll(".ttsratebtn").forEach(b=>b.classList.toggle("active", parseFloat(b.dataset.rate)===ttsRate));
+    }
+  }catch(e){}
 });
 
 /* ===== Sentence X-ray 연동 ===== */
@@ -2964,18 +3000,20 @@ function openEventModal(eventId, dateStr){
     const list=CAL_EVENTS_CACHE[dateStr]||[];
     ev=list.find(x=>x.id===eventId);
   }
-  document.getElementById("cal-ev-id").value = eventId||"";
-  document.getElementById("cal-ev-title").value = ev? ev.title : "";
-  document.getElementById("cal-ev-date").value = dateStr || todayStr();
-  document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
-  document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
-  const allDayChk = document.getElementById("cal-ev-allday");
-  const timeWrap = document.getElementById("cal-ev-time-wrap");
-  const hasTime = !!(ev && ev.time);
-  allDayChk.checked = !hasTime;
-  timeWrap.style.display = hasTime ? "" : "none";
-  document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
-  document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
+  try{
+    document.getElementById("cal-ev-id").value = eventId||"";
+    document.getElementById("cal-ev-title").value = ev? ev.title : "";
+    document.getElementById("cal-ev-date").value = dateStr || todayStr();
+    document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
+    document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
+    const allDayChk = document.getElementById("cal-ev-allday");
+    const timeWrap = document.getElementById("cal-ev-time-wrap");
+    const hasTime = !!(ev && ev.time);
+    if(allDayChk) allDayChk.checked = !hasTime;
+    if(timeWrap) timeWrap.style.display = hasTime ? "" : "none";
+    document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
+    document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
+  }catch(err){ console.error("openEventModal 필드 채우기 오류:", err); }
   modal.style.display="flex";
 }
 function closeEventModal(){

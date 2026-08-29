@@ -293,6 +293,9 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .ttsbtn-d.playing{background:rgba(90,151,201,.3);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn-d.ttsstop-d{border-color:rgba(220,120,120,.45);color:#e8a0a0;}
 .ttsbtn-d.ttscontinuous-d.on{background:rgba(201,151,42,.28);color:var(--gold-bright);border-color:var(--gold);}
+.ttsratewrap-d{display:flex;gap:4px;}
+.ttsratebtn-d{background:#171d29;border:1px solid rgba(90,151,201,.4);border-radius:16px;padding:8px 12px;color:var(--ink-text);font-size:12px;font-weight:600;cursor:pointer;}
+.ttsratebtn-d.active{background:rgba(90,151,201,.3);color:#8fc4ee;border-color:#5a97c9;}
 .ttsvoicesel-d{background:#171d29;border:1px solid rgba(90,151,201,.4);border-radius:8px;padding:8px 10px;color:var(--ink-text);font-size:12.5px;max-width:220px;}
 .readmarkbtn-d{background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:8px 16px;color:var(--ink-text);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
 .readmarkbtn-d:hover{border-color:#c9972a;}
@@ -407,6 +410,12 @@ textarea:focus{outline:none; border-color:var(--gold);}
         <option value="5">5번 반복</option>
         <option value="-1">계속 반복</option>
       </select>
+      <span class="ttsratewrap-d">
+        <button class="ttsratebtn-d" data-rate="0.7">x0.7</button>
+        <button class="ttsratebtn-d active" data-rate="1.0">x1.0</button>
+        <button class="ttsratebtn-d" data-rate="1.5">x1.5</button>
+        <button class="ttsratebtn-d" data-rate="2.0">x2.0</button>
+      </span>
       <select id="ttsVoiceSelD" class="ttsvoicesel-d" style="display:none;"></select>
     </div>
 
@@ -1365,6 +1374,7 @@ function populateVoiceSelectD(lang){
 let ttsPlaybackIdD = 0;
 let ttsContinuousD = false; // true면 한 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생
 let ttsRepeatTotalD = 1; // 같은 장을 반복할 총 횟수 (1=반복 없음, -1=무한)
+let ttsRateD = 1.0; // 재생 속도 (0.7 / 1.0 / 1.5 / 2.0)
 let ttsRepeatLeftD = 1; // 현재 재생 중 남은 반복 횟수
 let ttsAutoAdvancingD = false; // 연속재생으로 인해 자동으로 장이 넘어가는 중임을 표시
 function clearTTSHighlightD(){
@@ -1407,7 +1417,7 @@ async function speakVerseQueueD(lang, idx, myPlaybackId){
   highlightVerseD(v.n);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
-  utter.rate = 0.95;
+  utter.rate = ttsRateD;
   const chosenURI = selectedVoiceURID[lang];
   if(chosenURI){
     const vv = availableVoicesD.find(x=>x.voiceURI===chosenURI);
@@ -1472,6 +1482,18 @@ document.addEventListener("click", (e)=>{
     ttsContinuousD = !ttsContinuousD;
     e.target.classList.toggle("on", ttsContinuousD);
     try{ window.storage.set("ttsContinuous", ttsContinuousD ? "1" : "0"); }catch(err){}
+    return;
+  }
+  const rateBtnD=e.target.closest(".ttsratebtn-d");
+  if(rateBtnD){
+    ttsRateD = parseFloat(rateBtnD.dataset.rate);
+    document.querySelectorAll(".ttsratebtn-d").forEach(b=>b.classList.toggle("active", b===rateBtnD));
+    try{ window.storage.set("ttsRate", String(ttsRateD)); }catch(err){}
+    if(window.speechSynthesis && window.speechSynthesis.speaking){
+      const playingLang = document.getElementById("ttsEnD").classList.contains("playing") ? "en"
+                          : document.getElementById("ttsKrD").classList.contains("playing") ? "kr" : null;
+      if(playingLang) startTTSD(playingLang);
+    }
     return;
   }
 });
@@ -1564,18 +1586,20 @@ function openEventModalD(eventId, dateStr){
     const list=CAL_EVENTS_CACHE_D[dateStr]||[];
     ev=list.find(x=>x.id===eventId);
   }
-  document.getElementById("cal-ev-id").value = eventId||"";
-  document.getElementById("cal-ev-title").value = ev? ev.title : "";
-  document.getElementById("cal-ev-date").value = dateStr || todayStr();
-  document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
-  document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
-  const allDayChk = document.getElementById("cal-ev-allday");
-  const timeWrap = document.getElementById("cal-ev-time-wrap");
-  const hasTime = !!(ev && ev.time);
-  allDayChk.checked = !hasTime;
-  timeWrap.style.display = hasTime ? "" : "none";
-  document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
-  document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
+  try{
+    document.getElementById("cal-ev-id").value = eventId||"";
+    document.getElementById("cal-ev-title").value = ev? ev.title : "";
+    document.getElementById("cal-ev-date").value = dateStr || todayStr();
+    document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
+    document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
+    const allDayChk = document.getElementById("cal-ev-allday");
+    const timeWrap = document.getElementById("cal-ev-time-wrap");
+    const hasTime = !!(ev && ev.time);
+    if(allDayChk) allDayChk.checked = !hasTime;
+    if(timeWrap) timeWrap.style.display = hasTime ? "" : "none";
+    document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
+    document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
+  }catch(err){ console.error("openEventModalD 필드 채우기 오류:", err); }
   modal.style.display="flex";
 }
 function closeEventModalD(){
@@ -1712,6 +1736,7 @@ async function showDayDetail(dateStr){
   const all = await getAllJournalEntries();
   const entries = all.filter(e=>e.date===dateStr);
   const notes = await getDayNotesD(dateStr);
+  const gEvents = (CAL_EVENTS_CACHE_D && CAL_EVENTS_CACHE_D[dateStr]) || [];
   const box = document.getElementById("day-detail");
   let html = `<h4>${dateStr}</h4>`;
   if(pks.length){
@@ -1723,6 +1748,12 @@ async function showDayDetail(dateStr){
     html += `<div style="margin-bottom:10px;">${chips.join("")}</div>`;
   } else {
     html += `<p style="font-size:12.5px; color:var(--ink-text-dim); margin-bottom:10px;">이 날은 읽기 기록이 없습니다.</p>`;
+  }
+  if(gEvents.length){
+    html += `<div style="margin-bottom:12px;">
+      <div style="font-size:12.5px;font-weight:700;color:var(--gold-bright);margin-bottom:6px;">📅 구글 캘린더 일정</div>
+      ${gEvents.map(ev=>`<div style="padding:7px 10px;border-radius:8px;margin-bottom:5px;cursor:pointer;background:${calEventColor(ev.colorId)}22;color:${calEventColor(ev.colorId)};border-left:3px solid ${calEventColor(ev.colorId)};font-size:12.5px;" class="cal-evchip" data-evid="${ev.id}" data-evdate="${dateStr}">${ev.time?ev.time+" · ":""}${escapeHtml(ev.title)}</div>`).join("")}
+    </div>`;
   }
   if(entries.length){
     html += entries.map(e=>`
@@ -3283,6 +3314,13 @@ window.loadApiKey().then(async function(){
       ttsRepeatLeftD = ttsRepeatTotalD;
       const selD = document.getElementById("ttsRepeatSelD");
       if(selD) selD.value = String(ttsRepeatTotalD);
+    }
+  }catch(e){}
+  try{
+    const rateSavedD = await window.storage.get("ttsRate");
+    if(rateSavedD && rateSavedD.value){
+      ttsRateD = parseFloat(rateSavedD.value) || 1.0;
+      document.querySelectorAll(".ttsratebtn-d").forEach(b=>b.classList.toggle("active", parseFloat(b.dataset.rate)===ttsRateD));
     }
   }catch(e){}
 });
