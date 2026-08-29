@@ -291,6 +291,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .ttsbtn-d:hover{border-color:#5a97c9;}
 .ttsbtn-d.playing{background:rgba(90,151,201,.3);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn-d.ttsstop-d{border-color:rgba(220,120,120,.45);color:#e8a0a0;}
+.ttsbtn-d.ttscontinuous-d.on{background:rgba(201,151,42,.28);color:var(--gold-bright);border-color:var(--gold);}
 .ttsvoicesel-d{background:#171d29;border:1px solid rgba(90,151,201,.4);border-radius:8px;padding:8px 10px;color:var(--ink-text);font-size:12.5px;max-width:220px;}
 .readmarkbtn-d{background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:8px 16px;color:var(--ink-text);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
 .readmarkbtn-d:hover{border-color:#c9972a;}
@@ -397,6 +398,14 @@ textarea:focus{outline:none; border-color:var(--gold);}
       <button class="ttsbtn-d" id="ttsEnD" data-lang="en">🇺🇸 영어로 듣기</button>
       <button class="ttsbtn-d" id="ttsKrD" data-lang="kr">🇰🇷 한글로 듣기</button>
       <button class="ttsbtn-d ttsstop-d" id="ttsStopD" style="display:none;">⏹ 정지</button>
+      <button class="ttsbtn-d ttscontinuous-d" id="ttsContinuousBtnD" title="켜면 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생됩니다">🔁 연속 재생</button>
+      <select id="ttsRepeatSelD" class="ttsvoicesel-d" title="같은 장을 여러 번 반복해서 재생합니다">
+        <option value="1">반복 안 함</option>
+        <option value="2">2번 반복</option>
+        <option value="3">3번 반복</option>
+        <option value="5">5번 반복</option>
+        <option value="-1">계속 반복</option>
+      </select>
       <select id="ttsVoiceSelD" class="ttsvoicesel-d" style="display:none;"></select>
     </div>
 
@@ -962,7 +971,7 @@ async function renderPassage(bookCode, chapter){
   currentBook = bookCode;
   currentChapter = chapter;
   currentPassageKey = chapterKey(bookCode, chapter);
-  stopTTSD();
+  if(!ttsAutoAdvancingD) stopTTSD();
   try{ window.storage.set("lastReadD", JSON.stringify({book:bookCode, ch:chapter})); }catch(e){}
   const b = BOOK_BY_CODE[bookCode];
   const notes = STUDY_NOTES[currentPassageKey];
@@ -1338,6 +1347,10 @@ function populateVoiceSelectD(lang){
   sel.style.display="";
 }
 let ttsPlaybackIdD = 0;
+let ttsContinuousD = false; // true면 한 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생
+let ttsRepeatTotalD = 1; // 같은 장을 반복할 총 횟수 (1=반복 없음, -1=무한)
+let ttsRepeatLeftD = 1; // 현재 재생 중 남은 반복 횟수
+let ttsAutoAdvancingD = false; // 연속재생으로 인해 자동으로 장이 넘어가는 중임을 표시
 function clearTTSHighlightD(){
   document.querySelectorAll(".verse.tts-active-d").forEach(el=>el.classList.remove("tts-active-d"));
 }
@@ -1349,10 +1362,29 @@ function highlightVerseD(vn){
   const first = document.querySelector('.verse[data-v="'+vn+'"]');
   if(first) first.scrollIntoView({behavior:"smooth", block:"center"});
 }
-function speakVerseQueueD(lang, idx, myPlaybackId){
+async function speakVerseQueueD(lang, idx, myPlaybackId){
   if(myPlaybackId !== ttsPlaybackIdD) return;
   const list = currentPassageVersesD || [];
-  if(idx >= list.length){ clearTTSHighlightD(); setTTSButtonStateD(null); return; }
+  if(idx >= list.length){
+    if(ttsRepeatTotalD===-1 || ttsRepeatLeftD>1){
+      if(ttsRepeatTotalD!==-1) ttsRepeatLeftD--;
+      speakVerseQueueD(lang, 0, myPlaybackId);
+      return;
+    }
+    if(ttsContinuousD){
+      const next = getAdjacentChapterD(currentBook, currentChapter, 1);
+      if(next){
+        ttsAutoAdvancingD = true;
+        await renderPassage(next.book, next.ch);
+        ttsAutoAdvancingD = false;
+        if(myPlaybackId !== ttsPlaybackIdD) return;
+        ttsRepeatLeftD = ttsRepeatTotalD;
+        speakVerseQueueD(lang, 0, myPlaybackId);
+        return;
+      }
+    }
+    clearTTSHighlightD(); setTTSButtonStateD(null); return;
+  }
   const v = list[idx];
   const text = lang==="en" ? (v.en||"") : (v.kr||"");
   if(!text){ speakVerseQueueD(lang, idx+1, myPlaybackId); return; }
@@ -1387,6 +1419,7 @@ function startTTSD(lang){
   }
   if(curTTSDropdownLangD!==lang) populateVoiceSelectD(lang);
   setTTSButtonStateD(lang);
+  ttsRepeatLeftD = ttsRepeatTotalD;
   ttsPlaybackIdD++;
   speakVerseQueueD(lang, 0, ttsPlaybackIdD);
 }
@@ -1409,11 +1442,22 @@ document.addEventListener("change", (e)=>{
                         : document.getElementById("ttsKrD").classList.contains("playing") ? "kr" : null;
     if(playingLang){ selectedVoiceURID[playingLang]=e.target.value; startTTSD(playingLang); }
   }
+  if(e.target.id==="ttsRepeatSelD"){
+    ttsRepeatTotalD = parseInt(e.target.value, 10);
+    ttsRepeatLeftD = ttsRepeatTotalD;
+    try{ window.storage.set("ttsRepeatTotal", String(ttsRepeatTotalD)); }catch(err){}
+  }
 });
 document.addEventListener("click", (e)=>{
   const ttsBtnD=e.target.closest("#ttsKrD, #ttsEnD");
   if(ttsBtnD){ startTTSD(ttsBtnD.dataset.lang); return; }
   if(e.target.id==="ttsStopD"){ stopTTSD(); return; }
+  if(e.target.id==="ttsContinuousBtnD"){
+    ttsContinuousD = !ttsContinuousD;
+    e.target.classList.toggle("on", ttsContinuousD);
+    try{ window.storage.set("ttsContinuous", ttsContinuousD ? "1" : "0"); }catch(err){}
+    return;
+  }
 });
 
 /* ---- Mark today read (구 버튼, 이제 언어별 버튼으로 대체됨) ---- */
@@ -3086,6 +3130,21 @@ window.loadApiKey().then(async function(){
   renderWordsD("");
   loadStartOptionD();
   autoReconnectGDriveIfAuthorizedD();
+  try{
+    const cont = await window.storage.get("ttsContinuous");
+    ttsContinuousD = !!(cont && cont.value==="1");
+    const btnD = document.getElementById("ttsContinuousBtnD");
+    if(btnD) btnD.classList.toggle("on", ttsContinuousD);
+  }catch(e){}
+  try{
+    const rep = await window.storage.get("ttsRepeatTotal");
+    if(rep && rep.value){
+      ttsRepeatTotalD = parseInt(rep.value, 10) || 1;
+      ttsRepeatLeftD = ttsRepeatTotalD;
+      const selD = document.getElementById("ttsRepeatSelD");
+      if(selD) selD.value = String(ttsRepeatTotalD);
+    }
+  }catch(e){}
 });
 
 /* ===== Sentence X-ray 연동 ===== */

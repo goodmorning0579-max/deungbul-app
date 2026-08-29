@@ -176,6 +176,7 @@ a.bni{text-decoration:none;}
 .ttsbtn:hover{border-color:#5a97c9;}
 .ttsbtn.playing{background:rgba(90,151,201,.35);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn.ttsstop{border-color:rgba(220,120,120,.4);color:#e8a0a0;}
+.ttsbtn.ttscontinuous.on{background:rgba(201,151,42,.32);color:var(--gold-b);border-color:var(--gold);}
 .ttsvoicesel{background:var(--ink2);border:1px solid rgba(90,151,201,.35);border-radius:8px;padding:6px 8px;color:var(--it);font-size:11.5px;max-width:100%;}
 .readmarkbtn{background:var(--ink2);border:1px solid rgba(201,151,42,.25);border-radius:20px;padding:7px 14px;color:var(--it);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
 .readmarkbtn:hover{border-color:var(--gold);}
@@ -234,6 +235,14 @@ a.bni{text-decoration:none;}
     <button class="ttsbtn" id="ttsEn" data-lang="en">🇺🇸 영어</button>
     <button class="ttsbtn" id="ttsKr" data-lang="kr">🇰🇷 한글</button>
     <button class="ttsbtn ttsstop" id="ttsStop" style="display:none;">⏹</button>
+    <button class="ttsbtn ttscontinuous" id="ttsContinuousBtn" title="켜면 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생됩니다">🔁 연속</button>
+    <select id="ttsRepeatSel" class="ttsvoicesel" title="같은 장을 여러 번 반복해서 재생합니다">
+      <option value="1">반복 안 함</option>
+      <option value="2">2번 반복</option>
+      <option value="3">3번 반복</option>
+      <option value="5">5번 반복</option>
+      <option value="-1">계속 반복</option>
+    </select>
     <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
   </div>
   <div class="pcard" id="pcard"></div>
@@ -910,7 +919,7 @@ function loadSetView(){
 /* ===== 본문 렌더링 ===== */
 async function renderPassage(book, ch){
   curBook=book; curCh=ch;
-  stopTTS();
+  if(!ttsAutoAdvancing) stopTTS();
   try{ stor.set("lastRead", JSON.stringify({book, ch})); }catch(e){}
   const notes=STUDY_NOTES[chapterKey(book,ch)];
   const b=BBC[book];
@@ -1640,6 +1649,10 @@ function populateVoiceSelect(lang){
   sel.style.display="";
 }
 let ttsPlaybackId = 0; // 정지 시 이 값을 바꿔서 진행 중이던 절 재생 큐를 무효화함
+let ttsContinuous = false; // true면 한 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생
+let ttsRepeatTotal = 1; // 같은 장을 반복할 총 횟수 (1=반복 없음, -1=무한)
+let ttsRepeatLeft = 1; // 현재 재생 중 남은 반복 횟수
+let ttsAutoAdvancing = false; // 연속재생으로 인해 자동으로 장이 넘어가는 중임을 표시 (이때는 재생을 끊지 않음)
 function clearTTSHighlight(){
   document.querySelectorAll(".verse.tts-active").forEach(el=>el.classList.remove("tts-active"));
 }
@@ -1651,10 +1664,30 @@ function highlightVerse(vn){
   const first = document.querySelector('.verse[data-vn="'+vn+'"]');
   if(first) first.scrollIntoView({behavior:"smooth", block:"center"});
 }
-function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
+async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   if(myPlaybackId !== ttsPlaybackId) return; // 그 사이 정지되었으면 중단
   const list = curPassageVerses || [];
-  if(idx >= list.length){ clearTTSHighlight(); setTTSButtonState(null); return; }
+  if(idx >= list.length){
+    // 반복 재생이 남아있으면 같은 장을 처음부터 다시 재생
+    if(ttsRepeatTotal===-1 || ttsRepeatLeft>1){
+      if(ttsRepeatTotal!==-1) ttsRepeatLeft--;
+      speakVerseQueue(lang, 0, myPlaybackId, 0);
+      return;
+    }
+    if(ttsContinuous){
+      const next = getAdjacentChapter(curBook, curCh, 1);
+      if(next){
+        ttsAutoAdvancing = true;
+        await renderPassage(next.book, next.ch);
+        ttsAutoAdvancing = false;
+        if(myPlaybackId !== ttsPlaybackId) return; // 이동 도중 정지되었으면 중단
+        ttsRepeatLeft = ttsRepeatTotal; // 새 장에서도 설정된 반복 횟수를 그대로 적용
+        speakVerseQueue(lang, 0, myPlaybackId, 0);
+        return;
+      }
+    }
+    clearTTSHighlight(); setTTSButtonState(null); return;
+  }
   const v = list[idx];
   const text = lang==="en" ? (v.en||"") : (v.kr||"");
   if(!text){ speakVerseQueue(lang, idx+1, myPlaybackId, 0); return; }
@@ -1717,6 +1750,7 @@ function startTTS(lang){
   }
   clearTTSHighlight();
   setTTSButtonState(lang);
+  ttsRepeatLeft = ttsRepeatTotal;
   ttsPlaybackId++;
   const myId = ttsPlaybackId;
   // 사용자가 버튼을 누른 이 시점(제스처 컨텍스트) 안에서 바로 재생을 시작해야
@@ -1742,6 +1776,11 @@ document.addEventListener("change", (e)=>{
     const playingLang = document.getElementById("ttsEn").classList.contains("playing") ? "en"
                         : document.getElementById("ttsKr").classList.contains("playing") ? "kr" : null;
     if(playingLang){ selectedVoiceURI[playingLang]=e.target.value; startTTS(playingLang); }
+  }
+  if(e.target.id==="ttsRepeatSel"){
+    ttsRepeatTotal = parseInt(e.target.value, 10);
+    ttsRepeatLeft = ttsRepeatTotal;
+    try{ stor.set("ttsRepeatTotal", String(ttsRepeatTotal)); }catch(err){}
   }
 });
 
@@ -2066,6 +2105,12 @@ document.addEventListener("click", function(e){
   const ttsBtn=e.target.closest("#ttsKr, #ttsEn");
   if(ttsBtn){ startTTS(ttsBtn.dataset.lang); return; }
   if(e.target.id==="ttsStop"){ stopTTS(); return; }
+  if(e.target.id==="ttsContinuousBtn"){
+    ttsContinuous = !ttsContinuous;
+    e.target.classList.toggle("on", ttsContinuous);
+    try{ stor.set("ttsContinuous", ttsContinuous ? "1" : "0"); }catch(err){}
+    return;
+  }
 
   if(e.target.id==="savebtn"){
     const ta=document.getElementById("jtext");
@@ -2700,6 +2745,21 @@ window.loadApiKey().then(async ()=>{
   loadFontScale();
   loadStartOption();
   autoReconnectGDriveIfAuthorized();
+  try{
+    const cont = await stor.get("ttsContinuous");
+    ttsContinuous = !!(cont && cont.value==="1");
+    const btn = document.getElementById("ttsContinuousBtn");
+    if(btn) btn.classList.toggle("on", ttsContinuous);
+  }catch(e){}
+  try{
+    const rep = await stor.get("ttsRepeatTotal");
+    if(rep && rep.value){
+      ttsRepeatTotal = parseInt(rep.value, 10) || 1;
+      ttsRepeatLeft = ttsRepeatTotal;
+      const sel = document.getElementById("ttsRepeatSel");
+      if(sel) sel.value = String(ttsRepeatTotal);
+    }
+  }catch(e){}
 });
 
 /* ===== Sentence X-ray 연동 ===== */
