@@ -1688,6 +1688,66 @@ function showPlaceDetail(name){
 }
 
 /* ===== 지명 검색 시 실제 위치 지도 (OpenStreetMap, API 키 불필요) ===== */
+/* 한글 성경 지명 → 지오코딩용 실제 지리 명칭 + 오늘날 어느 지역/나라에 해당하는지 설명 */
+const BIBLE_PLACE_GEO_D={
+  "예루살렘":{en:"Jerusalem",modern:"이스라엘·팔레스타인 예루살렘"},
+  "베들레헴":{en:"Bethlehem",modern:"팔레스타인(서안지구) 베들레헴"},
+  "헤브론":{en:"Hebron",modern:"팔레스타인(서안지구) 헤브론"},
+  "여리고":{en:"Jericho",modern:"팔레스타인(서안지구) 예리코"},
+  "사마리아":{en:"Sebastia Samaria",modern:"팔레스타인(서안지구) 나블루스 인근"},
+  "세겜":{en:"Nablus",modern:"팔레스타인(서안지구) 나블루스"},
+  "벧엘":{en:"Beitin",modern:"팔레스타인(서안지구) 라말라 인근"},
+  "실로":{en:"Shiloh West Bank",modern:"팔레스타인(서안지구) 실로 유적지"},
+  "갈릴리":{en:"Sea of Galilee",modern:"이스라엘 북부 갈릴리호"},
+  "나사렛":{en:"Nazareth",modern:"이스라엘 나사렛"},
+  "가버나움":{en:"Capernaum",modern:"이스라엘 갈릴리호 북안"},
+  "브엘세바":{en:"Beersheba",modern:"이스라엘 브엘세바"},
+  "욥바":{en:"Jaffa Tel Aviv",modern:"이스라엘 텔아비브-야포"},
+  "가이사랴":{en:"Caesarea Israel",modern:"이스라엘 지중해 연안"},
+  "두로":{en:"Tyre Lebanon",modern:"레바논 티레(수르)"},
+  "시돈":{en:"Sidon Lebanon",modern:"레바논 시돈(사이다)"},
+  "다메섹":{en:"Damascus",modern:"시리아 다마스쿠스"},
+  "요단강":{en:"Jordan River",modern:"이스라엘·요르단 국경의 요르단강"},
+  "사해":{en:"Dead Sea",modern:"이스라엘·요르단 사이 사해"},
+  "모압":{en:"Moab Jordan",modern:"요르단 남서부"},
+  "암몬":{en:"Amman Jordan",modern:"요르단 암만 일대"},
+  "에돔":{en:"Edom Jordan",modern:"요르단 남부"},
+  "가사":{en:"Gaza",modern:"팔레스타인 가자지구"},
+  "아스글론":{en:"Ashkelon",modern:"이스라엘 아슈켈론"},
+  "애굽":{en:"Egypt",modern:"이집트"},
+  "나일강":{en:"Nile River Egypt",modern:"이집트를 관통하는 나일강"},
+  "시내산":{en:"Mount Sinai Egypt",modern:"이집트 시나이반도"},
+  "홍해":{en:"Red Sea",modern:"이집트·사우디아라비아 사이의 홍해"},
+  "바벨론":{en:"Babylon Iraq",modern:"이라크 바그다드 남쪽"},
+  "니느웨":{en:"Nineveh Mosul",modern:"이라크 모술 인근"},
+  "앗수르":{en:"Assyria Iraq",modern:"이라크 북부"},
+  "우르":{en:"Ur Iraq",modern:"이라크 남부 나시리야 인근"},
+  "유브라데":{en:"Euphrates River",modern:"튀르키예·시리아·이라크를 흐르는 유프라테스강"},
+  "하란":{en:"Harran Turkey",modern:"튀르키예 하란"},
+  "수산":{en:"Susa Iran",modern:"이란 슈시(수사)"},
+  "페르시아":{en:"Iran",modern:"이란"},
+  "에베소":{en:"Ephesus Turkey",modern:"튀르키예 에페스 유적지"},
+  "안디옥":{en:"Antakya Turkey",modern:"튀르키예 안타키아"},
+  "갈라디아":{en:"Galatia Turkey",modern:"튀르키예 중부"},
+  "빌립보":{en:"Philippi Greece",modern:"그리스 카발라 인근"},
+  "고린도":{en:"Corinth Greece",modern:"그리스 코린토스"},
+  "로마":{en:"Rome Italy",modern:"이탈리아 로마"},
+  "구브로":{en:"Cyprus",modern:"키프로스"},
+  "그레데":{en:"Crete Greece",modern:"그리스 크레타섬"},
+  "미디안":{en:"Midian Saudi Arabia",modern:"사우디아라비아 서북부"},
+  "길르앗":{en:"Gilead Jordan",modern:"요르단 북서부"},
+  "레바논":{en:"Lebanon",modern:"레바논"},
+  "다시스":{en:"Tarsus Turkey",modern:"튀르키예 타르수스(추정)"},
+  "네게브":{en:"Negev Israel",modern:"이스라엘 남부 네게브 사막"},
+  "가나안":{en:"Canaan Levant",modern:"오늘날 이스라엘·팔레스타인·레바논 일대"}
+};
+function findBiblePlaceGeoD(name){
+  if(BIBLE_PLACE_GEO_D[name]) return BIBLE_PLACE_GEO_D[name];
+  for(const key in BIBLE_PLACE_GEO_D){
+    if(name.includes(key)) return BIBLE_PLACE_GEO_D[key];
+  }
+  return null;
+}
 const PLACE_GEOCACHE_D={};
 async function togglePlaceRealMapD(name){
   const boxId="pmapd-"+name.replace(/[^a-zA-Z0-9가-힣]/g,"");
@@ -1700,28 +1760,44 @@ async function togglePlaceRealMapD(name){
     return;
   }
   box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">🔍 위치 찾는 중...</div>`;
+  const geo=findBiblePlaceGeoD(name);
+  const queries=[];
+  if(geo) queries.push(geo.en);
+  queries.push(name+" 이스라엘 성경");
+  queries.push(name);
   try{
-    const q=encodeURIComponent(name+" 이스라엘 성경");
-    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
-    const data=await res.json();
-    if(data && data.length){
-      const {lat, lon}=data[0];
+    let found=null;
+    for(const q of queries){
+      const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+      const data=await res.json();
+      if(data && data.length){ found=data[0]; break; }
+    }
+    if(found){
+      const {lat, lon}=found;
       PLACE_GEOCACHE_D[name]={lat, lon};
-      renderPlaceMapBoxD(box, {lat, lon}, name);
+      renderPlaceMapBoxD(box, {lat, lon}, name, geo);
     }else{
-      box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도에서 위치를 찾을 수 없습니다.</div>`;
+      box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도에서 위치를 찾을 수 없습니다.</div>${bibleMapExternalLinkD(name)}`;
     }
   }catch(e){
-    box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도를 불러오지 못했습니다.</div>`;
+    box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도를 불러오지 못했습니다.</div>${bibleMapExternalLinkD(name)}`;
   }
 }
-function renderPlaceMapBoxD(box, coord, name){
+function bibleMapExternalLinkD(name){
+  const q=encodeURIComponent(name+" bible map");
+  return `<a href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener" style="display:inline-block;margin-top:4px;font-size:12px;color:var(--gold-bright);text-decoration:none;">📜 성경 지도에서 '${name}' 찾아보기 ↗</a>`;
+}
+function renderPlaceMapBoxD(box, coord, name, geo){
   const lat=parseFloat(coord.lat), lon=parseFloat(coord.lon);
   const d=0.25;
   const bbox=`${lon-d}%2C${lat-d}%2C${lon+d}%2C${lat+d}`;
+  const g=geo||findBiblePlaceGeoD(name);
+  const modernHtml = g ? `<div style="font-size:12px;color:var(--gold-bright);margin-top:4px;">🕐 오늘날: ${g.modern}</div>` : "";
   box.innerHTML=`<iframe style="width:100%;height:240px;border:1px solid rgba(201,151,42,.25);border-radius:10px;" loading="lazy"
     src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}"></iframe>
-    <div style="font-size:11px;color:var(--ink-text-dim);margin-top:3px;">📍 ${name} (약 ${lat.toFixed(3)}, ${lon.toFixed(3)})</div>`;
+    <div style="font-size:11px;color:var(--ink-text-dim);margin-top:3px;">📍 ${name} — 지도상 현재 지명 기준 위치입니다 (성경 시대와 정확히 일치하지 않을 수 있습니다)</div>
+    ${modernHtml}
+    ${bibleMapExternalLinkD(name)}`;
 }
 document.addEventListener("click", (e)=>{
   const placeMapBtnD=e.target.closest(".placemaptoggle-d");
