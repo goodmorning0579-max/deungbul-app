@@ -2793,7 +2793,7 @@ async function connectGoogleDriveD(silent){
         if(!silent && st) st.textContent = "⚠️ 인증이 취소되었거나 실패했습니다.";
       }
     });
-    gTokenClientD.requestAccessToken(silent ? { prompt: "" } : {});
+    gTokenClientD.requestAccessToken(silent ? { prompt: "" } : { prompt: "consent" });
   }catch(e){
     if(!silent && st) st.textContent = "⚠️ 연결 실패: " + e.message;
   }

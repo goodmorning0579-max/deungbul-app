@@ -2307,8 +2307,10 @@ async function connectGoogleDrive(silent){
         if(!silent && st) st.textContent = "⚠️ 인증이 취소되었거나 실패했습니다.";
       }
     });
-    // silent=true: 이미 승인한 사용자에게는 팝업/선택 화면 없이 조용히 새 토큰을 발급받음 (앱 재실행 시 자동 재연결용)
-    gTokenClient.requestAccessToken(silent ? { prompt: "" } : {});
+    // silent=true: 이미 승인한 사용자에게는 팝업 없이 조용히 새 토큰을 발급받음 (앱 재실행 시 자동 재연결용)
+    // silent=false(사용자가 직접 누른 경우): prompt="consent"로 강제 지정하여, 이미 예전 권한으로 승인한 이력이 있어도
+    // 반드시 새 동의 화면이 다시 뜨도록 함 (권한 범위가 늘어난 경우 이걸 안 하면 예전 권한 그대로 재사용되는 문제가 있음)
+    gTokenClient.requestAccessToken(silent ? { prompt: "" } : { prompt: "consent" });
   }catch(e){
     if(!silent && st) st.textContent = "⚠️ 연결 실패: " + e.message;
   }
