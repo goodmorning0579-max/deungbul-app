@@ -95,6 +95,7 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .cday{aspect-ratio:0.85;border-radius:8px;display:flex;flex-direction:column;align-items:center;padding:4px 1px 2px;background:rgba(255,255,255,.03);font-size:11px;color:var(--itd);overflow:hidden;position:relative;border:1px solid transparent;}
 .cday .cdaynum{font-weight:700;font-size:12.5px;line-height:1.3;color:var(--it);}
 .cday .cdone-mark{width:14px;height:2px;background:var(--gold);border-radius:2px;margin:2px 0 1px;}
+.cday .cnotemark{font-size:8px;vertical-align:middle;}
 .cday .cevchip{font-size:7px;line-height:1.15;background:rgba(201,151,42,.22);color:var(--gold-b);border-radius:3px;padding:0 2px;margin-top:1px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
 .cday .cevmore{font-size:6.5px;color:var(--itd);}
 .cday.selected{background:var(--gold);border-color:var(--gold-b);box-shadow:0 0 0 2px rgba(201,151,42,.3);}
@@ -1416,6 +1417,7 @@ async function renderCal(){
   const daysInMonth=new Date(calY,calM+1,0).getDate();
   const grid=document.getElementById("calgrid");
   const totalCells = Math.ceil((startOffset+daysInMonth)/7)*7;
+  const noteDates = await getNoteDatesInMonth(calY, calM);
   let cells="";
   const todayS=todayStr();
   for(let i=0;i<totalCells;i++){
@@ -1423,17 +1425,31 @@ async function renderCal(){
     if(d<1 || d>daysInMonth){ cells+='<div class="cday empty"></div>'; continue; }
     const ds=fmtDate(calY,calM,d);
     const done=PROG_CACHE[ds] && PROG_CACHE[ds].length;
+    const hasNote=noteDates.has(ds);
     const evs = (CAL_EVENTS_CACHE[ds]||[]);
     const evHtml = evs.slice(0,2).map(t=>`<div class="cevchip">${esc(t)}</div>`).join("")
       + (evs.length>2 ? `<div class="cevmore">+${evs.length-2}</div>` : "");
     const cls="cday"+(done?" done":"")+(ds===todayS?" today":"");
-    cells+=`<div class="${cls}" data-date="${ds}"><span class="cdaynum">${d}</span>${done?'<span class="cdone-mark" title="성경읽기 완료"></span>':''}${evHtml}</div>`;
+    cells+=`<div class="${cls}" data-date="${ds}"><span class="cdaynum">${d}${hasNote?' <span class="cnotemark" title="메모 있음">📝</span>':''}</span>${done?'<span class="cdone-mark" title="성경읽기 완료"></span>':''}${evHtml}</div>`;
   }
   grid.innerHTML=cells;
   document.getElementById("strnum").textContent=computeStreak(PROG_CACHE);
   renderLampPath();
   renderPlanProgress();
   loadCalendarEvents();
+}
+/* 이번 달에 메모가 있는 날짜들을 한 번에 조회 (매 날짜마다 개별 조회하지 않도록 효율화) */
+async function getNoteDatesInMonth(year, month){
+  const set = new Set();
+  try{
+    const l = await stor.list("note:");
+    const monthPrefix = year+"-"+String(month+1).padStart(2,"0")+"-";
+    (l.keys||[]).forEach(k=>{
+      const parts = k.split(":");
+      if(parts.length>=2 && parts[1].startsWith(monthPrefix)) set.add(parts[1]);
+    });
+  }catch(e){}
+  return set;
 }
 
 /* ===== 실제 구글 캘린더 일정 연동 (기존 구글 로그인 재사용, 캘린더 읽기 권한 추가) ===== */
@@ -2202,7 +2218,7 @@ let gTokenClient = null;
 let gAccessToken = null;
 let gTokenExpiresAt = 0;
 const GDRIVE_FILE_NAME = "deungbul_backup.json";
-const GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.readonly";
+const GDRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events";
 
 function loadGisScript(){
   return new Promise((resolve, reject)=>{
@@ -2300,13 +2316,14 @@ async function connectGoogleDrive(silent){
 
 /* 연결 해제: 저장된 토큰과 "승인함" 표시를 모두 지워 자동 재연결을 멈춤 */
 async function disconnectGoogleDrive(){
-  gAccessToken = null;
-  gTokenExpiresAt = 0;
+  const tokenToRevoke = gAccessToken;
   try{
-    if(window.google && google.accounts && google.accounts.oauth2 && gAccessToken){
-      google.accounts.oauth2.revoke(gAccessToken, ()=>{});
+    if(window.google && google.accounts && google.accounts.oauth2 && tokenToRevoke){
+      google.accounts.oauth2.revoke(tokenToRevoke, ()=>{});
     }
   }catch(e){}
+  gAccessToken = null;
+  gTokenExpiresAt = 0;
   try{ await stor.delete("gdrive_token_cache"); }catch(e){}
   try{ await stor.delete("gdrive_authorized"); }catch(e){}
   updateGDriveStatusUI();
@@ -2950,6 +2967,11 @@ function openEventModal(eventId, dateStr){
   document.getElementById("cal-ev-date").value = dateStr || todayStr();
   document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
   document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
+  const allDayChk = document.getElementById("cal-ev-allday");
+  const timeWrap = document.getElementById("cal-ev-time-wrap");
+  const hasTime = !!(ev && ev.time);
+  allDayChk.checked = !hasTime;
+  timeWrap.style.display = hasTime ? "" : "none";
   document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
   document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
   modal.style.display="flex";
@@ -2962,7 +2984,8 @@ async function saveEvent(){
   const id=document.getElementById("cal-ev-id").value;
   const title=document.getElementById("cal-ev-title").value.trim();
   const date=document.getElementById("cal-ev-date").value;
-  const time=document.getElementById("cal-ev-time").value;
+  const isAllDay=document.getElementById("cal-ev-allday").checked;
+  const time=isAllDay ? "" : document.getElementById("cal-ev-time").value;
   const colorId=document.getElementById("cal-ev-color").value;
   if(!title){ alert("일정 제목을 입력해주세요."); return; }
   if(!date){ alert("날짜를 선택해주세요."); return; }
@@ -2986,7 +3009,12 @@ async function saveEvent(){
       headers: { "Authorization":"Bearer "+token, "Content-Type":"application/json" },
       body: JSON.stringify(body)
     });
-    if(!res.ok){ alert("일정 저장에 실패했습니다."); return; }
+    if(!res.ok){
+      let msg="일정 저장에 실패했습니다.";
+      try{ const errData=await res.json(); if(errData&&errData.error&&errData.error.message) msg+=" ("+errData.error.message+")"; }catch(e2){}
+      alert(msg);
+      return;
+    }
     closeEventModal();
     CAL_EVENTS_MONTH_KEY = "";
     loadCalendarEvents();
@@ -3016,6 +3044,12 @@ document.addEventListener("click",(e)=>{
   if(e.target.id==="cal-ev-delete-btn"){ deleteEvent(); return; }
   if(e.target.id==="cal-ev-cancel-btn" || e.target.id==="cal-event-modal"){ closeEventModal(); return; }
 });
+document.addEventListener("change",(e)=>{
+  if(e.target.id==="cal-ev-allday"){
+    const timeWrap=document.getElementById("cal-ev-time-wrap");
+    if(timeWrap) timeWrap.style.display = e.target.checked ? "none" : "";
+  }
+});
 </script>
 
 <!-- 구글 캘린더 일정 추가/수정 모달 -->
@@ -3025,16 +3059,19 @@ document.addEventListener("click",(e)=>{
     <input type="hidden" id="cal-ev-id">
     <label style="font-size:11px;color:var(--itd);display:block;margin-bottom:3px;">제목</label>
     <input type="text" id="cal-ev-title" placeholder="일정 제목" style="width:100%;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 10px;color:var(--it);font-size:13px;margin-bottom:10px;box-sizing:border-box;">
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
       <div style="flex:1;">
         <label style="font-size:11px;color:var(--itd);display:block;margin-bottom:3px;">날짜</label>
         <input type="date" id="cal-ev-date" style="width:100%;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 6px;color:var(--it);font-size:12px;box-sizing:border-box;">
       </div>
-      <div style="flex:1;">
-        <label style="font-size:11px;color:var(--itd);display:block;margin-bottom:3px;">시간(선택)</label>
+      <div style="flex:1;" id="cal-ev-time-wrap">
+        <label style="font-size:11px;color:var(--itd);display:block;margin-bottom:3px;">시간</label>
         <input type="time" id="cal-ev-time" style="width:100%;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 6px;color:var(--it);font-size:12px;box-sizing:border-box;">
       </div>
     </div>
+    <label style="font-size:11.5px;color:var(--itd);display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+      <input type="checkbox" id="cal-ev-allday" checked style="width:14px;height:14px;"> 하루 종일 (시간 없음)
+    </label>
     <label style="font-size:11px;color:var(--itd);display:block;margin-bottom:3px;">중요도</label>
     <select id="cal-ev-color" style="width:100%;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 10px;color:var(--it);font-size:12.5px;margin-bottom:16px;box-sizing:border-box;">
       <option value="">🔵 보통</option>

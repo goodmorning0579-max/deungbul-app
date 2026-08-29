@@ -207,6 +207,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 }
 .cal-day .cal-daynum{font-weight:700; font-size:12.5px; line-height:1.3;}
 .cal-day .cal-done-mark{width:16px;height:2px;background:var(--gold-bright);border-radius:2px;margin:2px 0 1px;}
+.cal-day .cal-notemark{font-size:9px;vertical-align:middle;}
 .cal-day .cal-evchip{font-size:9px; line-height:1.2; background:rgba(201,151,42,.22); color:var(--gold-bright); border-radius:4px; padding:0 3px; margin-top:1px; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; cursor:pointer;}
 .cal-day .cal-evmore{font-size:8.5px; color:var(--ink-text-dim);}
 .cal-day.empty{visibility:hidden;}
@@ -938,6 +939,18 @@ async function getDayNotesD(date){
   }catch(e){ return []; }
 }
 async function deleteDayNoteD(key){ try{ await window.storage.delete(key); }catch(e){} }
+async function getNoteDatesInMonthD(year, month){
+  const set = new Set();
+  try{
+    const l = await window.storage.list("note:");
+    const monthPrefix = year+"-"+String(month+1).padStart(2,"0")+"-";
+    (l.keys||[]).forEach(k=>{
+      const parts = k.split(":");
+      if(parts.length>=2 && parts[1].startsWith(monthPrefix)) set.add(parts[1]);
+    });
+  }catch(e){}
+  return set;
+}
 
 /* =========================================================
    NAV
@@ -1175,6 +1188,7 @@ function renderStudyPanels(notes){
 function switchToView(view, pushHistory){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.toggle("active", i.dataset.view===view));
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="view-"+view));
+  closeEventModalD(); // 화면을 이동하면 열려있던 일정 추가/수정 모달은 자동으로 닫음
   if(view==="calendar") renderCalendar();
   if(view==="people") renderPeopleGrid();
   if(view==="places"){ renderPlacesGrid(); renderMap(); }
@@ -1486,6 +1500,7 @@ async function renderCalendar(){
     if(!progMap[p.date].includes(p.passageKey)) progMap[p.date].push(p.passageKey);
   });
   window._calProgMapD = progMap;
+  window._calNoteDatesD = await getNoteDatesInMonthD(calYear, calMonth);
 
   buildCalGridHtmlD();
 
@@ -1506,6 +1521,7 @@ const CAL_COLOR_MAP={ "11":"#d5453a", "6":"#e8a13c", null:"#7a8ba0", undefined:"
 function calEventColor(colorId){ return CAL_COLOR_MAP[colorId] || CAL_COLOR_MAP[null]; }
 function buildCalGridHtmlD(){
   const progMap = window._calProgMapD || {};
+  const noteDates = window._calNoteDatesD || new Set();
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
   let html = "";
@@ -1514,11 +1530,12 @@ function buildCalGridHtmlD(){
     const dateStr = fmtDate(calYear, calMonth, day);
     const isToday = dateStr === todayStr();
     const done = !!progMap[dateStr];
+    const hasNote = noteDates.has(dateStr);
     const evs = (CAL_EVENTS_CACHE_D[dateStr]||[]);
     const evHtml = evs.slice(0,2).map(ev=>`<div class="cal-evchip" style="background:${calEventColor(ev.colorId)}22;color:${calEventColor(ev.colorId)};border-left:3px solid ${calEventColor(ev.colorId)};" data-evid="${ev.id}" data-evdate="${dateStr}">${ev.time?ev.time+" ":""}${escapeHtml(ev.title)}</div>`).join("")
       + (evs.length>2 ? `<div class="cal-evmore">+${evs.length-2}</div>` : "");
     html += `<div class="cal-day ${isToday?"today":""} ${done?"done":""}" data-date="${dateStr}">
-      <span class="cal-daynum">${day}</span>${done?'<span class="cal-done-mark" title="성경읽기 완료"></span>':''}${evHtml}
+      <span class="cal-daynum">${day}${hasNote?' <span class="cal-notemark" title="메모 있음">📝</span>':''}</span>${done?'<span class="cal-done-mark" title="성경읽기 완료"></span>':''}${evHtml}
     </div>`;
   }
   document.getElementById("cal-grid").innerHTML = html;
@@ -1552,6 +1569,11 @@ function openEventModalD(eventId, dateStr){
   document.getElementById("cal-ev-date").value = dateStr || todayStr();
   document.getElementById("cal-ev-time").value = ev&&ev.time ? ev.time : "";
   document.getElementById("cal-ev-color").value = ev&&ev.colorId ? ev.colorId : "";
+  const allDayChk = document.getElementById("cal-ev-allday");
+  const timeWrap = document.getElementById("cal-ev-time-wrap");
+  const hasTime = !!(ev && ev.time);
+  allDayChk.checked = !hasTime;
+  timeWrap.style.display = hasTime ? "" : "none";
   document.getElementById("cal-event-modal-title").textContent = eventId ? "📝 일정 수정" : "➕ 새 일정 추가";
   document.getElementById("cal-ev-delete-btn").style.display = eventId ? "" : "none";
   modal.style.display="flex";
@@ -1564,7 +1586,8 @@ async function saveEventD(){
   const id=document.getElementById("cal-ev-id").value;
   const title=document.getElementById("cal-ev-title").value.trim();
   const date=document.getElementById("cal-ev-date").value;
-  const time=document.getElementById("cal-ev-time").value;
+  const isAllDay=document.getElementById("cal-ev-allday").checked;
+  const time=isAllDay ? "" : document.getElementById("cal-ev-time").value;
   const colorId=document.getElementById("cal-ev-color").value;
   if(!title){ alert("일정 제목을 입력해주세요."); return; }
   if(!date){ alert("날짜를 선택해주세요."); return; }
@@ -1588,7 +1611,12 @@ async function saveEventD(){
       headers: { "Authorization":"Bearer "+token, "Content-Type":"application/json" },
       body: JSON.stringify(body)
     });
-    if(!res.ok){ alert("일정 저장에 실패했습니다."); return; }
+    if(!res.ok){
+      let msg="일정 저장에 실패했습니다.";
+      try{ const errData=await res.json(); if(errData&&errData.error&&errData.error.message) msg+=" ("+errData.error.message+")"; }catch(e2){}
+      alert(msg);
+      return;
+    }
     closeEventModalD();
     CAL_EVENTS_MONTH_KEY_D = ""; // 캐시 무효화하여 다시 불러오게 함
     loadCalendarEventsD();
@@ -1615,6 +1643,12 @@ document.addEventListener("click",(e)=>{
   if(e.target.id==="cal-ev-save-btn"){ saveEventD(); return; }
   if(e.target.id==="cal-ev-delete-btn"){ deleteEventD(); return; }
   if(e.target.id==="cal-ev-cancel-btn" || e.target.id==="cal-event-modal"){ closeEventModalD(); return; }
+});
+document.addEventListener("change",(e)=>{
+  if(e.target.id==="cal-ev-allday"){
+    const timeWrap=document.getElementById("cal-ev-time-wrap");
+    if(timeWrap) timeWrap.style.display = e.target.checked ? "none" : "";
+  }
 });
 
 /* ===== 실제 구글 캘린더 일정 연동 (기존 구글 로그인 재사용, 캘린더 읽기 권한 추가) ===== */
@@ -2671,7 +2705,7 @@ let gTokenClientD = null;
 let gAccessTokenD = null;
 let gTokenExpiresAtD = 0;
 const GDRIVE_FILE_NAME_D = "deungbul_backup.json";
-const GDRIVE_SCOPE_D = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.readonly";
+const GDRIVE_SCOPE_D = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events";
 
 function loadGisScriptD(){
   return new Promise((resolve, reject)=>{
@@ -2766,13 +2800,14 @@ async function connectGoogleDriveD(silent){
 }
 
 async function disconnectGoogleDriveD(){
-  gAccessTokenD = null;
-  gTokenExpiresAtD = 0;
+  const tokenToRevoke = gAccessTokenD;
   try{
-    if(window.google && google.accounts && google.accounts.oauth2 && gAccessTokenD){
-      google.accounts.oauth2.revoke(gAccessTokenD, ()=>{});
+    if(window.google && google.accounts && google.accounts.oauth2 && tokenToRevoke){
+      google.accounts.oauth2.revoke(tokenToRevoke, ()=>{});
     }
   }catch(e){}
+  gAccessTokenD = null;
+  gTokenExpiresAtD = 0;
   try{ await window.storage.delete("gdrive_token_cache"); }catch(e){}
   try{ await window.storage.delete("gdrive_authorized"); }catch(e){}
   updateGDriveStatusUID();
@@ -3415,16 +3450,19 @@ window.loadApiKey().then(async function(){
     <input type="hidden" id="cal-ev-id">
     <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">제목</label>
     <input type="text" id="cal-ev-title" placeholder="일정 제목" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13.5px;margin-bottom:12px;">
-    <div style="display:flex;gap:10px;margin-bottom:12px;">
+    <div style="display:flex;gap:10px;margin-bottom:8px;">
       <div style="flex:1;">
         <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">날짜</label>
         <input type="date" id="cal-ev-date" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 8px;color:var(--ink-text);font-size:13px;">
       </div>
-      <div style="flex:1;">
-        <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">시간 (선택)</label>
+      <div style="flex:1;" id="cal-ev-time-wrap">
+        <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">시간</label>
         <input type="time" id="cal-ev-time" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 8px;color:var(--ink-text);font-size:13px;">
       </div>
     </div>
+    <label style="font-size:12.5px;color:var(--ink-text-dim);display:flex;align-items:center;gap:6px;margin-bottom:14px;cursor:pointer;">
+      <input type="checkbox" id="cal-ev-allday" checked style="width:15px;height:15px;"> 하루 종일 (시간 없음)
+    </label>
     <label style="font-size:12px;color:var(--ink-text-dim);display:block;margin-bottom:4px;">중요도</label>
     <select id="cal-ev-color" style="width:100%;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13px;margin-bottom:18px;">
       <option value="">🔵 보통</option>
