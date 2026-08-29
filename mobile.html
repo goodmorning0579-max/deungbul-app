@@ -1734,7 +1734,7 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
         return;
       }
     }
-    clearTTSHighlight(); setTTSButtonState(null); return;
+    clearTTSHighlight(); setTTSButtonState(null); releaseTTSWakeLock(); return;
   }
   const v = list[idx];
   const text = lang==="en" ? (v.en||"") : (v.kr||"");
@@ -1776,6 +1776,23 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
     }
   }, 700);
 }
+let ttsWakeLock = null;
+async function requestTTSWakeLock(){
+  try{
+    if("wakeLock" in navigator){
+      ttsWakeLock = await navigator.wakeLock.request("screen");
+    }
+  }catch(e){ /* 지원 안 하는 기기/브라우저는 조용히 무시 */ }
+}
+function releaseTTSWakeLock(){
+  if(ttsWakeLock){ try{ ttsWakeLock.release(); }catch(e){} ttsWakeLock=null; }
+}
+// 화면이 다시 보이게 될 때(예: 잠깐 다른 앱을 봤다 돌아온 경우) 재생 중이면 Wake Lock을 다시 확보
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" && window.speechSynthesis && window.speechSynthesis.speaking){
+    requestTTSWakeLock();
+  }
+});
 function startTTS(lang){
   if(!("speechSynthesis" in window)){
     alert("이 브라우저는 음성 읽기 기능을 지원하지 않습니다.");
@@ -1801,6 +1818,7 @@ function startTTS(lang){
   ttsRepeatLeft = ttsRepeatTotal;
   ttsPlaybackId++;
   const myId = ttsPlaybackId;
+  requestTTSWakeLock(); // 재생 중에는 화면이 자동으로 꺼지지 않도록 유지
   // 사용자가 버튼을 누른 이 시점(제스처 컨텍스트) 안에서 바로 재생을 시작해야
   // 일부 브라우저의 음성 재생 차단 정책에 걸리지 않음
   speakVerseQueue(lang, 0, myId, 0);
@@ -1810,6 +1828,7 @@ function stopTTS(){
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
   clearTTSHighlight();
   setTTSButtonState(null);
+  releaseTTSWakeLock();
 }
 function setTTSButtonState(lang){
   const krBtn=document.getElementById("ttsKr"), enBtn=document.getElementById("ttsEn"), stopBtn=document.getElementById("ttsStop");
