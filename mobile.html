@@ -2711,10 +2711,24 @@ document.addEventListener("click", function(e){
 
 /* ============================================================
    PWA 서비스 워커 등록 (홈 화면 설치 지원)
+   페이지를 열 때마다 서비스 워커 업데이트가 있는지 확인하고,
+   새 버전이 감지되면 즉시 적용되도록 처리 (예전 파일이 캐시에 남아
+   화면이 안 바뀌는 문제를 방지)
    ============================================================ */
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("sw.js").catch(()=>{
+    navigator.serviceWorker.register("sw.js").then((reg)=>{
+      reg.update().catch(()=>{});
+      reg.addEventListener("updatefound", ()=>{
+        const newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener("statechange", ()=>{
+          if(newWorker.state==="activated"){
+            location.reload();
+          }
+        });
+      });
+    }).catch(()=>{
       // sw.js가 없는 환경(로컬 단일 파일 등)에서는 조용히 무시
     });
   });
