@@ -1159,14 +1159,55 @@ function renderPlaces(q){
     return `<div class="ecard">
       <div style="font-weight:700;font-size:14.5px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;">
         <span>📍 ${esc(name)}</span>
-        <a class="chiplink" href="${dictSearchLink(name,'place')}" target="_blank" rel="noopener" title="외부 사전에서 더 보기" style="font-size:13px;">🔎</a>
+        <span style="display:flex;gap:8px;align-items:center;">
+          <span class="placemaptoggle" data-place="${esc(name)}" style="font-size:13px;cursor:pointer;" title="실제 지도 보기">🗺️</span>
+          <a class="chiplink" href="${dictSearchLink(name,'place')}" target="_blank" rel="noopener" title="외부 사전에서 더 보기" style="font-size:13px;">🔎</a>
+        </span>
       </div>
+      <div class="placemapbox" id="pmap-${esc(name).replace(/[^a-zA-Z0-9가-힣]/g,'')}" style="display:none;margin-bottom:8px;"></div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;">
         ${refs.map(k=>`<span class="chip jumpref" data-jump="${k}" style="cursor:pointer;">${passageLabel(k)}</span>`).join("")}
       </div>
     </div>`;
   }).join("");
   if(mapShown) renderPlaceMap();
+}
+
+/* ===== 지명 검색 시 실제 위치 지도 (OpenStreetMap, API 키 불필요) ===== */
+const PLACE_GEOCACHE={};
+async function togglePlaceRealMap(name){
+  const boxId="pmap-"+name.replace(/[^a-zA-Z0-9가-힣]/g,"");
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  if(box.style.display!=="none"){ box.style.display="none"; return; }
+  box.style.display="block";
+  if(PLACE_GEOCACHE[name]){
+    renderPlaceMapBox(box, PLACE_GEOCACHE[name], name);
+    return;
+  }
+  box.innerHTML=`<div style="font-size:11.5px;color:var(--itd);padding:8px;">🔍 위치 찾는 중...</div>`;
+  try{
+    const q=encodeURIComponent(name+" 이스라엘 성경");
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+    const data=await res.json();
+    if(data && data.length){
+      const {lat, lon}=data[0];
+      PLACE_GEOCACHE[name]={lat, lon};
+      renderPlaceMapBox(box, {lat, lon}, name);
+    }else{
+      box.innerHTML=`<div style="font-size:11.5px;color:var(--itd);padding:8px;">지도에서 위치를 찾을 수 없습니다.</div>`;
+    }
+  }catch(e){
+    box.innerHTML=`<div style="font-size:11.5px;color:var(--itd);padding:8px;">지도를 불러오지 못했습니다.</div>`;
+  }
+}
+function renderPlaceMapBox(box, coord, name){
+  const lat=parseFloat(coord.lat), lon=parseFloat(coord.lon);
+  const d=0.25;
+  const bbox=`${lon-d}%2C${lat-d}%2C${lon+d}%2C${lat+d}`;
+  box.innerHTML=`<iframe style="width:100%;height:180px;border:1px solid rgba(201,151,42,.25);border-radius:8px;" loading="lazy"
+    src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}"></iframe>
+    <div style="font-size:10px;color:var(--itd);margin-top:2px;">📍 ${esc(name)} (약 ${lat.toFixed(3)}, ${lon.toFixed(3)})</div>`;
 }
 
 /* ===== 지도 (개략도) ===== */
@@ -1570,7 +1611,10 @@ function startTTS(lang){
   if(curTTSDropdownLang!==lang) populateVoiceSelect(lang);
   setTTSButtonState(lang);
   ttsPlaybackId++;
-  speakVerseQueue(lang, 0, ttsPlaybackId);
+  const myId = ttsPlaybackId;
+  // 안드로이드 브라우저는 speechSynthesis.cancel() 직후 곧바로 speak()를 호출하면
+  // 음성 엔진이 먹통이 되는 경우가 많아, 짧은 지연을 두어 안정적으로 재생되게 함
+  setTimeout(()=>{ speakVerseQueue(lang, 0, myId); }, 120);
 }
 function stopTTS(){
   ttsPlaybackId++; // 진행 중이던 큐를 무효화
@@ -1905,6 +1949,9 @@ document.addEventListener("click", function(e){
     if(ta) ta.placeholder=curJT==="observation"?"본문에서 무엇을 발견했나요?":curJT==="interpretation"?"이 본문은 무엇을 의미하나요?":curJT==="application"?"내 삶에 어떻게 적용할까요?":"이 본문으로 어떻게 기도하시겠어요?";
     return;
   }
+
+  const placeMapBtn=e.target.closest(".placemaptoggle");
+  if(placeMapBtn){ togglePlaceRealMap(placeMapBtn.dataset.place); return; }
 
   const rmBtn=e.target.closest(".readmarkbtn");
   if(rmBtn){ toggleReadMark(rmBtn.dataset.lang); return; }
