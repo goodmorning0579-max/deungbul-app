@@ -1679,10 +1679,54 @@ function renderPlacesGrid(q){
 function showPlaceDetail(name){
   const p = PLACES[name];
   const box = document.getElementById("places-detail");
-  box.innerHTML = `<h3>${name}</h3><div class="sub">${p.sub}</div><p>${p.body}</p>`;
+  box.innerHTML = `<h3>${name} <span class="placemaptoggle-d" data-place="${name}" style="cursor:pointer;font-size:15px;" title="실제 지도 보기">🗺️</span></h3>
+    <div class="sub">${p.sub}</div>
+    <div class="placemapbox-d" id="pmapd-${name.replace(/[^a-zA-Z0-9가-힣]/g,'')}" style="display:none;margin:10px 0;"></div>
+    <p>${p.body}</p>`;
   box.classList.add("active");
   box.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
+
+/* ===== 지명 검색 시 실제 위치 지도 (OpenStreetMap, API 키 불필요) ===== */
+const PLACE_GEOCACHE_D={};
+async function togglePlaceRealMapD(name){
+  const boxId="pmapd-"+name.replace(/[^a-zA-Z0-9가-힣]/g,"");
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  if(box.style.display!=="none"){ box.style.display="none"; return; }
+  box.style.display="block";
+  if(PLACE_GEOCACHE_D[name]){
+    renderPlaceMapBoxD(box, PLACE_GEOCACHE_D[name], name);
+    return;
+  }
+  box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">🔍 위치 찾는 중...</div>`;
+  try{
+    const q=encodeURIComponent(name+" 이스라엘 성경");
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+    const data=await res.json();
+    if(data && data.length){
+      const {lat, lon}=data[0];
+      PLACE_GEOCACHE_D[name]={lat, lon};
+      renderPlaceMapBoxD(box, {lat, lon}, name);
+    }else{
+      box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도에서 위치를 찾을 수 없습니다.</div>`;
+    }
+  }catch(e){
+    box.innerHTML=`<div style="font-size:12px;color:var(--ink-text-dim);padding:8px;">지도를 불러오지 못했습니다.</div>`;
+  }
+}
+function renderPlaceMapBoxD(box, coord, name){
+  const lat=parseFloat(coord.lat), lon=parseFloat(coord.lon);
+  const d=0.25;
+  const bbox=`${lon-d}%2C${lat-d}%2C${lon+d}%2C${lat+d}`;
+  box.innerHTML=`<iframe style="width:100%;height:240px;border:1px solid rgba(201,151,42,.25);border-radius:10px;" loading="lazy"
+    src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}"></iframe>
+    <div style="font-size:11px;color:var(--ink-text-dim);margin-top:3px;">📍 ${name} (약 ${lat.toFixed(3)}, ${lon.toFixed(3)})</div>`;
+}
+document.addEventListener("click", (e)=>{
+  const placeMapBtnD=e.target.closest(".placemaptoggle-d");
+  if(placeMapBtnD){ togglePlaceRealMapD(placeMapBtnD.dataset.place); return; }
+});
 function renderMap(){
   const svg = document.getElementById("map-svg");
   let dots = "";

@@ -1572,26 +1572,49 @@ function highlightVerse(vn){
   const first = document.querySelector('.verse[data-vn="'+vn+'"]');
   if(first) first.scrollIntoView({behavior:"smooth", block:"center"});
 }
-function speakVerseQueue(lang, idx, myPlaybackId){
+function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   if(myPlaybackId !== ttsPlaybackId) return; // 그 사이 정지되었으면 중단
   const list = curPassageVerses || [];
   if(idx >= list.length){ clearTTSHighlight(); setTTSButtonState(null); return; }
   const v = list[idx];
   const text = lang==="en" ? (v.en||"") : (v.kr||"");
-  if(!text){ speakVerseQueue(lang, idx+1, myPlaybackId); return; }
+  if(!text){ speakVerseQueue(lang, idx+1, myPlaybackId, 0); return; }
   highlightVerse(v.n);
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = 0.95;
+  utter.volume = 1;
   const chosenURI = selectedVoiceURI[lang];
   if(chosenURI){
     const vv = availableVoices.find(x=>x.voiceURI===chosenURI);
     if(vv) utter.voice = vv;
   }
-  utter.onend = ()=>{ speakVerseQueue(lang, idx+1, myPlaybackId); };
-  utter.onerror = ()=>{ speakVerseQueue(lang, idx+1, myPlaybackId); };
+  let started = false;
+  utter.onstart = ()=>{ started = true; };
+  utter.onend = ()=>{ speakVerseQueue(lang, idx+1, myPlaybackId, 0); };
+  utter.onerror = (ev)=>{
+    // "interrupted"는 정지 버튼을 눌렀을 때 정상적으로 발생하므로 재시도하지 않음
+    if(ev && ev.error === "interrupted") return;
+    speakVerseQueue(lang, idx+1, myPlaybackId, 0);
+  };
   ttsUtterance = utter;
   window.speechSynthesis.speak(utter);
+  // 안드로이드 브라우저는 speak()를 호출해도 음성 엔진이 응답 없이 무시하는 경우가 흔함.
+  // 일정 시간 안에 실제로 재생이 시작되지 않으면 같은 절을 다시 시도함(최대 3회).
+  const rc = retryCount||0;
+  setTimeout(()=>{
+    if(myPlaybackId !== ttsPlaybackId) return;
+    if(!started && !window.speechSynthesis.speaking){
+      if(rc < 3){
+        speakVerseQueue(lang, idx, myPlaybackId, rc+1);
+      }else{
+        // 3번 재시도해도 시작되지 않으면 이 기기/브라우저에서 음성 재생이 막혀 있는 것으로 판단
+        clearTTSHighlight();
+        setTTSButtonState(null);
+        alert("이 기기·브라우저에서는 음성 재생이 지원되지 않는 것 같습니다.\n크롬 브라우저를 사용해보시거나, 기기 설정 > 접근성 > 텍스트 음성 변환 엔진이 설치되어 있는지 확인해주세요.");
+      }
+    }
+  }, 700);
 }
 function startTTS(lang){
   if(!("speechSynthesis" in window)){
@@ -1602,19 +1625,24 @@ function startTTS(lang){
     alert("먼저 본문이 로드된 후 다시 시도해주세요.");
     return;
   }
-  stopTTS();
   const hasAny = curPassageVerses.some(v => (lang==="en" ? v.en : v.kr));
   if(!hasAny){
     alert("이 언어의 본문을 찾을 수 없습니다.");
     return;
   }
   if(curTTSDropdownLang!==lang) populateVoiceSelect(lang);
+  // 이미 재생 중이던 것이 있을 때만 정지(불필요한 cancel() 호출 자체가
+  // 일부 안드로이드 기기에서 다음 speak()를 막는 원인이 되는 경우가 있어 조건부로만 호출)
+  if(window.speechSynthesis.speaking || window.speechSynthesis.pending){
+    window.speechSynthesis.cancel();
+  }
+  clearTTSHighlight();
   setTTSButtonState(lang);
   ttsPlaybackId++;
   const myId = ttsPlaybackId;
-  // 안드로이드 브라우저는 speechSynthesis.cancel() 직후 곧바로 speak()를 호출하면
-  // 음성 엔진이 먹통이 되는 경우가 많아, 짧은 지연을 두어 안정적으로 재생되게 함
-  setTimeout(()=>{ speakVerseQueue(lang, 0, myId); }, 120);
+  // 사용자가 버튼을 누른 이 시점(제스처 컨텍스트) 안에서 바로 재생을 시작해야
+  // 일부 브라우저의 음성 재생 차단 정책에 걸리지 않음
+  speakVerseQueue(lang, 0, myId, 0);
 }
 function stopTTS(){
   ttsPlaybackId++; // 진행 중이던 큐를 무효화
