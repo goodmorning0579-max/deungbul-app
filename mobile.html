@@ -313,7 +313,7 @@ a.bni{text-decoration:none;}
       <input id="taginput" placeholder="태그 입력 후 Enter">
       <div id="taglist" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
     </div>
-    <div class="savrow"><button class="btn" id="savebtn">저장</button><span class="flash" id="flash">저장됨 🪔</span></div>
+    <div class="savrow"><button class="btn" id="savebtn">저장</button><button class="btn ghost" id="jcancelbtn" style="display:none;">취소</button><span class="flash" id="flash">저장됨 🪔</span></div>
 
     <div class="voicebox">
       <div style="font-size:14px;font-weight:700;margin-bottom:8px;">🎙️ 음성 기록 (기도·묵상·설교)</div>
@@ -745,7 +745,7 @@ async function saveJ(pk,date,type,text,tags){
 }
 async function allJ(){
   try{const l=await stor.list("j:");const r=[];
-  for(const k of(l.keys||[])){try{const v=await stor.get(k);if(v)r.push(JSON.parse(v.value));}catch(e){}}
+  for(const k of(l.keys||[])){try{const v=await stor.get(k);if(v){const obj=JSON.parse(v.value);obj._key=k;r.push(obj);}}catch(e){}}
   return r.sort((a,b)=>b.ts-a.ts);}catch(e){return[];}
 }
 /* 읽음 표시: pk마다, 언어(kr/en)마다 독립적으로 저장 (날짜당 여러 장 가능) */
@@ -1750,13 +1750,42 @@ async function renderElog(){
   const allVoice=await allVoiceEntries();
   const myVoice=allVoice.filter(e=>e.pk===pk);
   if(!mine.length && !myVoice.length){ wrap.innerHTML='<p style="font-size:12px;color:var(--itd);">아직 기록이 없습니다.</p>'; return; }
-  const textHtml=mine.map(e=>`<div class="ecard">
+  const textHtml=mine.map(e=>`<div class="ecard" data-jkey="${e._key}">
     <div class="emeta"><span class="edot" style="background:${JC[e.type]||'#888'}"></span>${TL[e.type]||e.type} · ${e.date}</div>
     <div class="etext">${esc(e.text)}</div>
     ${(e.tags&&e.tags.length)?`<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">${e.tags.map(t=>`<span class="tagchip">#${esc(t)}</span>`).join("")}</div>`:""}
+    <div style="margin-top:8px;display:flex;gap:10px;justify-content:flex-end;">
+      <span class="favdel" data-jedit="${e._key}" style="cursor:pointer;color:var(--itd);font-size:11px;">✏️ 수정</span>
+      <span class="favdel" data-jdel="${e._key}" style="cursor:pointer;color:var(--itd);font-size:11px;">🗑 삭제</span>
+    </div>
   </div>`).join("");
   const voiceHtml=myVoice.map(e=>voiceEntryHtml(e,false)).join("");
   wrap.innerHTML=textHtml+voiceHtml;
+}
+let editingJKey=null; // 현재 수정 중인 묵상 기록의 원본 키(없으면 새 기록 작성 모드)
+function startEditJ(key, entry){
+  editingJKey = key;
+  curJT = entry.type;
+  curTags = (entry.tags||[]).slice();
+  document.querySelectorAll(".jtabs .jtab[data-jt]").forEach(t=>t.classList.toggle("active", t.dataset.jt===entry.type));
+  const ta=document.getElementById("jtext");
+  if(ta){ ta.value = entry.text; ta.focus(); try{ ta.scrollIntoView({behavior:"smooth", block:"center"}); }catch(err){} }
+  renderTagList();
+  const saveBtn=document.getElementById("savebtn");
+  if(saveBtn) saveBtn.textContent = "수정 저장";
+  const cancelBtn=document.getElementById("jcancelbtn");
+  if(cancelBtn) cancelBtn.style.display = "";
+}
+function cancelEditJ(){
+  editingJKey = null;
+  const ta=document.getElementById("jtext");
+  if(ta) ta.value="";
+  curTags=[];
+  renderTagList();
+  const saveBtn=document.getElementById("savebtn");
+  if(saveBtn) saveBtn.textContent = "저장";
+  const cancelBtn=document.getElementById("jcancelbtn");
+  if(cancelBtn) cancelBtn.style.display = "none";
 }
 
 /* ===== 설교 기록장 (장별 최대 5개) ===== */
@@ -2428,9 +2457,18 @@ document.addEventListener("click", function(e){
     const text=(ta&&ta.value||"").trim();
     if(!text) return;
     const pk=chapterKey(curBook,curCh);
-    saveJ(pk, todayStr(), curJT, text, curTags.slice()).then((result)=>{
+    const wasEditing = editingJKey;
+    const savePromise = wasEditing
+      ? stor.set(wasEditing, JSON.stringify({pk, date:todayStr(), type:curJT, text, tags:curTags.slice(), ts:Date.now()}))
+      : saveJ(pk, todayStr(), curJT, text, curTags.slice());
+    savePromise.then((result)=>{
       ta.value="";
       curTags=[];
+      editingJKey=null;
+      const saveBtn=document.getElementById("savebtn");
+      if(saveBtn) saveBtn.textContent="저장";
+      const cancelBtn=document.getElementById("jcancelbtn");
+      if(cancelBtn) cancelBtn.style.display="none";
       renderTagList();
       renderElog();
       const fl=document.getElementById("flash");
@@ -2438,10 +2476,33 @@ document.addEventListener("click", function(e){
         // 저장이 메모리에만 되어 새로고침 시 사라질 수 있는 상태 — 반드시 알려야 함
         alert("⚠️ 저장은 됐지만, 이 브라우저에서는 영구 저장이 되지 않아 앱을 새로고침하면 이 기록이 사라질 수 있습니다.\n비공개(시크릿) 모드가 아닌 일반 브라우저 창에서 열어주세요.");
         warnIfStorageBroken();
-      }else if(fl){
-        fl.classList.add("show"); setTimeout(()=>fl.classList.remove("show"),1500);
+      }else{
+        if(wasEditing){ alert("✏️ 수정되었습니다."); }
+        else if(fl){ fl.classList.add("show"); setTimeout(()=>fl.classList.remove("show"),1500); }
       }
     });
+    return;
+  }
+  if(e.target.id==="jcancelbtn"){ cancelEditJ(); return; }
+  if(e.target.dataset && e.target.dataset.jedit){
+    (async ()=>{
+      const key = e.target.dataset.jedit;
+      try{
+        const r = await stor.get(key);
+        if(r && r.value) startEditJ(key, JSON.parse(r.value));
+      }catch(err){}
+    })();
+    return;
+  }
+  if(e.target.dataset && e.target.dataset.jdel){
+    const key = e.target.dataset.jdel;
+    if(confirm("이 묵상 기록을 삭제할까요?")){
+      (async ()=>{
+        try{ await stor.delete(key); }catch(err){}
+        if(editingJKey===key) cancelEditJ();
+        renderElog();
+      })();
+    }
     return;
   }
 
@@ -2653,16 +2714,28 @@ async function findGDriveBackupFile(){
   return (data.files && data.files[0]) || null;
 }
 
+/* 모바일과 데스크탑이 같은 데이터를 서로 다른 키 접두사로 저장하고 있어서(모바일: j:/p:, 데스크탑: journal:/progress:),
+   구글 드라이브로 주고받을 때는 항상 이 "공통 접두사"로 변환해서 저장/복원한다. 이렇게 해야 두 기기가 진짜로 호환됨. */
+const GDRIVE_PREFIX_TO_COMMON = {"j:":"journal:", "p:":"progress:"};
+const GDRIVE_PREFIX_FROM_COMMON = {"journal:":"j:", "progress:":"p:"};
+function gdriveLocalToCommonKey(k){
+  for(const local in GDRIVE_PREFIX_TO_COMMON){ if(k.startsWith(local)) return GDRIVE_PREFIX_TO_COMMON[local]+k.slice(local.length); }
+  return k; // sermon:/voice:/note:/fav: 는 두 기기가 이름이 같아서 변환 불필요
+}
+function gdriveCommonToLocalKey(k){
+  for(const common in GDRIVE_PREFIX_FROM_COMMON){ if(k.startsWith(common)) return GDRIVE_PREFIX_FROM_COMMON[common]+k.slice(common.length); }
+  return k;
+}
 async function saveToGoogleDrive(){
   const st = document.getElementById("gdrive-status");
   try{
     await ensureGDriveToken();
     if(st) st.textContent = "⏳ 저장 중...";
     const bundle = { app:"등불", version:1, exportedAt:new Date().toISOString(), entries:[] };
-    for(const p of ["j:","p:","fav:"]){
+    for(const p of ["j:","p:","fav:","sermon:","voice:","note:"]){
       const l = await stor.list(p);
       for(const k of (l.keys||[])){
-        try{ const v = await stor.get(k); if(v) bundle.entries.push({key:k, value:v.value}); }catch(e){}
+        try{ const v = await stor.get(k); if(v) bundle.entries.push({key:gdriveLocalToCommonKey(k), value:v.value}); }catch(e){}
       }
     }
     const existing = await findGDriveBackupFile();
@@ -2700,7 +2773,7 @@ async function loadFromGoogleDrive(){
     if(!res.ok) throw new Error("다운로드 실패 ("+res.status+")");
     const bundle = await res.json();
     if(!bundle || !Array.isArray(bundle.entries)) throw new Error("파일 형식이 올바르지 않습니다.");
-    for(const e of bundle.entries){ await stor.set(e.key, e.value); }
+    for(const e of bundle.entries){ await stor.set(gdriveCommonToLocalKey(e.key), e.value); }
     PROG_CACHE = null;
     if(st) st.textContent = "✅ "+bundle.entries.length+"개 항목을 불러왔습니다. (마지막 저장: "+(existing.modifiedTime||"").slice(0,16).replace("T"," ")+")";
   }catch(e){
