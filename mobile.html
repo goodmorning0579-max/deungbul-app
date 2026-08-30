@@ -504,8 +504,22 @@ a.bni{text-decoration:none;}
 <script>
 const mem={};
 const LS_PREFIX="deungbul:";
+let LS_BROKEN=false; // localStorage 자체가 막혀있는 환경(일부 프라이빗 모드 등)인지 기록
 const ST={
-  async set(k,v){ try{ localStorage.setItem(LS_PREFIX+k, String(v)); }catch(e){ mem[k]=String(v); } return{key:k,value:v}; },
+  async set(k,v){
+    const full=LS_PREFIX+k;
+    try{
+      localStorage.setItem(full, String(v));
+      // 저장 직후 실제로 읽혀지는지 검증 (일부 브라우저/모드는 예외 없이 조용히 저장을 무시하는 경우가 있음)
+      const check = localStorage.getItem(full);
+      if(check === String(v)){ return {key:k, value:v, persisted:true}; }
+      throw new Error("verify-failed");
+    }catch(e){
+      LS_BROKEN = true;
+      mem[k]=String(v);
+      return {key:k, value:v, persisted:false};
+    }
+  },
   async get(k){
     try{
       const v=localStorage.getItem(LS_PREFIX+k);
@@ -530,6 +544,16 @@ const ST={
   async delete(k){ try{ localStorage.removeItem(LS_PREFIX+k); }catch(e){} delete mem[k]; return{key:k,deleted:true}; },
 };
 const stor=(typeof window!=="undefined" && window.storage && typeof window.storage.set==="function")?window.storage:ST;
+/* 저장이 실제로 영구 보존되지 않는 환경(메모리에만 저장됨)이면 사용자에게 한 번 경고 */
+function warnIfStorageBroken(){
+  if(LS_BROKEN && !document.getElementById("ls-broken-banner")){
+    const b=document.createElement("div");
+    b.id="ls-broken-banner";
+    b.style.cssText="position:fixed;top:0;left:0;right:0;background:#8a2020;color:#fff;font-size:12px;padding:8px 12px;text-align:center;z-index:99999;";
+    b.textContent="⚠️ 이 브라우저에서는 기록이 영구 저장되지 않습니다(비공개/시크릿 모드이거나 저장 공간이 제한된 상태로 보입니다). 일반 브라우저 창에서 다시 열어주세요.";
+    document.body.prepend(b);
+  }
+}
 
 const BOOKS = [
   {code:"GEN", name:"창세기", chapters:50, testament:"ot"},
@@ -620,7 +644,7 @@ function fmtDate(y,m,d){return y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).p
 
 async function saveJ(pk,date,type,text,tags){
   const k="j:"+pk+":"+date+":"+type+":"+Date.now();
-  await stor.set(k,JSON.stringify({pk,date,type,text,tags,ts:Date.now()}));
+  return await stor.set(k,JSON.stringify({pk,date,type,text,tags,ts:Date.now()}));
 }
 async function allJ(){
   try{const l=await stor.list("j:");const r=[];
@@ -2197,13 +2221,19 @@ document.addEventListener("click", function(e){
     const text=(ta&&ta.value||"").trim();
     if(!text) return;
     const pk=chapterKey(curBook,curCh);
-    saveJ(pk, todayStr(), curJT, text, curTags.slice()).then(()=>{
+    saveJ(pk, todayStr(), curJT, text, curTags.slice()).then((result)=>{
       ta.value="";
       curTags=[];
       renderTagList();
       renderElog();
       const fl=document.getElementById("flash");
-      if(fl){ fl.classList.add("show"); setTimeout(()=>fl.classList.remove("show"),1500); }
+      if(result && result.persisted===false){
+        // 저장이 메모리에만 되어 새로고침 시 사라질 수 있는 상태 — 반드시 알려야 함
+        alert("⚠️ 저장은 됐지만, 이 브라우저에서는 영구 저장이 되지 않아 앱을 새로고침하면 이 기록이 사라질 수 있습니다.\n비공개(시크릿) 모드가 아닌 일반 브라우저 창에서 열어주세요.");
+        warnIfStorageBroken();
+      }else if(fl){
+        fl.classList.add("show"); setTimeout(()=>fl.classList.remove("show"),1500);
+      }
     });
     return;
   }
@@ -2607,8 +2637,13 @@ async function saveVoiceToApp(){
       date: todayStr()
     };
     const k = "voice:"+pk+":"+Date.now();
-    await stor.set(k, JSON.stringify(entry));
-    statusEl.textContent = "✅ 저장되었습니다.";
+    const result = await stor.set(k, JSON.stringify(entry));
+    if(result && result.persisted===false){
+      statusEl.innerHTML = "⚠️ 저장은 됐지만 이 브라우저에서는 영구 저장이 안 됩니다.<br>새로고침하면 사라질 수 있어요 — 비공개 모드가 아닌 창에서 열어주세요.";
+      warnIfStorageBroken();
+    }else{
+      statusEl.textContent = "✅ 저장되었습니다.";
+    }
     resetVoiceRecUI();
     renderElog();
   }catch(e){

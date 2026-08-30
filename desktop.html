@@ -724,13 +724,32 @@ textarea:focus{outline:none; border-color:var(--gold);}
     구글 드라이브 연동을 사용하세요.)
 ========================================================= */
 const IS_STANDALONE = (typeof window.storage === "undefined" || !window.storage || typeof window.storage.set !== "function");
+let LS_BROKEN_D = false; // localStorage 자체가 막혀있는 환경(일부 프라이빗 모드 등)인지 기록
+function warnIfStorageBrokenD(){
+  if(LS_BROKEN_D && !document.getElementById("ls-broken-banner-d")){
+    const b=document.createElement("div");
+    b.id="ls-broken-banner-d";
+    b.style.cssText="position:fixed;top:0;left:0;right:0;background:#8a2020;color:#fff;font-size:12px;padding:8px 12px;text-align:center;z-index:99999;";
+    b.textContent="⚠️ 이 브라우저에서는 기록이 영구 저장되지 않습니다(비공개/시크릿 모드이거나 저장 공간이 제한된 상태로 보입니다). 일반 브라우저 창에서 다시 열어주세요.";
+    document.body.prepend(b);
+  }
+}
 if(IS_STANDALONE){
   const LS_PREFIX = "deungbul:";
   const mem = {};
   window.storage = {
     async set(key, value){
-      try{ localStorage.setItem(LS_PREFIX+key, String(value)); }catch(e){ mem[key]=String(value); }
-      return {key, value, shared:false};
+      try{
+        localStorage.setItem(LS_PREFIX+key, String(value));
+        // 저장 직후 실제로 읽혀지는지 검증 (일부 브라우저/모드는 예외 없이 조용히 저장을 무시하는 경우가 있음)
+        const check = localStorage.getItem(LS_PREFIX+key);
+        if(check === String(value)) return {key, value, shared:false, persisted:true};
+        throw new Error("verify-failed");
+      }catch(e){
+        LS_BROKEN_D = true;
+        mem[key]=String(value);
+        return {key, value, shared:false, persisted:false};
+      }
     },
     async get(key){
       try{
@@ -887,8 +906,8 @@ const fmtDate = (y,m,d) => y + "-" + String(m+1).padStart(2,"0") + "-" + String(
 async function saveJournalEntry(passageKey, date, type, text, tags){
   const key = `journal:${passageKey}:${date}:${type}:${Date.now()}`;
   try{
-    await window.storage.set(key, JSON.stringify({passageKey, date, type, text, tags, ts:Date.now()}));
-  }catch(e){ console.error("저장 실패", e); }
+    return await window.storage.set(key, JSON.stringify({passageKey, date, type, text, tags, ts:Date.now()}));
+  }catch(e){ console.error("저장 실패", e); return null; }
 }
 async function getAllJournalEntries(){
   try{
@@ -1272,13 +1291,18 @@ function removeTag(i){ currentTags.splice(i,1); renderTagList(); }
 document.getElementById("save-journal-btn").addEventListener("click", async ()=>{
   const text = document.getElementById("journal-text").value.trim();
   if(!text) return;
-  await saveJournalEntry(currentPassageKey, todayStr(), currentJournalType, text, [...currentTags]);
+  const result = await saveJournalEntry(currentPassageKey, todayStr(), currentJournalType, text, [...currentTags]);
   document.getElementById("journal-text").value="";
   currentTags = [];
   renderTagList();
-  const flash = document.getElementById("saved-flash");
-  flash.classList.add("show");
-  setTimeout(()=>flash.classList.remove("show"), 1800);
+  if(result && result.persisted===false){
+    alert("⚠️ 저장은 됐지만, 이 브라우저에서는 영구 저장이 되지 않아 앱을 새로고침하면 이 기록이 사라질 수 있습니다.\n비공개(시크릿) 모드가 아닌 일반 브라우저 창에서 열어주세요.");
+    warnIfStorageBrokenD();
+  }else{
+    const flash = document.getElementById("saved-flash");
+    flash.classList.add("show");
+    setTimeout(()=>flash.classList.remove("show"), 1800);
+  }
   renderJournalLog();
 });
 
@@ -3094,8 +3118,13 @@ async function saveVoiceToAppD(){
       date: ds
     };
     const k = "voice:"+pk+":"+Date.now();
-    await window.storage.set(k, JSON.stringify(entry));
-    statusEl.textContent = "✅ 저장되었습니다.";
+    const result = await window.storage.set(k, JSON.stringify(entry));
+    if(result && result.persisted===false){
+      statusEl.innerHTML = "⚠️ 저장은 됐지만 이 브라우저에서는 영구 저장이 안 됩니다.<br>새로고침하면 사라질 수 있어요 — 비공개 모드가 아닌 창에서 열어주세요.";
+      warnIfStorageBrokenD();
+    }else{
+      statusEl.textContent = "✅ 저장되었습니다.";
+    }
     resetVoiceRecUID();
     renderJournalLog();
   }catch(e){
