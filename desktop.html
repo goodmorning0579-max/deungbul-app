@@ -301,6 +301,13 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .ttsbtn-d.playing{background:rgba(90,151,201,.3);color:#8fc4ee;border-color:#5a97c9;}
 .ttsbtn-d.ttsstop-d{border-color:rgba(220,120,120,.45);color:#e8a0a0;}
 .ttsbtn-d.ttscontinuous-d.on{background:rgba(201,151,42,.28);color:var(--gold-bright);border-color:var(--gold);}
+/* 찬양 미니 플레이어: 화면 우측 하단에 고정, 다른 화면으로 이동해도 계속 떠있음 */
+.mini-player-d{position:fixed;right:20px;bottom:20px;width:340px;background:#171d29;border:1px solid rgba(201,151,42,.35);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.55);z-index:9999;overflow:hidden;}
+.mini-player-head-d{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(201,151,42,.14);font-size:13px;color:var(--gold-bright);font-weight:700;}
+.mini-player-head-d span#miniPlayerTitleD{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px;}
+.mini-player-btns-d button{background:none;border:none;color:var(--ink-text-dim);font-size:14px;padding:2px 8px;cursor:pointer;}
+.mini-player-d.minimized #miniPlayerBodyD{display:none;}
+.mini-player-d.minimized{width:auto;}
 .ttsratewrap-d{display:flex;gap:4px;}
 .ttsratebtn-d{background:#171d29;border:1px solid rgba(90,151,201,.4);border-radius:16px;padding:8px 12px;color:var(--ink-text);font-size:12px;font-weight:600;cursor:pointer;}
 .ttsratebtn-d.active{background:rgba(90,151,201,.3);color:#8fc4ee;border-color:#5a97c9;}
@@ -425,6 +432,10 @@ textarea:focus{outline:none; border-color:var(--gold);}
         <button class="ttsratebtn-d" data-rate="2.0">x2.0</button>
       </span>
       <select id="ttsVoiceSelD" class="ttsvoicesel-d" style="display:none;"></select>
+    </div>
+    <div class="songbox-d" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink-text-dim);">🎵 이 책의 찬양</span>
+      <button class="songbtn-d" id="songPlayBtnD" style="background:rgba(90,151,201,.18);border:1px solid rgba(90,151,201,.4);border-radius:16px;padding:7px 16px;color:#8fc4ee;font-size:12.5px;font-weight:600;">▶ 듣기</button>
     </div>
 
     <div class="paper-card">
@@ -866,6 +877,75 @@ const BOOKS = [
   {code:"JUD", name:"유다서", chapters:1, testament:"nt"},
   {code:"REV", name:"요한계시록", chapters:22, testament:"nt"}
 ];
+/* 성경 66권 대표 찬양 — 유튜브 video ID. 각 책의 핵심 메시지와 어울리는 한글 찬양/찬송가를 실제 검색으로 확인하여 연결함 */
+const BOOK_SONGS = {
+  GEN:{title:"참 아름다워라", vid:"VT5r2rdAK6c"},
+  EXO:{title:"큰 길을 만드시는 주", vid:"Nogd_AJrrL4"},
+  LEV:{title:"거룩 거룩 거룩", vid:"28lb7NVg3hk"},
+  NUM:{title:"전능하신 주 하나님", vid:"tJRoyiHIJjA"},
+  DEU:{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  JOS:{title:"믿는 사람들은 주의 군사니", vid:"Jnh5S263tUk"},
+  JDG:{title:"복의 근원 강림하사", vid:"YAhn4fcJ9ho"},
+  RUT:{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  "1SA":{title:"내게 있는 모든 것을", vid:"XTXWLRlCT3U"},
+  "2SA":{title:"주 하나님 지으신 모든 세계", vid:"HnG9bJM5VX4"},
+  "1KI":{title:"내 맘의 주여 소망되소서", vid:"YzGIidhN-7A"},
+  "2KI":{title:"내 평생에 가는 길", vid:"rpGyhvIq-2k"},
+  "1CH":{title:"송축해 내 영혼", vid:"GhALgYC_r10"},
+  "2CH":{title:"이 몸의 소망 무언가", vid:"ERCxzfqL9Ao"},
+  EZR:{title:"나의 반석이신 하나님", vid:"YSGpqPkkEAs"},
+  NEH:{title:"나의 반석이신 하나님", vid:"YSGpqPkkEAs"},
+  EST:{title:"하나님의 계획", vid:"clinRDmBkKM"},
+  JOB:{title:"주 이름 찬양", vid:"oFoPyRUorgA"},
+  PSA:{title:"Thy Word", vid:"sKlQpjl_oqY"},
+  PRO:{title:"거룩 거룩 거룩", vid:"28lb7NVg3hk"},
+  ECC:{title:"그리스도 안에서", vid:"YHOJGBVxiD4"},
+  SNG:{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  ISA:{title:"곧 오소서 임마누엘", vid:"hPdhNXUc3mM"},
+  JER:{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  LAM:{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  EZK:{title:"성령이여 임하소서", vid:"3OgMRBvqvaU"},
+  DAN:{title:"지금은 엘리야 때처럼", vid:"ROT4mg6KJ9A"},
+  HOS:{title:"주 사랑 어찌 깊은지", vid:"pNffeIiaLRQ"},
+  JOL:{title:"성령이여 임하소서", vid:"3OgMRBvqvaU"},
+  AMO:{title:"믿는 사람들은 주의 군사니", vid:"Jnh5S263tUk"},
+  OBA:{title:"내 맘의 주여 소망되소서", vid:"YzGIidhN-7A"},
+  JON:{title:"주 이름 찬양", vid:"oFoPyRUorgA"},
+  MIC:{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  NAM:{title:"전능하신 주 하나님", vid:"tJRoyiHIJjA"},
+  HAB:{title:"내 평생에 가는 길", vid:"rpGyhvIq-2k"},
+  ZEP:{title:"성령이여 임하소서", vid:"3OgMRBvqvaU"},
+  HAG:{title:"먼저 그 나라와 의를 구하라", vid:"BLjwirkjL5c"},
+  ZEC:{title:"지금은 엘리야 때처럼", vid:"ROT4mg6KJ9A"},
+  MAL:{title:"지금은 엘리야 때처럼", vid:"ROT4mg6KJ9A"},
+  MAT:{title:"만왕의 왕 내 주께서", vid:"Pe17K6DDw_A"},
+  MRK:{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  LUK:{title:"나 같은 죄인 살리신", vid:"to1WTX5lXYU"},
+  JHN:{title:"그리스도 안에서", vid:"YHOJGBVxiD4"},
+  ACT:{title:"성령이여 임하소서", vid:"3OgMRBvqvaU"},
+  ROM:{title:"내 평생에 가는 길", vid:"rpGyhvIq-2k"},
+  "1CO":{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  "2CO":{title:"주 이름 찬양", vid:"oFoPyRUorgA"},
+  GAL:{title:"그리스도 안에서", vid:"YHOJGBVxiD4"},
+  EPH:{title:"주님 말씀하시면", vid:"rBaNX_REjbA"},
+  PHP:{title:"내 맘의 주여 소망되소서", vid:"YzGIidhN-7A"},
+  COL:{title:"그리스도 안에서", vid:"YHOJGBVxiD4"},
+  "1TH":{title:"지금은 엘리야 때처럼", vid:"ROT4mg6KJ9A"},
+  "2TH":{title:"내 평생에 가는 길", vid:"rpGyhvIq-2k"},
+  "1TI":{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  "2TI":{title:"오 신실하신 주", vid:"MbcArEw3PVE"},
+  TIT:{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  PHM:{title:"복의 근원 강림하사", vid:"YAhn4fcJ9ho"},
+  HEB:{title:"주님의 보좌 앞에서", vid:"A6DnQwlVmC4"},
+  JAS:{title:"예수 따라가며", vid:"pNDDefUe6gY"},
+  "1PE":{title:"내 평생에 가는 길", vid:"rpGyhvIq-2k"},
+  "2PE":{title:"지금은 엘리야 때처럼", vid:"ROT4mg6KJ9A"},
+  "1JN":{title:"주 사랑 어찌 깊은지", vid:"pNffeIiaLRQ"},
+  "2JN":{title:"그리스도 안에서", vid:"YHOJGBVxiD4"},
+  "3JN":{title:"복의 근원 강림하사", vid:"YAhn4fcJ9ho"},
+  JUD:{title:"믿는 사람들은 주의 군사니", vid:"Jnh5S263tUk"},
+  REV:{title:"존귀한 어린양", vid:"M4plxmIpalU"}
+};
 const BOOK_BY_CODE = {};
 BOOKS.forEach(b => BOOK_BY_CODE[b.code] = b);
 
@@ -1094,6 +1174,11 @@ async function renderPassage(bookCode, chapter){
     </div>`;
     document.getElementById("sample-note").textContent = "";
   }
+
+  // 찬양 버튼 갱신 (현재 책의 대표 찬양)
+  const songInfoD = BOOK_SONGS[bookCode];
+  const songBtnD = document.getElementById("songPlayBtnD");
+  if(songBtnD && songInfoD) songBtnD.textContent = "▶ "+songInfoD.title;
 
   renderStudyPanels(notes);
   renderJournalLog();
@@ -3369,6 +3454,36 @@ document.addEventListener("click", function(e){
    새 버전이 감지되면 즉시 적용되도록 처리 (예전 파일이 캐시에 남아
    화면이 안 바뀌는 문제를 방지)
    ============================================================ */
+/* ============================================================
+   찬양 미니 플레이어 — 유튜브를 새 탭으로 열지 않고, 화면 우측 하단의
+   작은 창에서 재생하여 성경을 계속 보면서도 찬양을 들을 수 있게 함
+   ============================================================ */
+function openMiniPlayerD(){
+  const info = BOOK_SONGS[currentBook];
+  if(!info) return;
+  const box = document.getElementById("miniPlayerD");
+  const frame = document.getElementById("miniPlayerFrameD");
+  const title = document.getElementById("miniPlayerTitleD");
+  title.textContent = "🎵 "+info.title;
+  frame.src = "https://www.youtube.com/embed/"+info.vid+"?autoplay=1";
+  box.style.display = "block";
+  box.classList.remove("minimized");
+}
+function closeMiniPlayerD(){
+  const box = document.getElementById("miniPlayerD");
+  const frame = document.getElementById("miniPlayerFrameD");
+  frame.src = "";
+  box.style.display = "none";
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="songPlayBtnD"){ openMiniPlayerD(); return; }
+  if(e.target.id==="miniPlayerCloseBtnD"){ closeMiniPlayerD(); return; }
+  if(e.target.id==="miniPlayerMinBtnD"){
+    document.getElementById("miniPlayerD").classList.toggle("minimized");
+    return;
+  }
+});
+
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
     navigator.serviceWorker.register("sw.js").then((reg)=>{
@@ -3697,6 +3812,20 @@ window.loadApiKey().then(async function(){
         <button id="cal-ev-save-btn" class="btn small" style="background:var(--gold);color:#1a1408;font-weight:700;">저장</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 찬양 미니 플레이어: 성경을 보면서도 계속 재생되는 작은 플로팅 창 -->
+<div id="miniPlayerD" class="mini-player-d" style="display:none;">
+  <div class="mini-player-head-d">
+    <span id="miniPlayerTitleD">🎵</span>
+    <span class="mini-player-btns-d">
+      <button id="miniPlayerMinBtnD" title="최소화">▁</button>
+      <button id="miniPlayerCloseBtnD" title="닫기">✕</button>
+    </span>
+  </div>
+  <div id="miniPlayerBodyD">
+    <iframe id="miniPlayerFrameD" width="100%" height="200" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
   </div>
 </div>
 </body>
