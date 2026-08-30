@@ -188,6 +188,14 @@ textarea:focus{outline:none; border-color:var(--gold);}
 
 .entry-log{margin-top:24px;}
 .entry-log h3{font-family:var(--serif-kr); font-size:15px; color:var(--ink-text-dim); margin-bottom:10px; font-weight:600;}
+.sermon-slot-d{background:#1f2635;border:1px solid rgba(201,151,42,.15);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.sermon-slot-d.empty{cursor:pointer;text-align:center;color:var(--ink-text-dim);font-size:13px;padding:14px;}
+.sermon-slot-d .sm-title{font-size:14.5px;font-weight:700;color:var(--ink-text);margin-bottom:3px;}
+.sermon-slot-d .sm-meta{font-size:12px;color:var(--ink-text-dim);}
+.sermon-slot-d .sm-actions{display:flex;gap:8px;margin-top:8px;}
+.sermon-slot-d .sm-actions button{background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--ink-text);cursor:pointer;}
+.sermon-form-d input{width:100%;max-width:420px;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13px;margin-bottom:8px;box-sizing:border-box;}
+.sermon-form-d label{font-size:11.5px;color:var(--ink-text-dim);display:block;margin-bottom:3px;}
 .entry-card{background:var(--ink-2); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:14px 16px; margin-bottom:8px;}
 .entry-card .meta{display:flex; gap:8px; align-items:center; font-size:11px; color:var(--ink-text-dim); margin-bottom:6px;}
 .entry-type-dot{width:8px; height:8px; border-radius:50%;}
@@ -502,6 +510,12 @@ textarea:focus{outline:none; border-color:var(--gold);}
       <div class="entry-log">
         <h3>이 본문에 남긴 기록</h3>
         <div id="entry-log-list"></div>
+      </div>
+
+      <div class="sermonbox-d" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(201,151,42,.12);">
+        <h3 style="font-size:15px;color:var(--ink-text-dim);margin-bottom:4px;">📢 설교 기록장</h3>
+        <p style="font-size:12px;color:var(--ink-text-dim);margin-bottom:10px;">이 본문으로 들은 설교를 최대 5개까지 기록할 수 있습니다.</p>
+        <div id="sermonSlotsD"></div>
       </div>
     </div>
     <div class="chnav-d" style="margin-top:18px;">
@@ -1083,6 +1097,7 @@ async function renderPassage(bookCode, chapter){
 
   renderStudyPanels(notes);
   renderJournalLog();
+  renderSermonSlotsD();
   markFavStarsD();
   updateChNavButtonsD(bookCode, chapter);
   renderTodayMarkD();
@@ -1333,6 +1348,108 @@ async function renderJournalLog(){
   list.innerHTML = textHtml + voiceHtml;
 }
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+/* ===== 설교 기록장 (장별 최대 5개) ===== */
+const SERMON_SLOTS_D = 5;
+async function getSermonSlotD(pk, idx){
+  try{
+    const r = await window.storage.get("sermon:"+pk+":"+idx);
+    return r && r.value ? JSON.parse(r.value) : null;
+  }catch(e){ return null; }
+}
+async function saveSermonSlotDataD(pk, idx, data){
+  return await window.storage.set("sermon:"+pk+":"+idx, JSON.stringify(data));
+}
+async function deleteSermonSlotDataD(pk, idx){
+  try{ await window.storage.delete("sermon:"+pk+":"+idx); }catch(e){}
+}
+async function renderSermonSlotsD(){
+  const wrap=document.getElementById("sermonSlotsD");
+  if(!wrap) return;
+  const pk=currentPassageKey;
+  let html="";
+  for(let i=0;i<SERMON_SLOTS_D;i++){
+    const d = await getSermonSlotD(pk, i);
+    if(d && (d.title||d.preacher||d.date||d.verse)){
+      html += `<div class="sermon-slot-d" data-idx="${i}">
+        <div class="sm-title">${escapeHtml(d.title||"(제목 없음)")}</div>
+        <div class="sm-meta">${d.preacher?"👤 "+escapeHtml(d.preacher)+" ":""}${d.date?"📅 "+escapeHtml(d.date)+" ":""}${d.verse?"📖 "+escapeHtml(d.verse):""}</div>
+        ${d.note?`<div style="font-size:13px;color:var(--ink-text);margin-top:8px;white-space:pre-wrap;">${escapeHtml(d.note)}</div>`:""}
+        <div class="sm-actions">
+          <button class="sermon-edit-btn-d" data-idx="${i}">✏️ 수정</button>
+          <button class="sermon-del-btn-d" data-idx="${i}">🗑 삭제</button>
+        </div>
+      </div>`;
+    }else{
+      html += `<div class="sermon-slot-d empty sermon-add-btn-d" data-idx="${i}">➕ 설교 기록 ${i+1} 추가</div>`;
+    }
+  }
+  wrap.innerHTML = html;
+}
+function openSermonFormD(idx, existing){
+  const wrap=document.getElementById("sermonSlotsD");
+  if(!wrap) return;
+  const d = existing || {};
+  const slotEl = wrap.querySelector(`[data-idx="${idx}"]`);
+  if(!slotEl) return;
+  slotEl.outerHTML = `<div class="sermon-slot-d sermon-form-d" data-idx="${idx}">
+    <label>제목</label>
+    <input type="text" id="smd-title-${idx}" placeholder="설교 제목" value="${escapeHtml(d.title||"")}">
+    <label>설교자</label>
+    <input type="text" id="smd-preacher-${idx}" placeholder="설교하신 분" value="${escapeHtml(d.preacher||"")}">
+    <label>설교 날짜</label>
+    <input type="date" id="smd-date-${idx}" value="${escapeHtml(d.date||todayStr())}">
+    <label>설교 구절</label>
+    <input type="text" id="smd-verse-${idx}" placeholder="예: 창세기 1:1-5" value="${escapeHtml(d.verse||"")}">
+    <label>메모(선택)</label>
+    <textarea id="smd-note-${idx}" placeholder="설교 요약이나 은혜 받은 부분을 적어보세요" style="width:100%;max-width:420px;min-height:70px;background:#171d29;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--ink-text);font-size:13px;box-sizing:border-box;resize:vertical;">${escapeHtml(d.note||"")}</textarea>
+    <div class="sm-actions" style="margin-top:10px;">
+      <button class="sermon-save-btn-d" data-idx="${idx}">💾 저장</button>
+      <button class="sermon-cancel-btn-d" data-idx="${idx}">취소</button>
+    </div>
+  </div>`;
+}
+async function saveSermonFormD(idx){
+  const pk=currentPassageKey;
+  const data = {
+    title: (document.getElementById("smd-title-"+idx).value||"").trim(),
+    preacher: (document.getElementById("smd-preacher-"+idx).value||"").trim(),
+    date: document.getElementById("smd-date-"+idx).value||"",
+    verse: (document.getElementById("smd-verse-"+idx).value||"").trim(),
+    note: (document.getElementById("smd-note-"+idx).value||"").trim(),
+    ts: Date.now()
+  };
+  if(!data.title && !data.preacher && !data.verse && !data.note){ renderSermonSlotsD(); return; }
+  const result = await saveSermonSlotDataD(pk, idx, data);
+  if(result && result.persisted===false){
+    alert("⚠️ 저장은 됐지만 이 브라우저에서는 영구 저장이 안 됩니다. 비공개 모드가 아닌 창에서 열어주세요.");
+    warnIfStorageBrokenD();
+  }
+  renderSermonSlotsD();
+}
+document.addEventListener("click", async (e)=>{
+  const addBtn = e.target.closest(".sermon-add-btn-d");
+  if(addBtn){ openSermonFormD(addBtn.dataset.idx, null); return; }
+  const editBtn = e.target.closest(".sermon-edit-btn-d");
+  if(editBtn){
+    const idx = editBtn.dataset.idx;
+    const d = await getSermonSlotD(currentPassageKey, idx);
+    openSermonFormD(idx, d);
+    return;
+  }
+  const saveBtnD = e.target.closest(".sermon-save-btn-d");
+  if(saveBtnD){ saveSermonFormD(saveBtnD.dataset.idx); return; }
+  const cancelBtnD = e.target.closest(".sermon-cancel-btn-d");
+  if(cancelBtnD){ renderSermonSlotsD(); return; }
+  const delBtnD = e.target.closest(".sermon-del-btn-d");
+  if(delBtnD){
+    if(confirm("이 설교 기록을 삭제할까요?")){
+      await deleteSermonSlotDataD(currentPassageKey, delBtnD.dataset.idx);
+      renderSermonSlotsD();
+    }
+    return;
+  }
+});
 
 async function renderTodayMarkD(){
   const pk = currentPassageKey;
