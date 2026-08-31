@@ -21,6 +21,13 @@
   --pt:#2a2318;--ptd:#6b5f47;
   --it:#e9e4d6;--itd:#a9a596;
 }
+body.light-mode{
+  --ink:#f7f3ea;--ink2:#efe8d8;--ink3:#e6dcc6;
+  --it:#2e2a20;--itd:#7d735f;
+  --gold-b:#a9791a;
+}
+body.light-mode .top{border-color:rgba(0,0,0,.08);}
+body.light-mode .bnav{border-color:rgba(0,0,0,.1);}
 html,body{height:100%;}
 :root{--fs-scale:1;}
 body{background:var(--ink);color:var(--it);font-family:-apple-system,'Noto Sans KR',sans-serif;font-size:calc(14px * var(--fs-scale));display:flex;flex-direction:column;}
@@ -159,7 +166,8 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 #sstatus{font-size:11px;color:var(--itd);margin-top:8px;}
 
 .bnav{display:flex;background:#0e1119;border-top:1px solid rgba(201,151,42,.2);position:fixed;bottom:0;left:0;right:0;overflow-x:auto;}
-.dict-fab{position:fixed;right:14px;bottom:78px;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#5a97c9,#3d6e99);border:none;color:#fff;font-size:20px;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:998;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dict-fab{position:fixed;right:14px;bottom:78px;width:50px;height:58px;border-radius:16px;background:linear-gradient(135deg,#5a97c9,#3d6e99);border:none;color:#fff;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:998;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.dict-fab-label{font-size:9.5px;font-weight:600;color:#fff;line-height:1;}
 .dict-popup{position:fixed;right:14px;bottom:130px;width:min(320px,calc(100vw - 28px));max-height:60vh;background:#1a1f2e;border:1px solid rgba(90,151,201,.4);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:999;display:flex;flex-direction:column;overflow:hidden;}
 .dict-popup-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#171d29;font-size:13.5px;font-weight:700;color:#8fc4ee;border-bottom:1px solid rgba(90,151,201,.2);}
 .dict-close{cursor:pointer;color:var(--itd);font-size:14px;padding:2px 6px;}
@@ -204,6 +212,14 @@ a.bni{text-decoration:none;}
 .plan-opt .pdesc{font-size:11.5px;color:var(--itd);}
 .plan-progress-bar{background:rgba(255,255,255,.08);border-radius:6px;height:8px;overflow:hidden;margin:10px 0;}
 .plan-progress-fill{background:linear-gradient(90deg,var(--gold),var(--gold-b));height:100%;border-radius:6px;}
+.statsgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+.statbox{background:var(--ink3);border-radius:10px;padding:12px;text-align:center;}
+.statbox .snum{font-size:22px;font-weight:700;color:var(--gold-b);}
+.statbox .slbl{font-size:11px;color:var(--itd);margin-top:2px;}
+.typebar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:10px;}
+.typebar-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:10.5px;color:var(--itd);}
+.typebar-legend span{display:flex;align-items:center;gap:4px;}
+.typebar-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .songsec:first-child{margin-top:0;}
 .songrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;}
 .songrow-book{font-size:12.5px;color:var(--itd);min-width:64px;flex-shrink:0;}
@@ -256,7 +272,7 @@ a.bni{text-decoration:none;}
 <body>
 
 <div id="readReminderBanner" class="reminder-banner" style="display:none;">
-  <span>🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
+  <span id="readReminderText">🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
   <span class="reminder-banner-btns">
     <button id="reminderGoBtn">지금 읽기</button>
     <button id="reminderDismissBtn">✕</button>
@@ -385,6 +401,7 @@ a.bni{text-decoration:none;}
 <div class="view" id="v-cal">
   <div class="streak"><div class="strnum" id="strnum">0</div><div class="strlb">일 연속 통독 🔥</div></div>
   <div id="planCard"></div>
+  <div id="statsCard"></div>
   <div class="calcard">
     <div class="calhead"><h3 id="calml"></h3><div style="display:flex;gap:6px;"><button class="cbtn" id="cal-add-event-btn" style="width:auto;padding:0 8px;font-size:12px;">➕ 추가</button><button class="cbtn" id="cprev">‹</button><button class="cbtn" id="cnext">›</button></div></div>
     <div id="cal-gstatus" style="font-size:10.5px;color:var(--itd);margin-bottom:4px;min-height:14px;"></div>
@@ -485,6 +502,15 @@ a.bni{text-decoration:none;}
     </div>
   </div>
 
+  <div class="setcard" style="border-color:rgba(143,196,238,.35);">
+    <h3>🌗 화면 테마</h3>
+    <p style="margin-bottom:10px;">밝은 곳에서 읽으실 때는 라이트 모드가 더 편할 수 있습니다.</p>
+    <div style="display:flex;gap:8px;">
+      <button class="startopt active" id="themeDarkBtn" style="flex:1;">🌙 다크</button>
+      <button class="startopt" id="themeLightBtn" style="flex:1;">☀️ 라이트</button>
+    </div>
+  </div>
+
   <div class="setcard" style="border-color:rgba(217,141,143,.35);">
     <h3>🔔 매일 읽기 알림</h3>
     <p style="margin-bottom:10px;">설정한 시각이 지났는데 아직 그날 읽음 표시를 안 했으면, 앱이 열려 있는 동안 알려드립니다. (앱을 완전히 꺼둔 상태에서는 울리지 않습니다.)</p>
@@ -564,6 +590,12 @@ a.bni{text-decoration:none;}
     파일을 <b>다운받아 크롬·사파리에서 직접 열면</b> 완전히 작동합니다.</p>
   </div>
 
+  <div class="setcard" style="border-color:rgba(143,196,238,.35);">
+    <h3>💌 의견 보내기 · 버그 제보</h3>
+    <p style="margin-bottom:10px;">불편한 점이나 원하시는 기능이 있으면 편하게 알려주세요.</p>
+    <a href="mailto:goodmorning0579@gmail.com?subject=%5B%EB%93%B1%EB%B6%88%5D%20%EC%9D%98%EA%B2%AC%2F%EB%B2%84%EA%B7%B8%20%EC%A0%9C%EB%B3%B4" class="btn" style="display:block;width:100%;text-align:center;text-decoration:none;box-sizing:border-box;">✉️ 메일 보내기</a>
+  </div>
+
   <div style="text-align:center;margin-top:20px;font-size:11.5px;color:var(--itd);">
     <a href="https://goodmorning0579-max.github.io/deungbul-app/privacy.html" target="_blank" rel="noopener" style="color:var(--itd);">개인정보처리방침</a>
     &nbsp;·&nbsp;
@@ -577,6 +609,7 @@ a.bni{text-decoration:none;}
   <p style="font-size:12px;color:var(--itd);margin-bottom:16px;">궁금한 항목을 눌러 이동하세요.</p>
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">
     <span class="tagchip guide-jump" data-jumpsec="g-read">📖 성경 읽기</span>
+    <span class="tagchip guide-jump" data-jumpsec="g-xray">🔬 Sentence X-ray</span>
     <span class="tagchip guide-jump" data-jumpsec="g-journal">📝 나의 기록</span>
     <span class="tagchip guide-jump" data-jumpsec="g-sermon">📢 설교 기록장</span>
     <span class="tagchip guide-jump" data-jumpsec="g-voice">🎙️ 음성 기록</span>
@@ -592,6 +625,10 @@ a.bni{text-decoration:none;}
   <div class="setcard" id="g-read">
     <h3>📖 성경 읽기</h3>
     <p>‹ › 버튼이나 좌우 스와이프로 장을 이동합니다. 영어(NIV)와 개역한글이 나란히 표시되고, 상단 TTS 버튼으로 원하는 속도(x0.7~x2.0)로 들을 수 있습니다. ⭐ 버튼으로 즐겨찾기, ✅ 버튼으로 오늘 읽음 표시를 남길 수 있습니다.</p>
+  </div>
+  <div class="setcard" id="g-xray">
+    <h3>🔬 Sentence X-ray</h3>
+    <p>영어 구절을 클릭하면 자동 복사됩니다. Sentence X-ray에 붙여넣고 분석하면 주어·동사·목적어·보어와 문장 5형식을 짚어주고, 이유를 한국어로 설명해 줍니다. 암기 대신 문장 구조로 문법을 이해하고 싶을 때 유용합니다.</p>
   </div>
   <div class="setcard" id="g-journal">
     <h3>📝 나의 기록</h3>
@@ -636,7 +673,7 @@ a.bni{text-decoration:none;}
 </div>
 
 <!-- 플로팅 영한사전 위젯 (드래그로 위치 이동 가능) -->
-<button id="dictFab" class="dict-fab" title="영한사전 (누르고 있으면 이동)">📘</button>
+<button id="dictFab" class="dict-fab" title="영한사전 (누르고 있으면 이동)">📘<span class="dict-fab-label">사전</span></button>
 <div id="dictPopup" class="dict-popup" style="display:none;">
   <div class="dict-popup-head">
     <span>📘 영한사전 (네이버)</span>
@@ -944,7 +981,7 @@ function goToView(v, pushHistory){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
   const target = document.getElementById("v-"+v);
   if(target) target.classList.add("active");
-  if(v==="cal"){initCal();renderCal();renderPlanCard();}
+  if(v==="cal"){initCal();renderCal();renderPlanCard();renderStatsCard();}
   if(v==="set")loadSetView();
   if(v==="song")renderSongList();
   curBniView = v;
@@ -3472,18 +3509,45 @@ async function checkReadingReminder(){
     showReadReminderBanner();
   }catch(e){}
 }
-function showReadReminderBanner(){
+async function showReadReminderBanner(){
   const banner = document.getElementById("readReminderBanner");
+  const textEl = document.getElementById("readReminderText");
   if(!banner) return;
+  let msg = "🪔 아직 오늘 말씀을 읽지 않으셨어요.";
+  let goBook = null, goCh = null;
+  try{
+    const pidR = await stor.get("reading_plan_id");
+    const startR = await stor.get("reading_plan_start");
+    if(pidR && pidR.value && READING_PLANS[pidR.value] && startR && startR.value){
+      const plan = READING_PLANS[pidR.value];
+      const schedule = getPlanSchedule(pidR.value);
+      const start = new Date(startR.value+"T00:00:00");
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dayIdx = Math.floor((today - start) / 86400000);
+      if(dayIdx>=0 && dayIdx<plan.days){
+        const todayChs = schedule[dayIdx]||[];
+        if(todayChs.length){
+          msg = "🪔 오늘 "+planDayLabel(todayChs)+" 읽을 시간이에요.";
+          goBook = todayChs[0].code; goCh = todayChs[0].ch;
+        }
+      }
+    }
+  }catch(e){}
+  if(textEl) textEl.textContent = msg;
+  banner.dataset.goBook = goBook || "";
+  banner.dataset.goCh = goCh || "";
   banner.style.display = "flex";
   if("Notification" in window && Notification.permission === "granted" && document.hidden){
-    try{ new Notification("등불 🪔", { body: "아직 오늘 말씀을 읽지 않으셨어요.", icon: "icon-192.png" }); }catch(e){}
+    try{ new Notification("등불 🪔", { body: msg.replace("🪔 ",""), icon: "icon-192.png" }); }catch(e){}
   }
 }
 document.addEventListener("click",(e)=>{
   if(e.target.id==="reminderGoBtn"){
-    document.getElementById("readReminderBanner").style.display="none";
+    const banner = document.getElementById("readReminderBanner");
+    const gb = banner.dataset.goBook, gc = banner.dataset.goCh;
+    banner.style.display="none";
     goToView("read", true);
+    if(gb && gc) renderPassage(gb, parseInt(gc,10));
     return;
   }
   if(e.target.id==="reminderDismissBtn"){
@@ -3754,6 +3818,81 @@ document.addEventListener("click",(e)=>{
     return;
   }
 });
+
+/* ============================================================
+   나의 통계 — 이미 쌓인 기록(묵상/통독 진행/스트릭)을 활용해서
+   이번 달 읽은 장 수, 기록 유형 비율, 연속 기록을 한눈에 보여줌
+   ============================================================ */
+async function renderStatsCard(){
+  const wrap = document.getElementById("statsCard");
+  if(!wrap) return;
+  const journal = await allJ();
+  const typeCounts = {observation:0, interpretation:0, application:0, prayer:0};
+  journal.forEach(e=>{ if(typeCounts[e.type]!==undefined) typeCounts[e.type]++; });
+  const totalEntries = journal.length;
+
+  const progList = await stor.list("p:");
+  const now = new Date();
+  const thisMonthPrefix = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  const chaptersThisMonth = new Set();
+  const chaptersAllTime = new Set();
+  (progList.keys||[]).forEach(k=>{
+    const parts = k.split(":"); // p:date:pk:lang
+    const date = parts[1], pk = parts[2];
+    if(!date||!pk) return;
+    chaptersAllTime.add(pk);
+    if(date.startsWith(thisMonthPrefix)) chaptersThisMonth.add(pk);
+  });
+
+  const cache = await preloadProgress().catch(()=>({}));
+  const streak = computeStreak(cache);
+
+  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도"};
+  const barSegs = Object.keys(typeCounts).map(t=>{
+    const pct = totalEntries>0 ? Math.round((typeCounts[t]/totalEntries)*100) : 0;
+    return `<div style="width:${pct}%;background:${JC[t]};"></div>`;
+  }).join("");
+  const legend = Object.keys(typeCounts).map(t=>
+    `<span><span class="dot" style="background:${JC[t]};"></span>${typeLabel[t]} ${typeCounts[t]}</span>`
+  ).join("");
+
+  wrap.innerHTML = `<div class="plancard">
+    <div style="font-size:14px;font-weight:700;color:var(--gold-b);margin-bottom:4px;">📊 나의 통계</div>
+    <div class="statsgrid">
+      <div class="statbox"><div class="snum">${chaptersThisMonth.size}</div><div class="slbl">이번 달 읽은 장</div></div>
+      <div class="statbox"><div class="snum">${streak}</div><div class="slbl">연속 기록(일)</div></div>
+      <div class="statbox"><div class="snum">${chaptersAllTime.size}</div><div class="slbl">누적 읽은 장</div></div>
+      <div class="statbox"><div class="snum">${totalEntries}</div><div class="slbl">총 묵상 기록</div></div>
+    </div>
+    ${totalEntries>0?`<div class="typebar">${barSegs}</div><div class="typebar-legend">${legend}</div>`:""}
+  </div>`;
+}
+
+/* ============================================================
+   화면 테마 — 다크(기본)/라이트 모드 전환. 밝은 곳에서 읽기 편하도록.
+   ============================================================ */
+function applyTheme(mode){
+  document.body.classList.toggle("light-mode", mode==="light");
+  const darkBtn = document.getElementById("themeDarkBtn");
+  const lightBtn = document.getElementById("themeLightBtn");
+  if(darkBtn) darkBtn.classList.toggle("active", mode!=="light");
+  if(lightBtn) lightBtn.classList.toggle("active", mode==="light");
+}
+async function loadTheme(){
+  try{
+    const t = await stor.get("theme_mode");
+    applyTheme((t && t.value) || "dark");
+  }catch(e){ applyTheme("dark"); }
+}
+async function setTheme(mode){
+  await stor.set("theme_mode", mode);
+  applyTheme(mode);
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="themeDarkBtn"){ setTheme("dark"); return; }
+  if(e.target.id==="themeLightBtn"){ setTheme("light"); return; }
+});
+loadTheme();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{

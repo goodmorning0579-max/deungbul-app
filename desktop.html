@@ -37,6 +37,14 @@
   --sans-en:'Inter', sans-serif;
   --mono:'JetBrains Mono', monospace;
 }
+body.light-mode{
+  --ink:#f7f3ea;
+  --ink-2:#efe8d8;
+  --ink-3:#e6dcc6;
+  --ink-text:#2e2a20;
+  --ink-text-dim:#7d735f;
+  --gold-bright:#a9791a;
+}
 *{box-sizing:border-box; margin:0; padding:0;}
 :root{--fs-scale:1;}
 body{
@@ -170,6 +178,14 @@ select:hover, .btn:hover{border-color:var(--gold);}
 .plan-progress-fill-d{background:linear-gradient(90deg,#c9972a,#e8b94a);height:100%;border-radius:6px;}
 .guide-jump-d{font-size:12.5px;padding:7px 14px;cursor:pointer;background:rgba(201,151,42,.14);color:var(--gold-bright);border:1px solid rgba(201,151,42,.35);border-radius:20px;}
 .guide-jump-d:hover{background:rgba(201,151,42,.24);}
+.statsgrid-d{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;}
+.statbox-d{background:#1f2635;border-radius:10px;padding:14px;text-align:center;}
+.statbox-d .snum-d{font-size:26px;font-weight:700;color:var(--gold-bright);}
+.statbox-d .slbl-d{font-size:11.5px;color:var(--ink-text-dim);margin-top:3px;}
+.typebar-d{display:flex;height:11px;border-radius:6px;overflow:hidden;margin-top:12px;}
+.typebar-legend-d{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11.5px;color:var(--ink-text-dim);}
+.typebar-legend-d span{display:flex;align-items:center;gap:4px;}
+.typebar-legend-d .dot-d{width:9px;height:9px;border-radius:50%;display:inline-block;}
 .reminder-banner-d{display:flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(90deg,rgba(217,141,143,.2),rgba(217,141,143,.08));border-bottom:1px solid rgba(217,141,143,.4);padding:11px 20px;font-size:13.5px;color:var(--ink-text);position:sticky;top:0;z-index:500;}
 .reminder-banner-d-btns{display:flex;gap:10px;}
 .reminder-banner-d-btns button{background:rgba(217,141,143,.25);border:1px solid rgba(217,141,143,.5);border-radius:16px;padding:6px 16px;color:var(--ink-text);font-size:12.5px;cursor:pointer;}
@@ -362,7 +378,8 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .vnote-lang-d{font-size:12.5px;color:var(--paper-text-dim);margin-bottom:6px;line-height:1.6;}
 .vnote-xref-d{font-size:12.5px;color:var(--paper-text-dim);margin-top:6px;line-height:1.6;}
 .search-mode-btn{cursor:pointer;}
-.dict-fab-d{position:fixed;right:22px;bottom:26px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#5a97c9,#3d6e99);border:none;color:#fff;font-size:22px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:998;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dict-fab-d{position:fixed;right:22px;bottom:26px;width:56px;height:62px;border-radius:18px;background:linear-gradient(135deg,#5a97c9,#3d6e99);border:none;color:#fff;font-size:21px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:998;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.dict-fab-d-label{font-size:10px;font-weight:600;color:#fff;line-height:1;}
 .dict-popup-d{position:fixed;right:22px;bottom:88px;width:340px;max-height:64vh;background:#1a1f2e;border:1px solid rgba(90,151,201,.4);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:999;display:flex;flex-direction:column;overflow:hidden;}
 .dict-popup-head-d{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:#171d29;font-size:14px;font-weight:700;color:#8fc4ee;border-bottom:1px solid rgba(90,151,201,.2);}
 .dict-close-d{cursor:pointer;color:var(--ink-text-dim);font-size:15px;padding:2px 6px;}
@@ -380,7 +397,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 <body>
 
 <div id="readReminderBannerD" class="reminder-banner-d" style="display:none;">
-  <span>🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
+  <span id="readReminderTextD">🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
   <span class="reminder-banner-d-btns">
     <button id="reminderGoBtnD">지금 읽기</button>
     <button id="reminderDismissBtnD">✕</button>
@@ -388,7 +405,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
 </div>
 
 <!-- 플로팅 영한사전 위젯 (드래그로 위치 이동 가능) -->
-<button id="dictFabD" class="dict-fab-d" title="영한사전 (드래그하면 이동)">📘</button>
+<button id="dictFabD" class="dict-fab-d" title="영한사전 (드래그하면 이동)">📘<span class="dict-fab-d-label">사전</span></button>
 <div id="dictPopupD" class="dict-popup-d" style="display:none;">
   <div class="dict-popup-head-d">
     <span>📘 영한사전 (네이버)</span>
@@ -573,6 +590,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
       <p>매일의 걸음을 등불로 밝혀보세요. 완료한 날은 길 위에 등이 켜집니다.</p>
     </div>
     <div id="planCardD"></div>
+    <div id="statsCardD"></div>
     <div class="cal-wrap">
       <div class="cal-card">
         <div class="cal-head">
@@ -713,6 +731,15 @@ textarea:focus{outline:none; border-color:var(--gold);}
     </div>
   </div>
 
+  <div class="cal-card" style="margin-bottom:20px;border-color:rgba(143,196,238,.35);">
+    <h3 style="color:#8ab4f8;font-size:16px;margin-bottom:8px;">🌗 화면 테마</h3>
+    <p style="font-size:13px;color:#c9c4b3;margin-bottom:12px;">밝은 곳에서 읽으실 때는 라이트 모드가 더 편할 수 있습니다.</p>
+    <div style="display:flex;gap:8px;">
+      <button class="startopt-d active" id="themeDarkBtnD" style="flex:1;">🌙 다크</button>
+      <button class="startopt-d" id="themeLightBtnD" style="flex:1;">☀️ 라이트</button>
+    </div>
+  </div>
+
   <div class="cal-card" style="margin-bottom:20px;border-color:rgba(217,141,143,.35);">
     <h3 style="color:#e8a0a0;font-size:16px;margin-bottom:8px;">🔔 매일 읽기 알림</h3>
     <p style="font-size:13px;color:#c9c4b3;margin-bottom:12px;">설정한 시각이 지났는데 아직 그날 읽음 표시를 안 했으면, 앱이 열려 있는 동안 알려드립니다. (앱을 완전히 꺼둔 상태에서는 울리지 않습니다.)</p>
@@ -806,6 +833,12 @@ textarea:focus{outline:none; border-color:var(--gold);}
     </p>
   </div>
 
+  <div class="cal-card" style="border-color:rgba(143,196,238,.35);">
+    <h3 style="color:#8ab4f8;font-size:16px;margin-bottom:8px;">💌 의견 보내기 · 버그 제보</h3>
+    <p style="font-size:13px;color:#c9c4b3;margin-bottom:12px;">불편한 점이나 원하시는 기능이 있으면 편하게 알려주세요.</p>
+    <a href="mailto:goodmorning0579@gmail.com?subject=%5B%EB%93%B1%EB%B6%88%5D%20%EC%9D%98%EA%B2%AC%2F%EB%B2%84%EA%B7%B8%20%EC%A0%9C%EB%B3%B4" class="btn primary" style="display:block;text-align:center;text-decoration:none;">✉️ 메일 보내기</a>
+  </div>
+
   <div style="text-align:center;margin-top:20px;font-size:12px;color:#a9a596;">
     <a href="https://goodmorning0579-max.github.io/deungbul-app/privacy.html" target="_blank" rel="noopener" style="color:#a9a596;">개인정보처리방침</a>
     &nbsp;·&nbsp;
@@ -824,6 +857,7 @@ textarea:focus{outline:none; border-color:var(--gold);}
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;">
       <span class="guide-jump-d" data-jumpsecd="gd-read">📖 성경 읽기</span>
+      <span class="guide-jump-d" data-jumpsecd="gd-xray">🔬 Sentence X-ray</span>
       <span class="guide-jump-d" data-jumpsecd="gd-journal">📝 나의 기록</span>
       <span class="guide-jump-d" data-jumpsecd="gd-sermon">📢 설교 기록장</span>
       <span class="guide-jump-d" data-jumpsecd="gd-voice">🎙️ 음성 기록</span>
@@ -839,6 +873,10 @@ textarea:focus{outline:none; border-color:var(--gold);}
     <div class="cal-card" style="margin-bottom:16px;" id="gd-read">
       <h3 style="color:var(--gold-bright);font-size:16px;margin-bottom:8px;">📖 성경 읽기</h3>
       <p style="font-size:13px;color:#c9c4b3;line-height:1.8;">이전달·다음달 버튼처럼 장 이동 버튼으로 장을 이동합니다. 영어(NIV)와 개역한글이 나란히 표시되고, TTS 버튼으로 원하는 속도(x0.7~x2.0)로 들을 수 있습니다. ⭐ 즐겨찾기, ✅ 읽음 표시도 지원합니다.</p>
+    </div>
+    <div class="cal-card" style="margin-bottom:16px;" id="gd-xray">
+      <h3 style="color:var(--gold-bright);font-size:16px;margin-bottom:8px;">🔬 Sentence X-ray</h3>
+      <p style="font-size:13px;color:#c9c4b3;line-height:1.8;">영어 구절을 클릭하면 자동 복사됩니다. Sentence X-ray에 붙여넣고 분석하면 주어·동사·목적어·보어와 문장 5형식을 짚어주고, 이유를 한국어로 설명해 줍니다. 암기 대신 문장 구조로 문법을 이해하고 싶을 때 유용합니다.</p>
     </div>
     <div class="cal-card" style="margin-bottom:16px;" id="gd-journal">
       <h3 style="color:var(--gold-bright);font-size:16px;margin-bottom:8px;">📝 나의 기록</h3>
@@ -1479,6 +1517,7 @@ function switchToView(view, pushHistory){
   closeEventModalD(); // 화면을 이동하면 열려있던 일정 추가/수정 모달은 자동으로 닫음
   if(view==="calendar") renderCalendar();
   if(view==="calendar") renderPlanCardD();
+  if(view==="calendar") renderStatsCardD();
   if(view==="people") renderPeopleGrid();
   if(view==="places"){ renderPlacesGrid(); renderMap(); }
   if(view==="settings") loadSettingsIntoView();
@@ -3938,18 +3977,45 @@ async function checkReadingReminderD(){
     showReadReminderBannerD();
   }catch(e){}
 }
-function showReadReminderBannerD(){
+async function showReadReminderBannerD(){
   const banner = document.getElementById("readReminderBannerD");
+  const textEl = document.getElementById("readReminderTextD");
   if(!banner) return;
+  let msg = "🪔 아직 오늘 말씀을 읽지 않으셨어요.";
+  let goBook = null, goCh = null;
+  try{
+    const pidR = await window.storage.get("reading_plan_id");
+    const startR = await window.storage.get("reading_plan_start");
+    if(pidR && pidR.value && READING_PLANS_D[pidR.value] && startR && startR.value){
+      const plan = READING_PLANS_D[pidR.value];
+      const schedule = getPlanScheduleD(pidR.value);
+      const start = new Date(startR.value+"T00:00:00");
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dayIdx = Math.floor((today - start) / 86400000);
+      if(dayIdx>=0 && dayIdx<plan.days){
+        const todayChs = schedule[dayIdx]||[];
+        if(todayChs.length){
+          msg = "🪔 오늘 "+planDayLabelD(todayChs)+" 읽을 시간이에요.";
+          goBook = todayChs[0].code; goCh = todayChs[0].ch;
+        }
+      }
+    }
+  }catch(e){}
+  if(textEl) textEl.textContent = msg;
+  banner.dataset.goBook = goBook || "";
+  banner.dataset.goCh = goCh || "";
   banner.style.display = "flex";
   if("Notification" in window && Notification.permission === "granted" && document.hidden){
-    try{ new Notification("등불 🪔", { body: "아직 오늘 말씀을 읽지 않으셨어요.", icon: "icon-192.png" }); }catch(e){}
+    try{ new Notification("등불 🪔", { body: msg.replace("🪔 ",""), icon: "icon-192.png" }); }catch(e){}
   }
 }
 document.addEventListener("click",(e)=>{
   if(e.target.id==="reminderGoBtnD"){
-    document.getElementById("readReminderBannerD").style.display="none";
+    const banner = document.getElementById("readReminderBannerD");
+    const gb = banner.dataset.goBook, gc = banner.dataset.goCh;
+    banner.style.display="none";
     switchToView("read", true);
+    if(gb && gc) renderPassage(gb, parseInt(gc,10));
     return;
   }
   if(e.target.id==="reminderDismissBtnD"){
@@ -4215,6 +4281,81 @@ document.addEventListener("click",(e)=>{
     return;
   }
 });
+
+/* ============================================================
+   나의 통계 (데스크탑)
+   ============================================================ */
+async function renderStatsCardD(){
+  const wrap = document.getElementById("statsCardD");
+  if(!wrap) return;
+  const journal = await getAllJournalEntries();
+  const typeCounts = {observation:0, interpretation:0, application:0, prayer:0};
+  journal.forEach(e=>{ if(typeCounts[e.type]!==undefined) typeCounts[e.type]++; });
+  const totalEntries = journal.length;
+
+  const progress = await getAllProgress();
+  const now = new Date();
+  const thisMonthPrefix = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+  const chaptersThisMonth = new Set();
+  const chaptersAllTime = new Set();
+  progress.forEach(p=>{
+    if(!p.date || !p.passageKey) return;
+    chaptersAllTime.add(p.passageKey);
+    if(p.date.startsWith(thisMonthPrefix)) chaptersThisMonth.add(p.passageKey);
+  });
+
+  const dates = new Set(progress.map(p=>p.date));
+  let streak = 0; let cur = new Date();
+  while(true){
+    const ds = fmtDate(cur.getFullYear(), cur.getMonth(), cur.getDate());
+    if(dates.has(ds)){ streak++; cur.setDate(cur.getDate()-1); } else break;
+  }
+
+  const barSegs = Object.keys(typeCounts).map(t=>{
+    const pct = totalEntries>0 ? Math.round((typeCounts[t]/totalEntries)*100) : 0;
+    return `<div style="width:${pct}%;background:${TYPE_COLORS[t]};"></div>`;
+  }).join("");
+  const legend = Object.keys(typeCounts).map(t=>
+    `<span><span class="dot-d" style="background:${TYPE_COLORS[t]};"></span>${TYPE_LABELS[t]} ${typeCounts[t]}</span>`
+  ).join("");
+
+  wrap.innerHTML = `<div class="plancard-d">
+    <div style="font-size:14px;font-weight:700;color:var(--gold-bright);margin-bottom:4px;">📊 나의 통계</div>
+    <div class="statsgrid-d">
+      <div class="statbox-d"><div class="snum-d">${chaptersThisMonth.size}</div><div class="slbl-d">이번 달 읽은 장</div></div>
+      <div class="statbox-d"><div class="snum-d">${streak}</div><div class="slbl-d">연속 기록(일)</div></div>
+      <div class="statbox-d"><div class="snum-d">${chaptersAllTime.size}</div><div class="slbl-d">누적 읽은 장</div></div>
+      <div class="statbox-d"><div class="snum-d">${totalEntries}</div><div class="slbl-d">총 묵상 기록</div></div>
+    </div>
+    ${totalEntries>0?`<div class="typebar-d">${barSegs}</div><div class="typebar-legend-d">${legend}</div>`:""}
+  </div>`;
+}
+
+/* ============================================================
+   화면 테마 (데스크탑)
+   ============================================================ */
+function applyThemeD(mode){
+  document.body.classList.toggle("light-mode", mode==="light");
+  const darkBtn = document.getElementById("themeDarkBtnD");
+  const lightBtn = document.getElementById("themeLightBtnD");
+  if(darkBtn) darkBtn.classList.toggle("active", mode!=="light");
+  if(lightBtn) lightBtn.classList.toggle("active", mode==="light");
+}
+async function loadThemeD(){
+  try{
+    const t = await window.storage.get("theme_mode");
+    applyThemeD((t && t.value) || "dark");
+  }catch(e){ applyThemeD("dark"); }
+}
+async function setThemeD(mode){
+  await window.storage.set("theme_mode", mode);
+  applyThemeD(mode);
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="themeDarkBtnD"){ setThemeD("dark"); return; }
+  if(e.target.id==="themeLightBtnD"){ setThemeD("light"); return; }
+});
+loadThemeD();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
