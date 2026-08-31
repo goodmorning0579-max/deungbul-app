@@ -190,8 +190,19 @@ a.bni{text-decoration:none;}
 .ttsbtn.ttsstop{border-color:rgba(220,120,120,.4);color:#e8a0a0;}
 .ttsbtn.ttscontinuous.on{background:rgba(201,151,42,.32);color:var(--gold-b);border-color:var(--gold);}
 .songbox{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.reminder-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(90deg,rgba(217,141,143,.22),rgba(217,141,143,.1));border-bottom:1px solid rgba(217,141,143,.4);padding:10px 14px;font-size:12.5px;color:var(--it);}
+.reminder-banner-btns{display:flex;gap:8px;flex-shrink:0;}
+.reminder-banner-btns button{background:rgba(217,141,143,.25);border:1px solid rgba(217,141,143,.5);border-radius:14px;padding:5px 12px;color:var(--it);font-size:12px;}
+#reminderDismissBtn{background:none;border:none;padding:5px 6px;color:var(--itd);}
 .songbtn{background:rgba(90,151,201,.18);border:1px solid rgba(90,151,201,.4);border-radius:14px;padding:6px 14px;color:#8fc4ee;font-size:12px;font-weight:600;}
 .songsec{font-size:12px;font-weight:700;color:var(--gold-b);margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(201,151,42,.15);}
+.plancard{background:var(--ink2);border:1px solid rgba(201,151,42,.2);border-radius:14px;padding:16px;margin-bottom:14px;}
+.plan-opt{background:var(--ink3);border:1px solid rgba(201,151,42,.18);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;}
+.plan-opt:hover{border-color:rgba(201,151,42,.4);}
+.plan-opt .pname{font-size:13.5px;font-weight:700;color:var(--it);margin-bottom:3px;}
+.plan-opt .pdesc{font-size:11.5px;color:var(--itd);}
+.plan-progress-bar{background:rgba(255,255,255,.08);border-radius:6px;height:8px;overflow:hidden;margin:10px 0;}
+.plan-progress-fill{background:linear-gradient(90deg,var(--gold),var(--gold-b));height:100%;border-radius:6px;}
 .songsec:first-child{margin-top:0;}
 .songrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;}
 .songrow-book{font-size:12.5px;color:var(--itd);min-width:64px;flex-shrink:0;}
@@ -242,6 +253,14 @@ a.bni{text-decoration:none;}
 
 </head>
 <body>
+
+<div id="readReminderBanner" class="reminder-banner" style="display:none;">
+  <span>🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
+  <span class="reminder-banner-btns">
+    <button id="reminderGoBtn">지금 읽기</button>
+    <button id="reminderDismissBtn">✕</button>
+  </span>
+</div>
 
 <div class="top">
   <div class="logo"><img src="icon-192.png" alt="등불" class="logo-img"></div>
@@ -364,6 +383,7 @@ a.bni{text-decoration:none;}
 <!-- CALENDAR -->
 <div class="view" id="v-cal">
   <div class="streak"><div class="strnum" id="strnum">0</div><div class="strlb">일 연속 통독 🔥</div></div>
+  <div id="planCard"></div>
   <div class="calcard">
     <div class="calhead"><h3 id="calml"></h3><div style="display:flex;gap:6px;"><button class="cbtn" id="cal-add-event-btn" style="width:auto;padding:0 8px;font-size:12px;">➕ 추가</button><button class="cbtn" id="cprev">‹</button><button class="cbtn" id="cnext">›</button></div></div>
     <div id="cal-gstatus" style="font-size:10.5px;color:var(--itd);margin-bottom:4px;min-height:14px;"></div>
@@ -421,8 +441,10 @@ a.bni{text-decoration:none;}
     <div class="stab" data-smode="voice">🎙️ 음성</div>
     <div class="stab" data-smode="fav">⭐ 즐겨찾기</div>
     <div class="stab" data-smode="notes">📚 성경노트 검색</div>
+    <div class="stab" data-smode="bible">📜 성경 본문</div>
   </div>
   <div class="searchbar"><input id="sinput" placeholder="키워드나 태그로 검색"></div>
+  <div id="bibleSearchInfo" style="font-size:11.5px;color:var(--itd);margin-bottom:8px;display:none;"></div>
   <div id="sres"></div>
 </div>
 
@@ -462,6 +484,19 @@ a.bni{text-decoration:none;}
     </div>
   </div>
 
+  <div class="setcard" style="border-color:rgba(217,141,143,.35);">
+    <h3>🔔 매일 읽기 알림</h3>
+    <p style="margin-bottom:10px;">설정한 시각이 지났는데 아직 그날 읽음 표시를 안 했으면, 앱이 열려 있는 동안 알려드립니다. (앱을 완전히 꺼둔 상태에서는 울리지 않습니다.)</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="reminderToggle" style="width:18px;height:18px;">
+        <span style="font-size:13px;">알림 켜기</span>
+      </label>
+      <input type="time" id="reminderTimeInput" value="08:00" style="background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:6px 10px;color:var(--it);font-size:13px;">
+    </div>
+    <p id="reminderStatus" style="font-size:11.5px;color:var(--itd);"></p>
+  </div>
+
   <div class="setcard" style="border-color:rgba(92,131,116,.35);">
     <h3>💾 내 기록 백업 / 복원</h3>
     <p style="margin-bottom:10px;">묵상 기록·통독 진도·즐겨찾기를 파일로 저장하거나 다른 기기에서 복원합니다.</p>
@@ -484,6 +519,21 @@ a.bni{text-decoration:none;}
       <button class="btn ghost" id="gdrive-load-btn" style="flex:1;">⬇️ 드라이브에서 불러오기</button>
     </div>
     <div id="gdrive-status" style="font-size:11.5px;margin-top:8px;color:var(--itd);">연결되지 않음</div>
+    <div style="font-size:11px;margin-top:4px;color:var(--itd);">✨ 한 번 연결해두면, 이후로는 기록할 때마다 자동으로 조용히 저장됩니다. 위 버튼은 지금 바로 강제로 동기화하고 싶을 때만 누르면 됩니다.</div>
+    <div id="gdrive-autosync-status" style="font-size:11px;margin-top:4px;color:var(--gold-b);"></div>
+  </div>
+
+  <div class="setcard" style="border-color:rgba(217,191,120,.35);">
+    <h3>📄 내 기록 인쇄 / PDF로 저장</h3>
+    <p style="margin-bottom:10px;">묵상 기록과 설교 기록을 깔끔하게 정리된 페이지로 열어드립니다. 열린 페이지에서 브라우저의 인쇄 기능(대상: PDF로 저장)을 사용하면 나만의 기록집으로 보관할 수 있습니다.</p>
+    <button class="btn" id="exportPrintBtn" style="width:100%;">🖨 인쇄용 페이지 열기</button>
+  </div>
+
+  <div class="setcard" style="border-color:rgba(90,151,201,.35);">
+    <h3>📜 성경 본문 전체 검색 준비</h3>
+    <p style="margin-bottom:10px;">"기록검색 → 성경 본문" 탭에서는 <b>지금까지 읽어서 저장된 장</b>만 검색됩니다. 아래 버튼을 누르면 66권 전체를 미리 받아둬서, 처음부터 어떤 구절이든 검색할 수 있게 됩니다. (개역한글 기준, 시간이 몇 분 정도 걸릴 수 있습니다)</p>
+    <button class="btn" id="buildBibleCacheBtn" style="width:100%;">📥 전체 성경 미리 받기</button>
+    <div id="bibleCacheProgress" style="font-size:11.5px;color:var(--itd);margin-top:8px;"></div>
   </div>
 
   <div style="font-size:18px;font-weight:700;margin:20px 0 14px;">📖 성경 API 설정</div>
@@ -511,6 +561,12 @@ a.bni{text-decoration:none;}
     <h3>⚠️ 앱 안에서 안 될 때</h3>
     <p>클로드 앱 내부에서는 CORS로 외부 API 호출이 제한됩니다.<br>
     파일을 <b>다운받아 크롬·사파리에서 직접 열면</b> 완전히 작동합니다.</p>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;font-size:11.5px;color:var(--itd);">
+    <a href="https://goodmorning0579-max.github.io/deungbul-app/privacy.html" target="_blank" rel="noopener" style="color:var(--itd);">개인정보처리방침</a>
+    &nbsp;·&nbsp;
+    <a href="https://goodmorning0579-max.github.io/deungbul-app/terms.html" target="_blank" rel="noopener" style="color:var(--itd);">이용약관</a>
   </div>
 </div>
 
@@ -584,6 +640,24 @@ const ST={
   async delete(k){ try{ localStorage.removeItem(LS_PREFIX+k); }catch(e){} delete mem[k]; return{key:k,deleted:true}; },
 };
 const stor=(typeof window!=="undefined" && window.storage && typeof window.storage.set==="function")?window.storage:ST;
+/* 자동 백업: 백업 대상 데이터(묵상기록/통독진행/즐겨찾기/설교기록/음성기록/메모)가 저장되거나 삭제될 때마다
+   자동으로 "동기화 필요" 표시를 하고, 잠시 후(또는 화면 이탈 시) 조용히 드라이브에 백업한다.
+   이렇게 stor.set/delete 자체를 감싸두면, 어떤 화면의 어떤 저장 버튼을 눌러도 빠짐없이 자동 백업 대상이 된다. */
+const GDRIVE_SYNC_PREFIXES = ["j:","p:","fav:","sermon:","voice:","note:"];
+(function(){
+  const origSet = stor.set.bind(stor);
+  const origDelete = stor.delete.bind(stor);
+  stor.set = async function(key, value){
+    const result = await origSet(key, value);
+    if(GDRIVE_SYNC_PREFIXES.some(p=>key.startsWith(p))) markGDriveDirty();
+    return result;
+  };
+  stor.delete = async function(key){
+    const result = await origDelete(key);
+    if(GDRIVE_SYNC_PREFIXES.some(p=>key.startsWith(p))) markGDriveDirty();
+    return result;
+  };
+})();
 /* 저장이 실제로 영구 보존되지 않는 환경(메모리에만 저장됨)이면 사용자에게 한 번 경고 */
 function warnIfStorageBroken(){
   if(LS_BROKEN && !document.getElementById("ls-broken-banner")){
@@ -804,7 +878,7 @@ function goToView(v, pushHistory){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
   const target = document.getElementById("v-"+v);
   if(target) target.classList.add("active");
-  if(v==="cal"){initCal();renderCal();}
+  if(v==="cal"){initCal();renderCal();renderPlanCard();}
   if(v==="set")loadSetView();
   if(v==="song")renderSongList();
   curBniView = v;
@@ -1012,6 +1086,27 @@ function parseHtml(html){
   };
 })();
 
+/* 성경 본문 캐시: 한 번 불러온 장은 로컬에 저장해서, 이후 성경 본문 전체 검색에 활용한다.
+   (앱이 매 장을 실시간 API로 가져오는 구조라, 캐시가 쌓일수록 검색 가능 범위가 자연스럽게 넓어짐) */
+(function(){
+  const _origFetchBothVersions = window.fetchBothVersions;
+  window.fetchBothVersions = async function(bookCode, chapter){
+    const cacheKey = "bibletext:"+bookCode+"."+chapter;
+    try{
+      const cached = await stor.get(cacheKey);
+      if(cached && cached.value){
+        const parsed = JSON.parse(cached.value);
+        if(Array.isArray(parsed) && parsed.length>0) return parsed;
+      }
+    }catch(e){}
+    const result = await _origFetchBothVersions(bookCode, chapter);
+    if(result && result.length>0){
+      try{ await stor.set(cacheKey, JSON.stringify(result)); }catch(e){}
+    }
+    return result;
+  };
+})();
+
 
 // API 키 저장 버튼 이벤트
 document.addEventListener("click", function(e){
@@ -1059,6 +1154,8 @@ function loadSetView(){
   if(inp && window._apiBibleKey) inp.value = window._apiBibleKey;
   if(st)  st.textContent = window._apiBibleKey ? "✅ 키가 저장되어 있습니다." : "저장된 키가 없습니다.";
   restoreGDriveTokenIfValid().then(updateGDriveStatusUI);
+  updateAutoSyncStatusUI();
+  loadReminderSettings();
 }
 
 
@@ -2235,6 +2332,46 @@ function buildSearchIndex(){
     SEARCH_IDX.push({key:k, text, textLower:text.toLowerCase()});
   }
 }
+const TOTAL_BIBLE_CHAPTERS = BOOKS.reduce((s,b)=>s+b.chapters,0);
+async function renderBibleTextSearch(q){
+  const res=document.getElementById("sres");
+  const info=document.getElementById("bibleSearchInfo");
+  const cachedList = await stor.list("bibletext:");
+  const cachedCount = (cachedList.keys||[]).length;
+  if(info) info.textContent = "📖 현재 검색 가능: "+cachedCount+" / "+TOTAL_BIBLE_CHAPTERS+"장 (읽은 장이 자동으로 쌓입니다. 설정에서 전체를 미리 받아둘 수도 있어요.)";
+  const query=(q||"").trim();
+  if(query.length<2){ res.innerHTML='<div class="empty"><div class="big">📜</div>2글자 이상 입력하세요.</div>'; return; }
+  const ql=query.toLowerCase();
+  const hits=[];
+  for(const k of (cachedList.keys||[])){
+    const pk = k.slice("bibletext:".length);
+    try{
+      const v = await stor.get(k);
+      if(!v) continue;
+      const verses = JSON.parse(v.value);
+      for(const vs of verses){
+        const krMatch = vs.kr && vs.kr.includes(query);
+        const enMatch = vs.en && vs.en.toLowerCase().includes(ql);
+        if(krMatch || enMatch){
+          hits.push({pk, n:vs.n, text: krMatch?vs.kr:vs.en, order: exportBookOrder(pk)});
+        }
+      }
+    }catch(e){}
+  }
+  if(!hits.length){ res.innerHTML='<div class="empty"><div class="big">📜</div>검색 결과가 없습니다. (아직 캐시되지 않은 장은 검색되지 않습니다)</div>'; return; }
+  hits.sort((a,b)=>a.order-b.order || a.n-b.n);
+  res.innerHTML=`<div class="cnt">${hits.length}개 구절에서 발견</div>`+hits.slice(0,200).map(hit=>{
+    const idx=hit.text.indexOf(query)>=0 ? hit.text.indexOf(query) : hit.text.toLowerCase().indexOf(ql);
+    const highlighted = idx>=0
+      ? esc(hit.text.slice(0,idx))+"<b style='color:var(--gold-b);'>"+esc(hit.text.slice(idx,idx+query.length))+"</b>"+esc(hit.text.slice(idx+query.length))
+      : esc(hit.text);
+    return `<div class="ecard jumpref" data-jump="${hit.pk}" style="cursor:pointer;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${passageLabel(hit.pk)} ${hit.n}절</div>
+      <div class="etext">${highlighted}</div>
+    </div>`;
+  }).join("");
+}
+
 function renderNoteSearch(q){
   if(!SEARCH_IDX) buildSearchIndex();
   const res=document.getElementById("sres");
@@ -2296,6 +2433,7 @@ function runSearch(){
   if(searchMode==="journal") renderJournalSearch(q);
   else if(searchMode==="voice") renderVoiceSearchList(q);
   else if(searchMode==="fav") renderFavList(q);
+  else if(searchMode==="bible") renderBibleTextSearch(q);
   else renderNoteSearch(q);
 }
 
@@ -2396,7 +2534,10 @@ document.addEventListener("click", function(e){
     document.getElementById("sinput").placeholder=
       searchMode==="journal"?"키워드나 태그로 검색":
       searchMode==="voice"?"유형(기도/묵상/설교)이나 본문으로 검색":
-      searchMode==="fav"?"즐겨찾기한 구절 검색":"단어나 구절로 성경 전체 노트 검색";
+      searchMode==="fav"?"즐겨찾기한 구절 검색":
+      searchMode==="bible"?"성경 본문에서 단어나 구절 검색":"단어나 구절로 성경 전체 노트 검색";
+    const bibleInfo = document.getElementById("bibleSearchInfo");
+    if(bibleInfo) bibleInfo.style.display = (searchMode==="bible") ? "block" : "none";
     runSearch();
     return;
   }
@@ -2784,11 +2925,26 @@ function gdriveCommonToLocalKey(k){
   for(const common in GDRIVE_PREFIX_FROM_COMMON){ if(k.startsWith(common)) return GDRIVE_PREFIX_FROM_COMMON[common]+k.slice(common.length); }
   return k;
 }
-async function saveToGoogleDrive(){
+/* 자동 백업 전용: 이미 한 번 승인한 사용자에게만, 절대 팝업을 띄우지 않고 조용히 토큰을 확보한다.
+   승인 이력이 없으면 그냥 null을 반환하고 조용히 포기한다 (자동 백업이 사용자를 방해해서는 안 됨). */
+async function ensureGDriveTokenSilent(){
+  if(await restoreGDriveTokenIfValid()) return gAccessToken;
+  if(location.protocol === "file:") return null;
+  if(!(await isGDriveAuthorized())) return null;
+  try{ await connectGoogleDrive(true); }catch(e){ return null; }
+  for(let i=0;i<20;i++){
+    if(gAccessToken && Date.now() < gTokenExpiresAt) return gAccessToken;
+    await new Promise(r=>setTimeout(r,100));
+  }
+  return null;
+}
+
+async function saveToGoogleDrive(silent){
   const st = document.getElementById("gdrive-status");
   try{
-    await ensureGDriveToken();
-    if(st) st.textContent = "⏳ 저장 중...";
+    const token = silent ? await ensureGDriveTokenSilent() : await ensureGDriveToken();
+    if(!token){ if(!silent) throw new Error("구글 인증이 필요합니다."); return false; }
+    if(!silent && st) st.textContent = "⏳ 저장 중...";
     const bundle = { app:"등불", version:1, exportedAt:new Date().toISOString(), entries:[] };
     for(const p of ["j:","p:","fav:","sermon:","voice:","note:"]){
       const l = await stor.list(p);
@@ -2808,15 +2964,55 @@ async function saveToGoogleDrive(){
       : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
     const res = await fetch(url, {
       method: existing ? "PATCH" : "POST",
-      headers: { Authorization: "Bearer "+gAccessToken, "Content-Type": "multipart/related; boundary="+boundary },
+      headers: { Authorization: "Bearer "+token, "Content-Type": "multipart/related; boundary="+boundary },
       body
     });
     if(!res.ok) throw new Error("업로드 실패 ("+res.status+")");
-    if(st) st.textContent = "✅ 드라이브에 저장했습니다. ("+bundle.entries.length+"개 항목, "+new Date().toLocaleString("ko-KR")+")";
+    gDriveDirty = false;
+    try{ await stor.set("gdrive_last_autosync", new Date().toISOString()); }catch(e){}
+    if(!silent && st) st.textContent = "✅ 드라이브에 저장했습니다. ("+bundle.entries.length+"개 항목, "+new Date().toLocaleString("ko-KR")+")";
+    updateAutoSyncStatusUI();
+    return true;
   }catch(e){
-    if(st) st.textContent = "⚠️ 저장 실패: " + e.message;
+    if(!silent && st) st.textContent = "⚠️ 저장 실패: " + e.message;
+    return false;
   }
 }
+
+/* ============================================================
+   자동 백업 — 사람이 버튼을 누르는 걸 잊어도 기록이 항상 최신 상태로
+   드라이브에 남아있도록, 데이터가 바뀌면 조용히 알아서 저장한다.
+   ============================================================ */
+let gDriveDirty = false;
+let gDriveAutoBackupTimer = null;
+function markGDriveDirty(){
+  gDriveDirty = true;
+  if(gDriveAutoBackupTimer) clearTimeout(gDriveAutoBackupTimer);
+  gDriveAutoBackupTimer = setTimeout(()=>{ performAutoBackup(); }, 8000); // 8초간 추가 입력이 없으면 자동 저장
+}
+async function performAutoBackup(){
+  if(!gDriveDirty) return;
+  await saveToGoogleDrive(true);
+}
+function updateAutoSyncStatusUI(){
+  const el = document.getElementById("gdrive-autosync-status");
+  if(!el) return;
+  stor.get("gdrive_last_autosync").then(r=>{
+    if(r && r.value){
+      const d = new Date(r.value);
+      el.textContent = "🔄 마지막 자동 저장: " + d.toLocaleString("ko-KR", {hour12:false, month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"});
+    }
+  }).catch(()=>{});
+}
+// 화면을 벗어나거나(다른 앱으로 전환/탭 전환) 앱을 닫을 때, 저장할 게 남아있으면 마지막으로 한 번 더 시도
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden && gDriveDirty) performAutoBackup();
+});
+window.addEventListener("pagehide", ()=>{
+  if(gDriveDirty) performAutoBackup();
+});
+// 주기적 안전망: 8초 디바운스를 놓치는 경우(예: 예외적인 타이밍)에도 5분마다 한 번씩 확인
+setInterval(()=>{ if(gDriveDirty) performAutoBackup(); }, 5*60*1000);
 
 async function loadFromGoogleDrive(){
   const st = document.getElementById("gdrive-status");
@@ -3153,6 +3349,333 @@ document.addEventListener("click",(e)=>{
   if(e.target.id==="miniPlayerCloseBtn"){ closeMiniPlayer(); return; }
   if(e.target.id==="miniPlayerMinBtn"){
     document.getElementById("miniPlayer").classList.toggle("minimized");
+    return;
+  }
+});
+
+/* ============================================================
+   매일 읽기 알림 — 앱이 열려 있는 동안, 설정한 시각이 지났는데
+   아직 오늘 읽음 표시가 없으면 배너(+가능하면 브라우저 알림)로 알려줌.
+   앱을 완전히 꺼둔 상태에서는 동작하지 않는 "켜져 있을 때만" 방식.
+   ============================================================ */
+async function loadReminderSettings(){
+  const toggle = document.getElementById("reminderToggle");
+  const timeInput = document.getElementById("reminderTimeInput");
+  const status = document.getElementById("reminderStatus");
+  if(!toggle) return;
+  try{
+    const en = await stor.get("reminder_enabled");
+    toggle.checked = !!(en && en.value === "1");
+  }catch(e){ toggle.checked = false; }
+  try{
+    const t = await stor.get("reminder_time");
+    if(t && t.value) timeInput.value = t.value;
+  }catch(e){}
+  if(status) status.textContent = toggle.checked ? ("매일 "+timeInput.value+"에 확인합니다.") : "알림이 꺼져 있습니다.";
+}
+async function saveReminderSettings(){
+  const toggle = document.getElementById("reminderToggle");
+  const timeInput = document.getElementById("reminderTimeInput");
+  const status = document.getElementById("reminderStatus");
+  if(!toggle) return;
+  await stor.set("reminder_enabled", toggle.checked ? "1" : "0");
+  await stor.set("reminder_time", timeInput.value || "08:00");
+  if(status) status.textContent = toggle.checked ? ("매일 "+(timeInput.value||"08:00")+"에 확인합니다.") : "알림이 꺼져 있습니다.";
+  if(toggle.checked && "Notification" in window && Notification.permission === "default"){
+    try{ await Notification.requestPermission(); }catch(e){}
+  }
+}
+document.addEventListener("change", (e)=>{
+  if(e.target.id==="reminderToggle" || e.target.id==="reminderTimeInput") saveReminderSettings();
+});
+async function hasReadToday(){
+  try{ const l = await stor.list("p:"+todayStr()+":"); return (l.keys||[]).length > 0; }catch(e){ return false; }
+}
+async function checkReadingReminder(){
+  try{
+    const enR = await stor.get("reminder_enabled");
+    if(!enR || enR.value !== "1") return;
+    const tR = await stor.get("reminder_time");
+    const targetTime = (tR && tR.value) || "08:00";
+    const now = new Date();
+    const nowStr = String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    if(nowStr < targetTime) return; // 아직 알림 시각 전
+    const lastShownR = await stor.get("reminder_last_shown_date").catch(()=>null);
+    if(lastShownR && lastShownR.value === todayStr()) return; // 오늘은 이미 보여줌(닫았거나 이미 떠 있음)
+    if(await hasReadToday()) return; // 이미 오늘 읽음 표시함
+    showReadReminderBanner();
+  }catch(e){}
+}
+function showReadReminderBanner(){
+  const banner = document.getElementById("readReminderBanner");
+  if(!banner) return;
+  banner.style.display = "flex";
+  if("Notification" in window && Notification.permission === "granted" && document.hidden){
+    try{ new Notification("등불 🪔", { body: "아직 오늘 말씀을 읽지 않으셨어요.", icon: "icon-192.png" }); }catch(e){}
+  }
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="reminderGoBtn"){
+    document.getElementById("readReminderBanner").style.display="none";
+    goToView("read", true);
+    return;
+  }
+  if(e.target.id==="reminderDismissBtn"){
+    document.getElementById("readReminderBanner").style.display="none";
+    stor.set("reminder_last_shown_date", todayStr());
+    return;
+  }
+});
+checkReadingReminder();
+setInterval(checkReadingReminder, 60*1000); // 1분마다 확인
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) checkReadingReminder(); });
+
+/* ============================================================
+   전체 성경 검색 캐시 구축 — 66권을 순차적으로 미리 받아서 캐시에 저장.
+   API 부담을 줄이기 위해 요청 사이에 짧은 지연을 둔다.
+   ============================================================ */
+let bibleCacheBuildCancelled = false;
+async function buildFullBibleCache(){
+  const btn = document.getElementById("buildBibleCacheBtn");
+  const prog = document.getElementById("bibleCacheProgress");
+  if(btn.dataset.running==="1"){
+    bibleCacheBuildCancelled = true;
+    btn.textContent = "📥 전체 성경 미리 받기";
+    btn.dataset.running = "0";
+    return;
+  }
+  bibleCacheBuildCancelled = false;
+  btn.dataset.running = "1";
+  btn.textContent = "⏹ 중지하기";
+  let done = 0, skipped = 0;
+  const total = TOTAL_BIBLE_CHAPTERS;
+  for(const b of BOOKS){
+    for(let ch=1; ch<=b.chapters; ch++){
+      if(bibleCacheBuildCancelled){ if(prog) prog.textContent = "중지됨. ("+done+"/"+total+"장 완료, 다시 누르면 이어서 받습니다)"; btn.textContent="📥 전체 성경 미리 받기"; btn.dataset.running="0"; return; }
+      const cacheKey = "bibletext:"+b.code+"."+ch;
+      try{
+        const cached = await stor.get(cacheKey);
+        if(cached && cached.value){ done++; skipped++; if(prog) prog.textContent = done+"/"+total+"장 확인됨 (이미 저장된 장 "+skipped+"개 건너뜀)"; continue; }
+      }catch(e){}
+      try{
+        await window.fetchBothVersions(b.code, ch); // 내부적으로 캐시에 자동 저장됨
+      }catch(e){}
+      done++;
+      if(prog) prog.textContent = done+"/"+total+"장 받는 중... ("+b.name+" "+ch+"장)";
+      await new Promise(r=>setTimeout(r,150)); // API 부담을 줄이기 위한 지연
+    }
+  }
+  btn.textContent = "📥 전체 성경 미리 받기";
+  btn.dataset.running = "0";
+  if(prog) prog.textContent = "✅ 완료! "+total+"/"+total+"장 검색 가능합니다.";
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="buildBibleCacheBtn"){ buildFullBibleCache(); return; }
+});
+
+/* ============================================================
+   내 기록 인쇄 / PDF 저장 — 묵상 기록과 설교 기록을 깔끔한 라이트 테마
+   페이지로 새 창에 열어서, 브라우저 인쇄(대상: PDF로 저장)로 보관할 수 있게 함
+   ============================================================ */
+async function gatherExportData(){
+  const journal = await allJ();
+  const sermonList = await stor.list("sermon:");
+  const sermons = [];
+  for(const k of (sermonList.keys||[])){
+    try{
+      const v = await stor.get(k);
+      if(!v) continue;
+      const parts = k.split(":"); // sermon:PK:IDX
+      const pk = parts[1];
+      const data = JSON.parse(v.value);
+      if(data && (data.title||data.preacher||data.date||data.verse)) sermons.push(Object.assign({pk}, data));
+    }catch(e){}
+  }
+  return {journal, sermons};
+}
+function exportBookOrder(pk){
+  const code = (pk||"").split(".")[0];
+  const idx = BOOKS.findIndex(b=>b.code===code);
+  const ch = parseInt((pk||"").split(".")[1], 10) || 0;
+  return (idx<0?999:idx)*1000 + ch;
+}
+function buildExportHtml(journal, sermons){
+  const byPk = {};
+  journal.forEach(e=>{ (byPk[e.pk]=byPk[e.pk]||{journal:[],sermon:[]}).journal.push(e); });
+  sermons.forEach(s=>{ (byPk[s.pk]=byPk[s.pk]||{journal:[],sermon:[]}).sermon.push(s); });
+  const pks = Object.keys(byPk).sort((a,b)=>exportBookOrder(a)-exportBookOrder(b));
+  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도"};
+  let body = "";
+  if(pks.length===0){
+    body = `<p style="color:#888;">아직 기록이 없습니다.</p>`;
+  }
+  for(const pk of pks){
+    const g = byPk[pk];
+    body += `<div class="sec"><h2>${passageLabel(pk)}</h2>`;
+    g.journal.sort((a,b)=>a.ts-b.ts).forEach(e=>{
+      body += `<div class="entry"><div class="meta"><span class="tag">${typeLabel[e.type]||e.type}</span><span class="date">${e.date}</span></div><p>${esc(e.text).replace(/\n/g,"<br>")}</p></div>`;
+    });
+    g.sermon.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(s=>{
+      body += `<div class="entry sermon"><div class="meta"><span class="tag sermon-tag">설교</span><span class="date">${esc(s.date||"")}</span></div>
+        <p class="sermon-title">${esc(s.title||"(제목 없음)")}</p>
+        <p class="sermon-meta">${s.preacher?"설교자: "+esc(s.preacher)+"　":""}${s.verse?"본문: "+esc(s.verse):""}</p>
+        ${s.note?`<p>${esc(s.note).replace(/\n/g,"<br>")}</p>`:""}
+      </div>`;
+    });
+    body += `</div>`;
+  }
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<title>등불 — 나의 기록</title>
+<style>
+  body{font-family:"Noto Serif KR",Georgia,serif; color:#222; max-width:760px; margin:0 auto; padding:36px 24px 60px; line-height:1.75;}
+  .head{text-align:center; margin-bottom:8px;}
+  .head h1{font-size:24px; margin:0 0 4px; color:#8a6d1f;}
+  .head p{font-size:12px; color:#888; margin:0 0 30px;}
+  .printbtn{display:block; margin:0 auto 30px; background:#c9972a; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; cursor:pointer;}
+  .sec{margin-bottom:26px; page-break-inside:avoid;}
+  .sec h2{font-size:16px; color:#8a6d1f; border-bottom:2px solid #e8d9b0; padding-bottom:6px; margin-bottom:12px;}
+  .entry{margin-bottom:14px; padding-left:2px;}
+  .entry .meta{font-size:11px; color:#999; margin-bottom:4px;}
+  .entry .tag{background:#f0e6cc; color:#8a6d1f; border-radius:4px; padding:2px 8px; margin-right:8px;}
+  .entry .sermon-tag{background:#e0e8f0; color:#3a5a8a;}
+  .entry p{font-size:14px; margin:0;}
+  .entry.sermon .sermon-title{font-weight:700; font-size:15px; margin-bottom:2px;}
+  .entry.sermon .sermon-meta{font-size:12px; color:#777; margin-bottom:6px;}
+  @media print{ .printbtn{display:none;} body{padding:0 10px;} }
+</style></head><body>
+<div class="head">
+  <h1>🪔 등불 — 나의 기록</h1>
+  <p>내보낸 날짜: ${new Date().toLocaleDateString("ko-KR")}</p>
+</div>
+<button class="printbtn" onclick="window.print()">🖨 인쇄 / PDF로 저장</button>
+${body}
+</body></html>`;
+}
+async function openExportPrintView(){
+  const btn = document.getElementById("exportPrintBtn");
+  const orig = btn ? btn.textContent : "";
+  if(btn){ btn.textContent = "⏳ 정리하는 중..."; btn.disabled = true; }
+  try{
+    const {journal, sermons} = await gatherExportData();
+    const html = buildExportHtml(journal, sermons);
+    const win = window.open("", "_blank");
+    if(!win){ alert("팝업이 차단되었습니다. 이 사이트의 팝업 허용을 켜주세요."); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }finally{
+    if(btn){ btn.textContent = orig; btn.disabled = false; }
+  }
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="exportPrintBtn"){ openExportPrintView(); return; }
+});
+
+/* ============================================================
+   통독 플랜 — 목표 지향적으로 성경을 완주할 수 있도록 여러 플랜 제공.
+   플랜별 하루 분량은 BOOKS의 장 수를 기준으로 균등 분배해서 자동 계산한다.
+   ============================================================ */
+const READING_PLANS = {
+  full_1year:   {name:"1년 성경통독",      desc:"창세기부터 요한계시록까지, 365일 동안 성경 전체를 읽습니다.", days:365, filter:()=>true},
+  whole_90days: {name:"성경 전체 90일 완독", desc:"조금 더 빠른 속도로 90일 만에 성경 전체를 완독합니다.", days:90, filter:()=>true},
+  nt_3months:   {name:"신약 3개월",         desc:"마태복음부터 요한계시록까지, 90일 동안 신약을 읽습니다.", days:90, filter:b=>b.testament==="nt"},
+  psa_pro_30:   {name:"시편·잠언 한 달",     desc:"시편과 잠언만 골라, 30일 동안 지혜서를 묵상합니다.", days:30, filter:b=>b.code==="PSA"||b.code==="PRO"}
+};
+const _planScheduleCache = {};
+function getPlanSchedule(planId){
+  if(_planScheduleCache[planId]) return _planScheduleCache[planId];
+  const plan = READING_PLANS[planId];
+  if(!plan) return [];
+  const chapters = [];
+  BOOKS.filter(plan.filter).forEach(b=>{
+    for(let c=1;c<=b.chapters;c++) chapters.push({code:b.code, name:b.name, ch:c});
+  });
+  const days = plan.days;
+  const schedule = Array.from({length:days},()=>[]);
+  chapters.forEach((chp, i)=>{
+    const dayIdx = Math.min(days-1, Math.floor(i * days / chapters.length));
+    schedule[dayIdx].push(chp);
+  });
+  _planScheduleCache[planId] = schedule;
+  return schedule;
+}
+function planDayLabel(chs){
+  if(!chs.length) return "(오늘은 쉬어가는 날)";
+  // 연속된 같은 책은 "창세기 1~3장"처럼, 여러 책이 섞이면 각각 나열
+  const parts=[]; let i=0;
+  while(i<chs.length){
+    let j=i;
+    while(j+1<chs.length && chs[j+1].code===chs[i].code && chs[j+1].ch===chs[j].ch+1) j++;
+    parts.push(chs[i].name+" "+chs[i].ch+(j>i?"~"+chs[j].ch:"")+"장");
+    i=j+1;
+  }
+  return parts.join(", ");
+}
+async function renderPlanCard(){
+  const wrap = document.getElementById("planCard");
+  if(!wrap) return;
+  const pidR = await stor.get("reading_plan_id").catch(()=>null);
+  const startR = await stor.get("reading_plan_start").catch(()=>null);
+  if(!pidR || !pidR.value || !READING_PLANS[pidR.value] || !startR || !startR.value){
+    // 플랜 미선택: 선택 목록 표시
+    wrap.innerHTML = `<div class="plancard">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">📅 통독 플랜으로 목표를 세워보세요</div>
+      <p style="font-size:11.5px;color:var(--itd);margin-bottom:12px;">플랜을 시작하면 오늘 읽을 분량을 자동으로 안내해드립니다.</p>
+      ${Object.entries(READING_PLANS).map(([id,p])=>`<div class="plan-opt" data-startplan="${id}">
+        <div class="pname">${p.name}</div>
+        <div class="pdesc">${p.desc}</div>
+      </div>`).join("")}
+    </div>`;
+    return;
+  }
+  const planId = pidR.value;
+  const plan = READING_PLANS[planId];
+  const schedule = getPlanSchedule(planId);
+  const start = new Date(startR.value+"T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayIdx = Math.floor((today - start) / 86400000);
+  const totalDays = plan.days;
+  if(dayIdx >= totalDays){
+    wrap.innerHTML = `<div class="plancard" style="text-align:center;">
+      <div style="font-size:16px;font-weight:700;color:var(--gold-b);margin-bottom:6px;">🎉 ${esc(plan.name)}을(를) 완주하셨습니다!</div>
+      <button class="btn ghost" id="planStopBtn" style="margin-top:8px;">다른 플랜 시작하기</button>
+    </div>`;
+    return;
+  }
+  const dayNum = Math.max(1, dayIdx+1);
+  const todayChs = dayIdx>=0 ? (schedule[dayIdx]||[]) : (schedule[0]||[]);
+  const pct = Math.round((dayNum/totalDays)*100);
+  const firstCh = todayChs[0];
+  wrap.innerHTML = `<div class="plancard">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+      <div style="font-size:13px;font-weight:700;color:var(--gold-b);">📅 ${esc(plan.name)}</div>
+      <span style="font-size:11px;color:var(--itd);cursor:pointer;" id="planStopBtn">변경</span>
+    </div>
+    <div class="plan-progress-bar"><div class="plan-progress-fill" style="width:${pct}%;"></div></div>
+    <div style="font-size:11px;color:var(--itd);margin-bottom:10px;">${dayNum}일째 / 총 ${totalDays}일 (${pct}%)</div>
+    <div style="font-size:13.5px;color:var(--it);margin-bottom:10px;">오늘 읽을 분량: <b style="color:var(--gold-b);">${esc(planDayLabel(todayChs))}</b></div>
+    ${firstCh?`<button class="btn" id="planGoBtn" data-planbook="${firstCh.code}" data-planch="${firstCh.ch}" style="width:100%;">📖 오늘 분량 읽으러 가기</button>`:""}
+  </div>`;
+}
+async function startReadingPlan(planId){
+  if(!READING_PLANS[planId]) return;
+  await stor.set("reading_plan_id", planId);
+  await stor.set("reading_plan_start", todayStr());
+  renderPlanCard();
+}
+async function stopReadingPlan(){
+  await stor.delete("reading_plan_id").catch(()=>{});
+  await stor.delete("reading_plan_start").catch(()=>{});
+  renderPlanCard();
+}
+document.addEventListener("click",(e)=>{
+  const sp = e.target.closest("[data-startplan]");
+  if(sp){ startReadingPlan(sp.dataset.startplan); return; }
+  if(e.target.id==="planStopBtn"){ stopReadingPlan(); return; }
+  const pg = e.target.closest("#planGoBtn");
+  if(pg){
+    goToView("read", true);
+    renderPassage(pg.dataset.planbook, parseInt(pg.dataset.planch,10));
     return;
   }
 });

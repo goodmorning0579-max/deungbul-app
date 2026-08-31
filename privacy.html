@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인정보처리방침 — 등불</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0f0d0a">
+<style>
+  :root{
+    --ink:#0f0d0a; --ink2:#171310; --ink3:#211b15;
+    --gold:#c9972a; --gold-b:#e8b94a;
+    --it:#e9e4d6; --itd:#a9a596;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(ellipse at top, #1a1512, var(--ink));
+    color:var(--it); font-family:-apple-system,"Pretendard",sans-serif;
+    line-height:1.7;
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:36px 20px 80px;}
+  .back{display:inline-block; color:var(--itd); text-decoration:none; font-size:13px; margin-bottom:20px;}
+  .back:hover{color:var(--gold-b);}
+  h1{font-size:22px; color:var(--gold-b); margin:0 0 4px;}
+  .updated{font-size:12px; color:var(--itd); margin-bottom:28px;}
+  h2{font-size:15.5px; color:var(--gold-b); margin:30px 0 10px; padding-bottom:6px; border-bottom:1px solid rgba(201,151,42,.18);}
+  p, li{font-size:13.5px; color:var(--it);}
+  ul{padding-left:20px; margin:8px 0;}
+  li{margin-bottom:6px;}
+  .box{background:var(--ink2); border:1px solid rgba(201,151,42,.2); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .box b{color:var(--gold-b);}
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:13px;}
+  th, td{border:1px solid rgba(255,255,255,.08); padding:8px 10px; text-align:left; vertical-align:top;}
+  th{background:var(--ink2); color:var(--gold-b); font-weight:600;}
+  a{color:#8fc4ee;}
+  .contact{background:var(--ink2); border:1px solid rgba(201,151,42,.25); border-radius:12px; padding:18px; margin-top:30px; text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← 등불로 돌아가기</a>
+  <h1>🪔 등불 개인정보처리방침</h1>
+  <div class="updated">시행일: 2026년 8월 31일</div>
+
+  <p>'등불'(이하 '본 앱')은 개인의 성경 묵상과 공부를 돕기 위해 제작된 개인용 학습 도구입니다. 본 앱은 사용자의 개인정보를 서버로 수집하지 않으며, 아래와 같은 원칙으로 운영됩니다.</p>
+
+  <div class="box"><b>핵심 요약</b> — 본 앱은 별도의 서버를 두지 않습니다. 사용자가 기록한 모든 내용(묵상 기록, 설교 기록, 음성 녹음, 메모 등)은 사용자의 기기 안에만 저장되며, 개발자를 포함한 그 누구도 서버를 통해 열람할 수 없습니다. 사용자가 원할 경우에만, 사용자 본인의 구글 계정을 통해 구글 드라이브·구글 캘린더와 직접 연동됩니다.</div>
+
+  <h2>1. 수집하는 정보와 저장 위치</h2>
+  <table>
+    <tr><th>정보</th><th>저장 위치</th><th>비고</th></tr>
+    <tr><td>묵상 기록(관찰·해석·적용·기도)</td><td>기기 내 로컬 저장소</td><td>서버로 전송되지 않음</td></tr>
+    <tr><td>설교 기록장 내용</td><td>기기 내 로컬 저장소</td><td>서버로 전송되지 않음</td></tr>
+    <tr><td>음성 녹음 파일</td><td>기기 내 로컬 저장소</td><td>서버로 전송되지 않음</td></tr>
+    <tr><td>캘린더 메모, 즐겨찾기, 읽음 진행 상태</td><td>기기 내 로컬 저장소</td><td>서버로 전송되지 않음</td></tr>
+    <tr><td>앱 설정(글자 크기, 음성 속도 등)</td><td>기기 내 로컬 저장소</td><td>서버로 전송되지 않음</td></tr>
+    <tr><td>구글 계정 인증 정보(선택 연동 시)</td><td>사용자의 구글 계정 서버</td><td>본 앱은 구글이 발급한 접근 토큰만 기기에 임시 보관</td></tr>
+  </table>
+
+  <h2>2. 구글 계정 연동(선택 사항)</h2>
+  <p>사용자가 설정 화면에서 직접 "구글 드라이브 연결"을 누른 경우에만 아래 권한을 사용합니다. 연동하지 않아도 본 앱의 모든 핵심 기능(성경 읽기, 기록 작성 등)은 정상적으로 사용할 수 있습니다.</p>
+  <ul>
+    <li><b>Google Drive (drive.file 범위)</b> — 본 앱이 직접 생성한 백업 파일 1개(deungbul_backup.json)에만 접근합니다. 사용자의 드라이브에 있는 다른 파일에는 접근할 수 없는 권한입니다. 이 백업 파일에는 위 표에 있는 로컬 기록 데이터의 사본이 저장됩니다.</li>
+    <li><b>Google Calendar (calendar.events 범위)</b> — 사용자가 본 앱에서 생성한 일정을 사용자 본인의 구글 캘린더에 추가·조회·수정하기 위해서만 사용합니다.</li>
+  </ul>
+  <p>이 통신은 사용자의 브라우저와 구글 서버 사이에서 직접 이루어지며, 개발자의 서버를 거치지 않습니다. 즉 개발자는 사용자가 구글과 주고받는 실제 데이터 내용을 볼 수 없습니다.</p>
+  <p>연동은 설정 화면의 "연결 해제" 버튼으로 언제든지 즉시 해제할 수 있으며, 해제 시 기기에 보관된 접근 토큰은 즉시 삭제되고 구글 계정과의 연결도 함께 취소됩니다.</p>
+
+  <h2>3. 제3자 제공 및 광고</h2>
+  <p>본 앱은 사용자의 정보를 제3자에게 판매하거나 제공하지 않습니다. 광고를 표시하지 않으며, 별도의 방문 분석(애널리틱스) 도구도 사용하지 않습니다.</p>
+
+  <h2>4. 정보의 보관 및 삭제</h2>
+  <p>기기 내 로컬 저장소에 있는 정보는 사용자가 브라우저(또는 앱)의 데이터를 삭제하면 함께 삭제됩니다. 구글 드라이브에 백업된 사본은 사용자가 구글 드라이브에서 직접 삭제할 수 있습니다.</p>
+
+  <h2>5. 아동의 개인정보</h2>
+  <p>본 앱은 만 14세 미만 아동을 대상으로 개인정보를 의도적으로 수집하지 않습니다.</p>
+
+  <h2>6. 정책 변경</h2>
+  <p>본 방침이 변경될 경우 본 페이지를 통해 고지합니다.</p>
+
+  <div class="contact">
+    문의사항이 있으시면 아래 이메일로 연락해 주세요.<br>
+    <a href="mailto:goodmorning0579@gmail.com">goodmorning0579@gmail.com</a>
+  </div>
+</div>
+</body>
+</html>
