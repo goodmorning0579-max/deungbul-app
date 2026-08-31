@@ -81,6 +81,9 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .sermon-slot{background:var(--ink3);border:1px solid rgba(201,151,42,.15);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
 .sermon-slot.empty{cursor:pointer;text-align:center;color:var(--itd);font-size:12.5px;padding:12px;}
 .sermon-slot .sm-title{font-size:13.5px;font-weight:700;color:var(--it);margin-bottom:3px;}
+.sermon-slot .sm-title.sm-toggle{cursor:pointer;user-select:none;}
+.sermon-slot .sm-caret{display:inline-block;transition:transform .15s;font-size:10px;color:var(--gold-b);}
+.sermon-slot .sm-caret.open{transform:rotate(90deg);}
 .sermon-slot .sm-meta{font-size:11px;color:var(--itd);}
 .sermon-slot .sm-actions{display:flex;gap:6px;margin-top:6px;}
 .sermon-slot .sm-actions button{background:var(--ink2);border:1px solid rgba(201,151,42,.2);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--it);}
@@ -188,6 +191,12 @@ a.bni{text-decoration:none;}
 .ttsbtn.ttscontinuous.on{background:rgba(201,151,42,.32);color:var(--gold-b);border-color:var(--gold);}
 .songbox{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .songbtn{background:rgba(90,151,201,.18);border:1px solid rgba(90,151,201,.4);border-radius:14px;padding:6px 14px;color:#8fc4ee;font-size:12px;font-weight:600;}
+.songsec{font-size:12px;font-weight:700;color:var(--gold-b);margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(201,151,42,.15);}
+.songsec:first-child{margin-top:0;}
+.songrow{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;}
+.songrow-book{font-size:12.5px;color:var(--itd);min-width:64px;flex-shrink:0;}
+.songrow-title{flex:1;font-size:13.5px;color:var(--it);}
+.songrow-play{color:#8fc4ee;font-size:13px;flex-shrink:0;}
 /* 찬양 미니 플레이어: 화면 구석에 고정, 성경 본문을 스크롤/이동해도 계속 떠있음 */
 .mini-player{position:fixed;right:10px;bottom:74px;width:260px;background:#11151f;border:1px solid rgba(201,151,42,.35);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.5);z-index:9999;overflow:hidden;}
 .mini-player-head{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(201,151,42,.12);font-size:12px;color:var(--gold-b);font-weight:600;}
@@ -271,10 +280,6 @@ a.bni{text-decoration:none;}
       <button class="ttsratebtn" data-rate="2.0">x2.0</button>
     </span>
     <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
-  </div>
-  <div class="songbox" id="songbox">
-    <span class="widgetlabel">🎵 이 책의 찬양</span>
-    <button class="songbtn" id="songPlayBtn">▶ 듣기</button>
   </div>
   <div class="pcard" id="pcard"></div>
   <div class="readmarkbox" id="readmarkbox">
@@ -401,6 +406,13 @@ a.bni{text-decoration:none;}
   <div id="wlist"></div>
 </div>
 
+<!-- SONG (66권 찬양) -->
+<div class="view" id="v-song">
+  <div style="font-size:18px;font-weight:700;margin-bottom:4px;">🎵 66권 찬양</div>
+  <p style="font-size:12px;color:var(--itd);margin-bottom:14px;">각 책의 핵심 메시지와 어울리는 찬양을 골라 담았습니다. 곡을 누르면 성경을 계속 보면서 들을 수 있는 작은 창이 열립니다.</p>
+  <div id="songListWrap"></div>
+</div>
+
 <!-- SEARCH (my journal) -->
 <div class="view" id="v-search">
   <div style="font-size:18px;font-weight:700;margin-bottom:10px;">검색</div>
@@ -523,6 +535,7 @@ a.bni{text-decoration:none;}
   <button class="bni" data-v="places"><span class="ic">🗺️</span>지리</button>
   <button class="bni" data-v="words"><span class="ic">🔤</span>원어</button>
   <a class="bni" href="https://www.godpia.com/index.asp" target="_blank" rel="noopener"><span class="ic">🌐</span>Godpia</a>
+  <button class="bni" data-v="song"><span class="ic">🎵</span>찬양</button>
   <button class="bni" data-v="search"><span class="ic">🔍</span>기록검색</button>
   <button class="bni" data-v="set"><span class="ic">⚙️</span>설정</button>
 </nav>
@@ -793,6 +806,7 @@ function goToView(v, pushHistory){
   if(target) target.classList.add("active");
   if(v==="cal"){initCal();renderCal();}
   if(v==="set")loadSetView();
+  if(v==="song")renderSongList();
   curBniView = v;
   if(pushHistory !== false){
     try{ history.pushState({dvView:v}, "", ""); }catch(e){}
@@ -1118,11 +1132,6 @@ async function renderPassage(book, ch){
   // 묵상 기록 불러오기
   renderElog();
   renderSermonSlots();
-
-  // 찬양 버튼 갱신 (현재 책의 대표 찬양)
-  const songInfo = BOOK_SONGS[curBook];
-  const songBtn = document.getElementById("songPlayBtn");
-  if(songBtn && songInfo) songBtn.textContent = "▶ "+songInfo.title;
 
   // 즐겨찾기 별 표시
   markFavStars();
@@ -1734,9 +1743,12 @@ async function renderDayDetail(ds){
     ${entries.length?entries.map(e=>`<div class="ecard"><div class="emeta"><span class="edot" style="background:${JC[e.type]||'#888'}"></span>${TL[e.type]||e.type} · ${passageLabel(e.pk)}</div><div class="etext">${esc(e.text)}</div></div>`).join(""):""}
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(201,151,42,.12);">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">📌 이 날의 메모</div>
-      <div id="dayNoteList">${notes.map(n=>`<div class="daynote-item"><span class="daynote-del" data-notedel="${n._key}">✕</span>${esc(n.text)}</div>`).join("")}</div>
+      <div id="dayNoteList">${notes.map(n=>`<div class="daynote-item"><span class="daynote-del" data-notedel="${n._key}">✕</span><span class="daynote-edit" data-noteedit="${n._key}" style="position:absolute;top:8px;right:26px;font-size:11px;color:var(--itd);cursor:pointer;">✏️</span>${esc(n.text)}</div>`).join("")}</div>
       <textarea id="dayNoteInput" placeholder="중요한 일과나 기억할 내용을 적어보세요" style="width:100%;min-height:60px;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:10px;color:var(--it);font-size:12.5px;margin-top:6px;resize:vertical;"></textarea>
-      <button class="btn" id="dayNoteSaveBtn" style="width:100%;margin-top:6px;">메모 저장</button>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button class="btn" id="dayNoteSaveBtn" style="flex:1;">메모 저장</button>
+        <button class="btn ghost" id="dayNoteCancelBtn" style="display:none;">취소</button>
+      </div>
     </div>`;
 }
 
@@ -1763,6 +1775,7 @@ async function renderElog(){
   wrap.innerHTML=textHtml+voiceHtml;
 }
 let editingJKey=null; // 현재 수정 중인 묵상 기록의 원본 키(없으면 새 기록 작성 모드)
+let editingNoteKey=null; // 현재 수정 중인 이 날의 메모의 원본 키
 function startEditJ(key, entry){
   editingJKey = key;
   curJT = entry.type;
@@ -1811,9 +1824,9 @@ async function renderSermonSlots(){
     const d = await getSermonSlot(pk, i);
     if(d && (d.title||d.preacher||d.date||d.verse)){
       html += `<div class="sermon-slot" data-idx="${i}">
-        <div class="sm-title">${esc(d.title||"(제목 없음)")}</div>
+        <div class="sm-title sm-toggle" data-toggleidx="${i}"><span class="sm-caret" id="sm-caret-${i}">▶</span> ${esc(d.title||"(제목 없음)")}</div>
         <div class="sm-meta">${d.preacher?"👤 "+esc(d.preacher)+" ":""}${d.date?"📅 "+esc(d.date)+" ":""}${d.verse?"📖 "+esc(d.verse):""}</div>
-        ${d.note?`<div style="font-size:12px;color:var(--it);margin-top:6px;white-space:pre-wrap;">${esc(d.note)}</div>`:""}
+        ${d.note?`<div id="sm-note-${i}" style="display:none;font-size:12px;color:var(--it);margin-top:6px;white-space:pre-wrap;">${esc(d.note)}</div>`:""}
         <div class="sm-actions">
           <button class="sermon-edit-btn" data-idx="${i}">✏️ 수정</button>
           <button class="sermon-del-btn" data-idx="${i}">🗑 삭제</button>
@@ -1867,6 +1880,18 @@ async function saveSermonForm(idx){
   renderSermonSlots();
 }
 document.addEventListener("click", async (e)=>{
+  const toggleTitle = e.target.closest(".sm-toggle");
+  if(toggleTitle){
+    const idx = toggleTitle.dataset.toggleidx;
+    const noteEl = document.getElementById("sm-note-"+idx);
+    const caret = document.getElementById("sm-caret-"+idx);
+    if(noteEl){
+      const isOpen = noteEl.style.display !== "none";
+      noteEl.style.display = isOpen ? "none" : "block";
+      if(caret) caret.classList.toggle("open", !isOpen);
+    }
+    return;
+  }
   const addBtn = e.target.closest(".sermon-add-btn");
   if(addBtn){ openSermonForm(addBtn.dataset.idx, null); return; }
   const editBtn = e.target.closest(".sermon-edit-btn");
@@ -2404,7 +2429,40 @@ document.addEventListener("click", function(e){
     const ta=document.getElementById("dayNoteInput");
     const text=(ta&&ta.value||"").trim();
     if(!text || !curDayDetDate) return;
-    saveDayNote(curDayDetDate, text).then(()=>{ renderDayDetail(curDayDetDate); });
+    const wasEditing = editingNoteKey;
+    const savePromise = wasEditing
+      ? stor.set(wasEditing, JSON.stringify({date:curDayDetDate, text, ts:Date.now()}))
+      : saveDayNote(curDayDetDate, text);
+    savePromise.then(()=>{
+      editingNoteKey=null;
+      const cancelBtn=document.getElementById("dayNoteCancelBtn");
+      if(cancelBtn) cancelBtn.style.display="none";
+      renderDayDetail(curDayDetDate);
+    });
+    return;
+  }
+  if(e.target.id==="dayNoteCancelBtn"){
+    editingNoteKey=null;
+    const ta=document.getElementById("dayNoteInput"); if(ta) ta.value="";
+    e.target.style.display="none";
+    return;
+  }
+  const noteEdit=e.target.closest("[data-noteedit]");
+  if(noteEdit){
+    (async ()=>{
+      const key = noteEdit.dataset.noteedit;
+      try{
+        const r = await stor.get(key);
+        if(r && r.value){
+          const obj = JSON.parse(r.value);
+          editingNoteKey = key;
+          const ta=document.getElementById("dayNoteInput");
+          if(ta){ ta.value = obj.text; ta.focus(); }
+          const cancelBtn=document.getElementById("dayNoteCancelBtn");
+          if(cancelBtn) cancelBtn.style.display="";
+        }
+      }catch(err){}
+    })();
     return;
   }
   const noteDel=e.target.closest("[data-notedel]");
@@ -3053,8 +3111,8 @@ document.addEventListener("click", function(e){
    찬양 미니 플레이어 — 유튜브를 새 탭으로 열지 않고, 화면 구석의
    작은 창에서 재생하여 성경을 계속 보면서도 찬양을 들을 수 있게 함
    ============================================================ */
-function openMiniPlayer(){
-  const info = BOOK_SONGS[curBook];
+function openMiniPlayer(bookCode){
+  const info = BOOK_SONGS[bookCode || curBook];
   if(!info) return;
   const box = document.getElementById("miniPlayer");
   const frame = document.getElementById("miniPlayerFrame");
@@ -3070,8 +3128,28 @@ function closeMiniPlayer(){
   frame.src = ""; // 재생 완전히 중지
   box.style.display = "none";
 }
+function renderSongList(){
+  const wrap = document.getElementById("songListWrap");
+  if(!wrap) return;
+  const ot = BOOKS.filter(b=>b.testament==="ot");
+  const nt = BOOKS.filter(b=>b.testament==="nt");
+  const rowsHtml = list => list.map(b=>{
+    const info = BOOK_SONGS[b.code];
+    if(!info) return "";
+    return `<div class="songrow" data-songbook="${b.code}">
+      <span class="songrow-book">${b.name}</span>
+      <span class="songrow-title">🎵 ${esc(info.title)}</span>
+      <span class="songrow-play">▶</span>
+    </div>`;
+  }).join("");
+  wrap.innerHTML = `
+    <div class="songsec">구약</div>${rowsHtml(ot)}
+    <div class="songsec">신약</div>${rowsHtml(nt)}
+  `;
+}
 document.addEventListener("click",(e)=>{
-  if(e.target.id==="songPlayBtn"){ openMiniPlayer(); return; }
+  const songRow = e.target.closest("[data-songbook]");
+  if(songRow){ openMiniPlayer(songRow.dataset.songbook); return; }
   if(e.target.id==="miniPlayerCloseBtn"){ closeMiniPlayer(); return; }
   if(e.target.id==="miniPlayerMinBtn"){
     document.getElementById("miniPlayer").classList.toggle("minimized");
