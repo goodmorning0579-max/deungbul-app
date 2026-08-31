@@ -200,6 +200,10 @@ a.bni{text-decoration:none;}
 .ttsbtn.ttscontinuous.on{background:rgba(201,151,42,.32);color:var(--gold-b);border-color:var(--gold);}
 .songbox{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .reminder-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(90deg,rgba(217,141,143,.22),rgba(217,141,143,.1));border-bottom:1px solid rgba(217,141,143,.4);padding:10px 14px;font-size:12.5px;color:var(--it);}
+.tts-float{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:997;display:flex;align-items:center;gap:10px;background:rgba(20,16,10,.92);border:1px solid rgba(201,151,42,.4);border-radius:24px;padding:8px 10px 8px 16px;box-shadow:0 4px 18px rgba(0,0,0,.5);backdrop-filter:blur(6px);}
+.tts-float #ttsFloatLabel{font-size:12px;color:var(--gold-b);white-space:nowrap;}
+.tts-float button{background:rgba(201,151,42,.2);border:1px solid rgba(201,151,42,.4);border-radius:50%;width:34px;height:34px;color:var(--it);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.tts-float button:active{background:rgba(201,151,42,.35);}
 .reminder-banner-btns{display:flex;gap:8px;flex-shrink:0;}
 .reminder-banner-btns button{background:rgba(217,141,143,.25);border:1px solid rgba(217,141,143,.5);border-radius:14px;padding:5px 12px;color:var(--it);font-size:12px;}
 #reminderDismissBtn{background:none;border:none;padding:5px 6px;color:var(--itd);}
@@ -249,6 +253,8 @@ a.bni{text-decoration:none;}
 .fschip{flex:1;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 4px;color:var(--it);font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;}
 .startopt{background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:11px 14px;color:var(--it);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;text-align:left;}
 .startopt.active{background:rgba(201,151,42,.22);border-color:var(--gold);color:var(--gold-b);}
+.themeopt{background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:11px 14px;color:var(--it);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;text-align:center;}
+.themeopt.active{background:rgba(201,151,42,.22);border-color:var(--gold);color:var(--gold-b);}
 .fschip.active{background:rgba(201,151,42,.35);color:var(--gold-b);border-color:var(--gold);}
 .vrangechip{cursor:pointer;}
 .vrangechip.active{background:rgba(201,151,42,.35);color:var(--gold-b);}
@@ -270,6 +276,12 @@ a.bni{text-decoration:none;}
 
 </head>
 <body>
+
+<div id="ttsFloatControl" class="tts-float" style="display:none;">
+  <span id="ttsFloatLabel">🔊 읽는 중</span>
+  <button id="ttsFloatPauseBtn" title="일시정지">⏸</button>
+  <button id="ttsFloatStopBtn" title="정지(처음부터 다시)">⏹</button>
+</div>
 
 <div id="readReminderBanner" class="reminder-banner" style="display:none;">
   <span id="readReminderText">🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
@@ -506,8 +518,8 @@ a.bni{text-decoration:none;}
     <h3>🌗 화면 테마</h3>
     <p style="margin-bottom:10px;">밝은 곳에서 읽으실 때는 라이트 모드가 더 편할 수 있습니다.</p>
     <div style="display:flex;gap:8px;">
-      <button class="startopt active" id="themeDarkBtn" style="flex:1;">🌙 다크</button>
-      <button class="startopt" id="themeLightBtn" style="flex:1;">☀️ 라이트</button>
+      <button class="themeopt active" id="themeDarkBtn" style="flex:1;">🌙 다크</button>
+      <button class="themeopt" id="themeLightBtn" style="flex:1;">☀️ 라이트</button>
     </div>
   </div>
 
@@ -1251,9 +1263,10 @@ document.querySelectorAll(".bni").forEach(function(b){
 });
 
 
-function loadSetView(){
+async function loadSetView(){
   var inp = document.getElementById("apikey-input");
   var st  = document.getElementById("apikey-status");
+  await window.loadApiKey(); // 혹시 초기 로드가 아직 안 끝났을 수 있으니, 설정 화면을 열 때 확실하게 다시 읽음
   if(inp && window._apiBibleKey) inp.value = window._apiBibleKey;
   if(st)  st.textContent = window._apiBibleKey ? "✅ 키가 저장되어 있습니다." : "저장된 키가 없습니다.";
   restoreGDriveTokenIfValid().then(updateGDriveStatusUI);
@@ -2304,6 +2317,8 @@ function startTTS(lang){
   ttsPlaybackId++;
   const myId = ttsPlaybackId;
   requestTTSWakeLock(); // 재생 중에는 화면이 자동으로 꺼지지 않도록 유지
+  ttsUserPaused = false;
+  showTTSFloatControl(lang);
   // 사용자가 버튼을 누른 이 시점(제스처 컨텍스트) 안에서 바로 재생을 시작해야
   // 일부 브라우저의 음성 재생 차단 정책에 걸리지 않음
   speakVerseQueue(lang, 0, myId, 0);
@@ -2314,7 +2329,48 @@ function stopTTS(){
   clearTTSHighlight();
   setTTSButtonState(null);
   releaseTTSWakeLock();
+  ttsUserPaused = false;
+  hideTTSFloatControl();
 }
+/* ============================================================
+   TTS 플로팅 컨트롤 — 본문이 계속 스크롤되어도 화면에 항상 떠 있는
+   작은 컨트롤로 일시정지(그 자리에서 이어 재생)와 정지를 할 수 있게 함
+   ============================================================ */
+let ttsUserPaused = false;
+function showTTSFloatControl(lang){
+  const el = document.getElementById("ttsFloatControl");
+  const label = document.getElementById("ttsFloatLabel");
+  const pauseBtn = document.getElementById("ttsFloatPauseBtn");
+  if(!el) return;
+  if(label) label.textContent = "🔊 " + (lang==="en" ? "영어" : "한글") + " 읽는 중";
+  if(pauseBtn) pauseBtn.textContent = "⏸";
+  el.style.display = "flex";
+}
+function hideTTSFloatControl(){
+  const el = document.getElementById("ttsFloatControl");
+  if(el) el.style.display = "none";
+}
+function toggleTTSPause(){
+  if(!("speechSynthesis" in window) || !window.speechSynthesis.speaking) return;
+  const pauseBtn = document.getElementById("ttsFloatPauseBtn");
+  const label = document.getElementById("ttsFloatLabel");
+  if(ttsUserPaused){
+    // 브라우저가 멈췄던 바로 그 위치에서 이어서 재생함(처음부터 다시 시작하지 않음)
+    window.speechSynthesis.resume();
+    ttsUserPaused = false;
+    if(pauseBtn) pauseBtn.textContent = "⏸";
+    if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
+  }else{
+    window.speechSynthesis.pause();
+    ttsUserPaused = true;
+    if(pauseBtn) pauseBtn.textContent = "▶";
+    if(label) label.textContent = label.textContent.replace("읽는 중", "일시정지됨");
+  }
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="ttsFloatPauseBtn"){ toggleTTSPause(); return; }
+  if(e.target.id==="ttsFloatStopBtn"){ stopTTS(); return; }
+});
 function setTTSButtonState(lang){
   const krBtn=document.getElementById("ttsKr"), enBtn=document.getElementById("ttsEn"), stopBtn=document.getElementById("ttsStop");
   if(krBtn) krBtn.classList.toggle("playing", lang==="kr");
@@ -2918,6 +2974,9 @@ function updateGDriveStatusUI(){
   if(gAccessToken && Date.now() < gTokenExpiresAt){
     st.textContent = "✅ 구글 드라이브에 연결되었습니다. (연결 해제 전까지 자동 유지)";
     if(disconnectBtn) disconnectBtn.style.display = "";
+  } else if(gAutoReconnectFailed){
+    st.textContent = "⚠️ 이전에 연결하셨지만 자동 재연결에 실패했습니다. 아래 '구글 계정 연결' 버튼을 눌러 다시 연결해주세요. (브라우저가 자동 로그인을 차단했을 수 있습니다)";
+    if(disconnectBtn) disconnectBtn.style.display = "none";
   } else {
     st.textContent = "연결되지 않음";
     if(disconnectBtn) disconnectBtn.style.display = "none";
@@ -2945,6 +3004,7 @@ async function connectGoogleDrive(silent){
       scope: GDRIVE_SCOPE,
       callback: async (resp)=>{
         if(resp && resp.access_token){
+          gAutoReconnectFailed = false;
           await saveGDriveToken(resp.access_token, resp.expires_in);
           updateGDriveStatusUI();
         } else if(!silent){
@@ -2980,11 +3040,19 @@ async function disconnectGoogleDrive(){
 }
 
 /* 앱 시작 시: 이전에 승인한 적이 있다면 팝업 없이 자동으로 다시 연결을 시도 */
+let gAutoReconnectFailed = false;
 async function autoReconnectGDriveIfAuthorized(){
   if(await restoreGDriveTokenIfValid()){ updateGDriveStatusUI(); return; }
   if(location.protocol === "file:") return;
   if(await isGDriveAuthorized()){
     await connectGoogleDrive(true);
+    // 조용한 재연결이 실제로 성공했는지 잠시 확인 후, 실패했다면 사용자에게 알 수 있게 표시
+    for(let i=0;i<20;i++){
+      if(gAccessToken && Date.now() < gTokenExpiresAt){ updateGDriveStatusUI(); return; }
+      await new Promise(r=>setTimeout(r,150));
+    }
+    gAutoReconnectFailed = true;
+    updateGDriveStatusUI();
   }
 }
 

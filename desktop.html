@@ -187,6 +187,10 @@ select:hover, .btn:hover{border-color:var(--gold);}
 .typebar-legend-d span{display:flex;align-items:center;gap:4px;}
 .typebar-legend-d .dot-d{width:9px;height:9px;border-radius:50%;display:inline-block;}
 .reminder-banner-d{display:flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(90deg,rgba(217,141,143,.2),rgba(217,141,143,.08));border-bottom:1px solid rgba(217,141,143,.4);padding:11px 20px;font-size:13.5px;color:var(--ink-text);position:sticky;top:0;z-index:500;}
+.tts-float-d{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:997;display:flex;align-items:center;gap:12px;background:rgba(15,12,8,.94);border:1px solid rgba(201,151,42,.4);border-radius:26px;padding:10px 12px 10px 20px;box-shadow:0 6px 22px rgba(0,0,0,.55);backdrop-filter:blur(6px);}
+.tts-float-d #ttsFloatLabelD{font-size:13px;color:var(--gold-bright);white-space:nowrap;}
+.tts-float-d button{background:rgba(201,151,42,.2);border:1px solid rgba(201,151,42,.4);border-radius:50%;width:38px;height:38px;color:var(--ink-text);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.tts-float-d button:hover{background:rgba(201,151,42,.35);}
 .reminder-banner-d-btns{display:flex;gap:10px;}
 .reminder-banner-d-btns button{background:rgba(217,141,143,.25);border:1px solid rgba(217,141,143,.5);border-radius:16px;padding:6px 16px;color:var(--ink-text);font-size:12.5px;cursor:pointer;}
 #reminderDismissBtnD{background:none;border:none;padding:6px 8px;color:var(--ink-text-dim);}
@@ -365,6 +369,8 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .fschip-d{background:#1f2635;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 16px;color:var(--ink-text);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;}
 .startopt-d{background:#1f2635;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:12px 16px;color:var(--ink-text);font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;text-align:left;}
 .startopt-d.active{background:rgba(201,151,42,.22);border-color:#c9972a;color:#e8b94a;}
+.themeopt-d{background:#1f2635;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:12px 16px;color:var(--ink-text);font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;text-align:center;}
+.themeopt-d.active{background:rgba(201,151,42,.22);border-color:#c9972a;color:#e8b94a;}
 .fschip-d.active{background:rgba(201,151,42,.35);color:#e8b94a;border-color:#c9972a;}
 .vrangechip-d.active{background:rgba(201,151,42,.35);color:#e8b94a;}
 #voiceRecordBtnD.recording{background:#7a2b2b !important;animation:vpulseD 1.3s ease-in-out infinite;}
@@ -395,6 +401,12 @@ textarea:focus{outline:none; border-color:var(--gold);}
 </style>
 </head>
 <body>
+
+<div id="ttsFloatControlD" class="tts-float-d" style="display:none;">
+  <span id="ttsFloatLabelD">🔊 읽는 중</span>
+  <button id="ttsFloatPauseBtnD" title="일시정지">⏸</button>
+  <button id="ttsFloatStopBtnD" title="정지(처음부터 다시)">⏹</button>
+</div>
 
 <div id="readReminderBannerD" class="reminder-banner-d" style="display:none;">
   <span id="readReminderTextD">🪔 아직 오늘 말씀을 읽지 않으셨어요.</span>
@@ -735,8 +747,8 @@ textarea:focus{outline:none; border-color:var(--gold);}
     <h3 style="color:#8ab4f8;font-size:16px;margin-bottom:8px;">🌗 화면 테마</h3>
     <p style="font-size:13px;color:#c9c4b3;margin-bottom:12px;">밝은 곳에서 읽으실 때는 라이트 모드가 더 편할 수 있습니다.</p>
     <div style="display:flex;gap:8px;">
-      <button class="startopt-d active" id="themeDarkBtnD" style="flex:1;">🌙 다크</button>
-      <button class="startopt-d" id="themeLightBtnD" style="flex:1;">☀️ 라이트</button>
+      <button class="themeopt-d active" id="themeDarkBtnD" style="flex:1;">🌙 다크</button>
+      <button class="themeopt-d" id="themeLightBtnD" style="flex:1;">☀️ 라이트</button>
     </div>
   </div>
 
@@ -1921,8 +1933,8 @@ async function speakVerseQueueD(lang, idx, myPlaybackId){
     const vv = availableVoicesD.find(x=>x.voiceURI===chosenURI);
     if(vv) utter.voice = vv;
   }
-  utter.onend = ()=>{ speakVerseQueueD(lang, idx+1, myPlaybackId); };
-  utter.onerror = ()=>{ speakVerseQueueD(lang, idx+1, myPlaybackId); };
+  utter.onend = ()=>{ setTimeout(()=>speakVerseQueueD(lang, idx+1, myPlaybackId), 120); };
+  utter.onerror = ()=>{ setTimeout(()=>speakVerseQueueD(lang, idx+1, myPlaybackId), 120); };
   ttsUtteranceD = utter;
   window.speechSynthesis.speak(utter);
 }
@@ -1962,15 +1974,77 @@ function startTTSD(lang){
   ttsRepeatLeftD = ttsRepeatTotalD;
   ttsPlaybackIdD++;
   requestTTSWakeLockD(); // 재생 중에는 화면이 자동으로 꺼지지 않도록 유지
+  ttsUserPausedD = false;
+  showTTSFloatControlD(lang);
+  startTTSResumeWorkaroundD(); // 크롬 데스크탑의 "15초 후 자동 정지" 버그 방지
   speakVerseQueueD(lang, 0, ttsPlaybackIdD);
+}
+/* 크롬 등 데스크탑 브라우저는 speechSynthesis가 약 15초 이상 발화하면
+   내부적으로 자동 일시정지되어버리는 오래된 버그가 있다(모바일 Chrome에는 없음).
+   재생 중 주기적으로 pause→resume을 호출해 그 내부 타이머를 리셋시켜 방지한다.
+   단, 사용자가 직접 일시정지한 상태(ttsUserPausedD)에서는 절대 건드리지 않는다 —
+   그렇지 않으면 이 워크어라운드가 사용자의 일시정지를 무시하고 제멋대로 재생을 재개시켜버림. */
+let ttsResumeIntervalD = null;
+function startTTSResumeWorkaroundD(){
+  stopTTSResumeWorkaroundD();
+  ttsResumeIntervalD = setInterval(()=>{
+    if(ttsUserPausedD) return;
+    if(window.speechSynthesis && window.speechSynthesis.speaking){
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }
+  }, 5000);
+}
+function stopTTSResumeWorkaroundD(){
+  if(ttsResumeIntervalD){ clearInterval(ttsResumeIntervalD); ttsResumeIntervalD=null; }
 }
 function stopTTSD(){
   ttsPlaybackIdD++;
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
+  stopTTSResumeWorkaroundD();
   clearTTSHighlightD();
   setTTSButtonStateD(null);
   releaseTTSWakeLockD();
+  ttsUserPausedD = false;
+  hideTTSFloatControlD();
 }
+/* ============================================================
+   TTS 플로팅 컨트롤 (데스크탑)
+   ============================================================ */
+let ttsUserPausedD = false;
+function showTTSFloatControlD(lang){
+  const el = document.getElementById("ttsFloatControlD");
+  const label = document.getElementById("ttsFloatLabelD");
+  const pauseBtn = document.getElementById("ttsFloatPauseBtnD");
+  if(!el) return;
+  if(label) label.textContent = "🔊 " + (lang==="en" ? "영어" : "한글") + " 읽는 중";
+  if(pauseBtn) pauseBtn.textContent = "⏸";
+  el.style.display = "flex";
+}
+function hideTTSFloatControlD(){
+  const el = document.getElementById("ttsFloatControlD");
+  if(el) el.style.display = "none";
+}
+function toggleTTSPauseD(){
+  if(!("speechSynthesis" in window) || !window.speechSynthesis.speaking) return;
+  const pauseBtn = document.getElementById("ttsFloatPauseBtnD");
+  const label = document.getElementById("ttsFloatLabelD");
+  if(ttsUserPausedD){
+    window.speechSynthesis.resume();
+    ttsUserPausedD = false;
+    if(pauseBtn) pauseBtn.textContent = "⏸";
+    if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
+  }else{
+    window.speechSynthesis.pause();
+    ttsUserPausedD = true;
+    if(pauseBtn) pauseBtn.textContent = "▶";
+    if(label) label.textContent = label.textContent.replace("읽는 중", "일시정지됨");
+  }
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.id==="ttsFloatPauseBtnD"){ toggleTTSPauseD(); return; }
+  if(e.target.id==="ttsFloatStopBtnD"){ stopTTSD(); return; }
+});
 function setTTSButtonStateD(lang){
   const krBtn=document.getElementById("ttsKrD"), enBtn=document.getElementById("ttsEnD"), stopBtn=document.getElementById("ttsStopD");
   if(krBtn) krBtn.classList.toggle("playing", lang==="kr");
@@ -2644,9 +2718,10 @@ async function saveApiSettings(){
   }
 }
 
-function loadSettingsIntoView(){
+async function loadSettingsIntoView(){
   var inp = document.getElementById("apikey-input");
   var st  = document.getElementById("apikey-status");
+  await window.loadApiKey(); // 혹시 초기 로드가 아직 안 끝났을 수 있으니, 설정 화면을 열 때 확실하게 다시 읽음
   if(inp && window._apiBibleKey) inp.value = window._apiBibleKey;
   if(st) updateSettingsStatus();
   restoreGDriveTokenIfValidD().then(updateGDriveStatusUID);
@@ -3403,6 +3478,9 @@ function updateGDriveStatusUID(){
   if(gAccessTokenD && Date.now() < gTokenExpiresAtD){
     st.textContent = "✅ 구글 드라이브에 연결되었습니다. (연결 해제 전까지 자동 유지)";
     if(disconnectBtn) disconnectBtn.style.display = "";
+  } else if(gAutoReconnectFailedD){
+    st.textContent = "⚠️ 이전에 연결하셨지만 자동 재연결에 실패했습니다. 아래 '구글 계정 연결' 버튼을 눌러 다시 연결해주세요. (브라우저가 자동 로그인을 차단했을 수 있습니다)";
+    if(disconnectBtn) disconnectBtn.style.display = "none";
   } else {
     st.textContent = "연결되지 않음";
     if(disconnectBtn) disconnectBtn.style.display = "none";
@@ -3430,6 +3508,7 @@ async function connectGoogleDriveD(silent){
       scope: GDRIVE_SCOPE_D,
       callback: async (resp)=>{
         if(resp && resp.access_token){
+          gAutoReconnectFailedD = false;
           await saveGDriveTokenD(resp.access_token, resp.expires_in);
           updateGDriveStatusUID();
         } else if(!silent){
@@ -3460,11 +3539,18 @@ async function disconnectGoogleDriveD(){
   updateGDriveStatusUID();
 }
 
+let gAutoReconnectFailedD = false;
 async function autoReconnectGDriveIfAuthorizedD(){
   if(await restoreGDriveTokenIfValidD()){ updateGDriveStatusUID(); return; }
   if(location.protocol === "file:") return;
   if(await isGDriveAuthorizedD()){
     await connectGoogleDriveD(true);
+    for(let i=0;i<20;i++){
+      if(gAccessTokenD && Date.now() < gTokenExpiresAtD){ updateGDriveStatusUID(); return; }
+      await new Promise(r=>setTimeout(r,150));
+    }
+    gAutoReconnectFailedD = true;
+    updateGDriveStatusUID();
   }
 }
 
