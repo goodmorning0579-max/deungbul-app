@@ -2358,18 +2358,21 @@ function toggleTTSPause(){
   const pauseBtn = document.getElementById("ttsFloatPauseBtn");
   const label = document.getElementById("ttsFloatLabel");
   if(ttsUserPaused){
-    // 안드로이드 등 일부 모바일 브라우저는 speechSynthesis.resume()이 오랫동안(수년째) 고쳐지지 않은
-    // 브라우저 자체 버그로 인해 신뢰할 수 없음 — pause() 후 resume()을 호출해도 영영 소리가 안 돌아오는
-    // 경우가 흔함. 그래서 네이티브 재개에 기대지 않고, 멈췄던 절을 확실하게 다시 읽어서 이어지게 함.
-    window.speechSynthesis.cancel();
-    ttsPlaybackId++; // 방금 취소된 이전 발화의 onend/onerror가 뒤늦게 와도 무시되도록 무효화
+    // "재개"는 재생을 처음 시작할 때와 완전히 동일한 방식(speakVerseQueue, 시작 실패 시 자동 재시도 포함)으로
+    // 멈췄던 절을 다시 읽는다. 네이티브 pause()/resume()에 기대지 않으므로 브라우저별 버그와 무관하게 동작함.
+    ttsPlaybackId++;
     const myId = ttsPlaybackId;
     ttsUserPaused = false;
     if(pauseBtn) pauseBtn.textContent = "⏸";
     if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
     speakVerseQueue(ttsCurrentLang, ttsCurrentIdx, myId, 0);
   }else{
-    window.speechSynthesis.pause();
+    // 안드로이드 등 일부 모바일 브라우저는 speechSynthesis의 "일시정지" 상태 자체가 불안정해서,
+    // 한 번 pause() 상태로 들어가면 그 뒤로 다시는 소리가 안 돌아오는 경우가 흔함.
+    // 그래서 네이티브 pause() 대신 아예 완전히 멈추고(cancel), 재개 시 처음부터 새로 시작하는 것과
+    // 동일한 방식으로 이어 읽는다. (사용자에게는 "일시정지"처럼 보이지만 내부적으로는 완전 정지)
+    window.speechSynthesis.cancel();
+    ttsPlaybackId++; // 방금 취소된 발화의 onend/onerror가 뒤늦게 와도 무시되도록 무효화
     ttsUserPaused = true;
     if(pauseBtn) pauseBtn.textContent = "▶";
     if(label) label.textContent = label.textContent.replace("읽는 중", "일시정지됨");
