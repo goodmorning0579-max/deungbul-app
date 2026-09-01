@@ -2354,27 +2354,20 @@ function hideTTSFloatControl(){
 }
 function toggleTTSPause(){
   if(!("speechSynthesis" in window)) return;
-  // 일부 모바일 브라우저는 pause() 이후 speaking 속성이 false로 바뀌어버려서,
-  // "재생 중"만 체크하면 재개 버튼이 아예 반응하지 않는 문제가 있었음 —
-  // 사용자가 방금 일시정지한 상태(ttsUserPaused)라면 이 체크를 건너뛴다.
   if(!ttsUserPaused && !window.speechSynthesis.speaking) return;
   const pauseBtn = document.getElementById("ttsFloatPauseBtn");
   const label = document.getElementById("ttsFloatLabel");
   if(ttsUserPaused){
-    // 브라우저가 멈췄던 바로 그 위치에서 이어서 재생함(처음부터 다시 시작하지 않음)
-    window.speechSynthesis.resume();
+    // 안드로이드 등 일부 모바일 브라우저는 speechSynthesis.resume()이 오랫동안(수년째) 고쳐지지 않은
+    // 브라우저 자체 버그로 인해 신뢰할 수 없음 — pause() 후 resume()을 호출해도 영영 소리가 안 돌아오는
+    // 경우가 흔함. 그래서 네이티브 재개에 기대지 않고, 멈췄던 절을 확실하게 다시 읽어서 이어지게 함.
+    window.speechSynthesis.cancel();
+    ttsPlaybackId++; // 방금 취소된 이전 발화의 onend/onerror가 뒤늦게 와도 무시되도록 무효화
+    const myId = ttsPlaybackId;
     ttsUserPaused = false;
     if(pauseBtn) pauseBtn.textContent = "⏸";
     if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
-    // 일부 모바일 브라우저는 resume()을 호출해도 실제로는 재생이 되살아나지 않는 경우가 있음.
-    // 잠시 후에도 실제로 말하고 있지 않다면, 멈췄던 그 절을 처음부터 다시 읽어서 확실히 이어지게 함.
-    const checkId = ttsPlaybackId;
-    setTimeout(()=>{
-      if(checkId !== ttsPlaybackId || ttsUserPaused) return; // 그 사이 정지되었거나 다시 일시정지했으면 무시
-      if(!window.speechSynthesis.speaking){
-        speakVerseQueue(ttsCurrentLang, ttsCurrentIdx, ttsPlaybackId, 0);
-      }
-    }, 400);
+    speakVerseQueue(ttsCurrentLang, ttsCurrentIdx, myId, 0);
   }else{
     window.speechSynthesis.pause();
     ttsUserPaused = true;
