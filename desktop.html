@@ -1996,14 +1996,28 @@ function startTTSD(lang){
   requestTTSWakeLockD(); // 재생 중에는 화면이 자동으로 꺼지지 않도록 유지
   ttsUserPausedD = false;
   showTTSFloatControlD(lang);
-  startTTSResumeWorkaroundD(); // 크롬 데스크탑의 "15초 후 자동 정지" 버그 방지
+  startTTSResumeWorkaroundIfDesktopD(); // 크롬 데스크탑의 "15초 후 자동 정지" 버그 방지 (모바일에서는 건너뜀)
   speakVerseQueueD(lang, 0, ttsPlaybackIdD);
 }
 /* 크롬 등 데스크탑 브라우저는 speechSynthesis가 약 15초 이상 발화하면
    내부적으로 자동 일시정지되어버리는 오래된 버그가 있다(모바일 Chrome에는 없음).
    재생 중 주기적으로 pause→resume을 호출해 그 내부 타이머를 리셋시켜 방지한다.
    단, 사용자가 직접 일시정지한 상태(ttsUserPausedD)에서는 절대 건드리지 않는다 —
-   그렇지 않으면 이 워크어라운드가 사용자의 일시정지를 무시하고 제멋대로 재생을 재개시켜버림. */
+   그렇지 않으면 이 워크어라운드가 사용자의 일시정지를 무시하고 제멋대로 재생을 재개시켜버림.
+
+   ⚠️ 안드로이드/갤럭시탭 등 모바일·태블릿 브라우저에서는 이 pause→resume 강제 호출이
+   반대로 speechSynthesis 큐를 완전히 멈춰버리는 부작용이 있다(1~2절만 읽고 정지하는 원인).
+   이 버그 자체가 데스크탑 전용이므로, 모바일/터치 기기에서는 워크어라운드를 아예 실행하지 않는다. */
+function isDesktopBrowserForTTSWorkaroundD(){
+  const ua = navigator.userAgent || "";
+  const isMobileUA = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua);
+  const isTouchPrimary = (navigator.maxTouchPoints||0) > 1 && !/Windows/i.test(ua);
+  return !isMobileUA && !isTouchPrimary;
+}
+function startTTSResumeWorkaroundIfDesktopD(){
+  if(!isDesktopBrowserForTTSWorkaroundD()){ stopTTSResumeWorkaroundD(); return; }
+  startTTSResumeWorkaroundD();
+}
 let ttsResumeIntervalD = null;
 function startTTSResumeWorkaroundD(){
   stopTTSResumeWorkaroundD();
@@ -2018,6 +2032,7 @@ function startTTSResumeWorkaroundD(){
 function stopTTSResumeWorkaroundD(){
   if(ttsResumeIntervalD){ clearInterval(ttsResumeIntervalD); ttsResumeIntervalD=null; }
 }
+
 function stopTTSD(){
   ttsPlaybackIdD++;
   if("speechSynthesis" in window) window.speechSynthesis.cancel();
