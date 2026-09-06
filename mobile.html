@@ -271,6 +271,8 @@ a.bni{text-decoration:none;}
 .voiceentry audio{width:100%;margin-top:6px;}
 .vnote-toggle{cursor:pointer;margin-left:6px;font-size:12px;opacity:.55;transition:.15s;}
 .vnote-toggle:hover,.vnote-toggle.open{opacity:1;}
+.vplay{cursor:pointer;margin-left:6px;font-size:11px;opacity:.45;user-select:none;}
+.vplay:active{opacity:1;transform:scale(1.15);}
 .vnote-panel{margin:2px 0 10px;}
 .vnote-inner{background:rgba(201,151,42,.14);border-left:3px solid var(--gold);border-radius:6px;padding:12px 14px;}
 .vnote-text{font-size:calc(13px * var(--fs-scale));line-height:1.75;color:var(--pt);margin:0 0 8px;}
@@ -1371,8 +1373,8 @@ async function renderPassage(book, ch){
           </div>
         </div>`:"";
         return `
-        <div class="verse ven-row" data-vn="${v.n}"><span class="vn">${v.n}</span><span class="ven" data-sentence="${(v.en||"").replace(/"/g,"&quot;")}" title="🔍 Sentence X-ray로 분석">${v.en||""}</span></div>
-        <div class="verse vkr-row" data-vn="${v.n}"><span class="vn favstar" data-fav="${book}.${ch}.${v.n}" data-vtext="${(v.kr||"").replace(/"/g,"&quot;")}" title="탭하여 형광펜 (다시 탭하면 색 변경)">${v.n}</span><span class="vkr">${v.kr||""}</span>${toggleHtml}</div>
+        <div class="verse ven-row" data-vn="${v.n}"><span class="vn">${v.n}</span><span class="ven" data-sentence="${(v.en||"").replace(/"/g,"&quot;")}" title="🔍 Sentence X-ray로 분석">${v.en||""}</span><span class="vplay" data-vn="${v.n}" data-lang="en" title="여기서부터 영어로 듣기">🔊</span></div>
+        <div class="verse vkr-row" data-vn="${v.n}"><span class="vn favstar" data-fav="${book}.${ch}.${v.n}" data-vtext="${(v.kr||"").replace(/"/g,"&quot;")}" title="탭하여 형광펜 (다시 탭하면 색 변경)">${v.n}</span><span class="vkr">${v.kr||""}</span><span class="vplay" data-vn="${v.n}" data-lang="kr" title="여기서부터 한글로 듣기">🔊</span>${toggleHtml}</div>
         ${panelHtml}
       `;}).join("")}
     </div>
@@ -2337,7 +2339,7 @@ document.addEventListener("visibilitychange", ()=>{
     requestTTSWakeLock();
   }
 });
-function startTTS(lang){
+function startTTS(lang, startIdx){
   if(!("speechSynthesis" in window)){
     alert("이 브라우저는 음성 읽기 기능을 지원하지 않습니다.");
     return;
@@ -2367,7 +2369,7 @@ function startTTS(lang){
   showTTSFloatControl(lang);
   // 사용자가 버튼을 누른 이 시점(제스처 컨텍스트) 안에서 바로 재생을 시작해야
   // 일부 브라우저의 음성 재생 차단 정책에 걸리지 않음
-  speakVerseQueue(lang, 0, myId, 0);
+  speakVerseQueue(lang, startIdx||0, myId, 0);
 }
 function stopTTS(){
   ttsPlaybackId++; // 진행 중이던 큐를 무효화
@@ -2845,6 +2847,15 @@ document.addEventListener("click", function(e){
   const ttsBtn=e.target.closest("#ttsKr, #ttsEn");
   if(ttsBtn){ startTTS(ttsBtn.dataset.lang); return; }
   if(e.target.id==="ttsStop"){ stopTTS(); return; }
+  const playFrom=e.target.closest(".vplay");
+  if(playFrom){
+    e.stopPropagation();
+    const vn = parseInt(playFrom.dataset.vn, 10);
+    const lang = playFrom.dataset.lang;
+    const idx = (curPassageVerses||[]).findIndex(v=>v.n===vn);
+    if(idx>-1) startTTS(lang, idx);
+    return;
+  }
   if(e.target.id==="ttsContinuousBtn"){
     ttsContinuous = !ttsContinuous;
     e.target.classList.toggle("on", ttsContinuous);
