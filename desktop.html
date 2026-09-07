@@ -1434,7 +1434,7 @@ async function renderPassage(bookCode, chapter){
           const kind = (notes.places||[]).includes(nm) ? 'place' : 'person';
           const label = kind==='place' ? '🗺️' : '👤';
           return `<a class="vdict-chip-d" href="${dictSearchLinkD(nm, kind)}" target="_blank" rel="noopener">${label} ${nm}</a>`;
-        }).join("")}<a class="vdict-chip-d" href="${dictSearchLinkD(bookCode+' '+chapter+'장 배경', 'place')}" target="_blank" rel="noopener">🏛️ 역사·문화 배경</a></div>` : "";
+        }).join("")}<a class="vdict-chip-d" href="${dictSearchLinkD(b.name+' '+chapter+'장', 'culture')}" target="_blank" rel="noopener">🏛️ 역사·문화 배경</a></div>` : "";
         const studyKey = `vstudy:${bookCode}.${chapter}.${v.n}`;
         const isStudyMode = window._passageModeD === "study";
         grid.innerHTML += `<div class="vnote-panel-d${isStudyMode?" study-open-d":""}" id="vnote-d-${v.n}" style="display:${isStudyMode?"block":"none"};grid-column:1/-1;">
@@ -1528,8 +1528,16 @@ function strongLinkD(code){
   return `https://www.blueletterbible.org/lexicon/${m[1].toLowerCase()}${m[2]}/kjv/${testament}/0-1/`;
 }
 function dictSearchLinkD(name, kind){
-  const q = encodeURIComponent(name + (kind==="place" ? " 성경 지명" : kind==="word" ? " 성경 원어 뜻" : " 성경 인물"));
-  return `https://www.google.com/search?q=${q}+site:blueletterbible.org+OR+site:biblehub.com+OR+site:britannica.com+OR+site:ko.wikipedia.org`;
+  if(kind==="word"){
+    // 원어(히브리어/그리스어) 검색은 영어권 스트롱 사전 사이트가 실제로 유용하므로 그대로 유지
+    const q = encodeURIComponent(name + " 성경 원어 뜻");
+    return `https://www.google.com/search?q=${q}+(site:blueletterbible.org+OR+site:biblehub.com)`;
+  }
+  // 인물·지명·역사문화배경은 한글 이름을 검색하므로, 영어 전용 사이트로 제한하면
+  // 결과가 전혀 나오지 않는다(이전 버그). 사이트 제한 없이 자연스럽게 검색한다.
+  const suffix = kind==="place" ? " 성경 지명" : kind==="culture" ? " 성경 배경" : " 성경 인물";
+  const q = encodeURIComponent(name + suffix);
+  return `https://www.google.com/search?q=${q}`;
 }
 function renderWordsD(q){
   q = (q||'').trim().toLowerCase();

@@ -1526,7 +1526,7 @@ async function renderPassage(book, ch){
           const kind = ((notes.places)||[]).includes(nm) ? 'place' : 'person';
           const label = kind==='place' ? '🗺️' : '👤';
           return `<a class="vdict-chip" href="${dictSearchLink(nm, kind)}" target="_blank" rel="noopener">${label} ${esc(nm)}</a>`;
-        }).join("")}</div>` : "";
+        }).join("")}<a class="vdict-chip" href="${dictSearchLink(b.name+' '+ch+'장', 'culture')}" target="_blank" rel="noopener">🏛️ 역사·문화 배경</a></div>` : "";
         const studyKey = `vstudy:${book}.${ch}.${v.n}`;
         const isStudyMode = window._passageMode === "study";
         const panelHtml=`<div class="vnote-panel${isStudyMode?" study-open":""}" id="vnote-${v.n}" style="display:${isStudyMode?"block":"none"};grid-column:1/-1;">
@@ -1627,8 +1627,14 @@ function strongLink(code){
   return url;
 }
 function dictSearchLink(name, kind){
-  const q = encodeURIComponent(name + (kind==="place" ? " 성경 지명" : " 성경 인물"));
-  return `https://www.google.com/search?q=${q}+site:blueletterbible.org+OR+site:biblehub.com+OR+site:britannica.com+OR+site:ko.wikipedia.org`;
+  if(kind==="word"){
+    const q = encodeURIComponent(name + " 성경 원어 뜻");
+    return `https://www.google.com/search?q=${q}+(site:blueletterbible.org+OR+site:biblehub.com)`;
+  }
+  // 인물·지명·역사문화배경은 한글 이름을 검색하므로 영어 전용 사이트로 제한하지 않는다(이전 버그: 결과 0개)
+  const suffix = kind==="place" ? " 성경 지명" : kind==="culture" ? " 성경 배경" : " 성경 인물";
+  const q = encodeURIComponent(name + suffix);
+  return `https://www.google.com/search?q=${q}`;
 }
 function renderStudy(notes){
   const pl=document.getElementById("p-lang"),ph=document.getElementById("p-hist"),pc=document.getElementById("p-cult");
