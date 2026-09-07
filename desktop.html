@@ -422,7 +422,9 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .tools-fab-menu-d button{background:#1a1f2e;border:1px solid rgba(201,151,42,.4);color:var(--ink-text);padding:12px 16px;border-radius:12px;font-size:13px;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;white-space:nowrap;}
 .tools-fab-menu-d button:hover{background:#232a3d;border-color:#c9972a;}
 .tools-sheet-overlay-d{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.tools-sheet-overlay-d.split-view-d{background:transparent;pointer-events:none;}
 .tools-sheet-d{width:100%;max-width:760px;max-height:82vh;background:#161b26;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;animation:toolsSheetUpD .22s ease-out;}
+.split-view-d .tools-sheet-d{max-height:50vh;height:50vh;max-width:100%;pointer-events:auto;border-top:2px solid var(--gold-bright);box-shadow:0 -10px 34px rgba(0,0,0,.6);}
 @keyframes toolsSheetUpD{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .tools-sheet-head-d{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(201,151,42,.2);font-size:15px;font-weight:700;color:var(--gold-bright);flex-shrink:0;}
 .tools-sheet-close-d{cursor:pointer;font-size:13px;color:var(--ink-text-dim);padding:6px 10px;border-radius:8px;}
@@ -3206,7 +3208,15 @@ async function tryRenderLiveText(chapterId){
     sheetBody.appendChild(el);
     el.style.display = "";
     overlay.style.display = "flex";
-    document.body.style.overflow = "hidden";
+    if(kind==="journal"){
+      // 기록장은 화면을 가리지 않도록 하단 절반에만 고정 표시하고,
+      // 본문은 뒤에서 그대로 스크롤해서 볼 수 있게 한다(스크롤 잠금 없음).
+      overlay.classList.add("split-view-d");
+      document.body.style.overflow = "";
+    }else{
+      overlay.classList.remove("split-view-d");
+      document.body.style.overflow = "hidden";
+    }
   }
   function closeTool(){
     if(movedEl && homeParent){
@@ -3214,6 +3224,7 @@ async function tryRenderLiveText(chapterId){
     }
     movedEl = null;
     overlay.style.display = "none";
+    overlay.classList.remove("split-view-d");
     document.body.style.overflow = "";
   }
   fab.addEventListener("click", (e)=>{
