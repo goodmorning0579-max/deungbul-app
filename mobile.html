@@ -188,6 +188,20 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .dict-def{margin:4px 0 8px;}
 .dict-naverlink{display:block;text-align:center;margin-top:8px;padding:9px;background:#03c75a;color:#fff;border-radius:8px;text-decoration:none;font-size:12.5px;font-weight:700;}
 .dict-empty{color:var(--itd);font-size:12px;text-align:center;padding:16px 0;}
+.tools-fab{position:fixed;right:14px;bottom:144px;width:50px;height:58px;border-radius:16px;background:linear-gradient(135deg,#c9972a,#a8791f);border:none;color:#1a1408;font-size:19px;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:998;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.tools-fab .dict-fab-label{color:#1a1408;}
+.tools-fab-menu{position:fixed;right:14px;bottom:206px;z-index:999;display:flex;flex-direction:column;gap:7px;}
+.tools-fab-menu button{background:#1a1f2e;border:1px solid rgba(201,151,42,.4);color:var(--it);padding:11px 14px;border-radius:11px;font-size:12.5px;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,.4);cursor:pointer;white-space:nowrap;}
+.tools-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:flex-end;justify-content:center;}
+.tools-sheet{width:100%;max-height:84vh;background:#161b26;border-radius:16px 16px 0 0;box-shadow:0 -8px 26px rgba(0,0,0,.5);display:flex;flex-direction:column;animation:toolsSheetUp .2s ease-out;}
+@keyframes toolsSheetUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.tools-sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,151,42,.2);font-size:14px;font-weight:700;color:var(--gold-bright,#c9972a);flex-shrink:0;}
+.tools-sheet-close{cursor:pointer;font-size:12.5px;color:var(--itd);padding:5px 9px;border-radius:8px;}
+.tools-sheet-body{overflow-y:auto;padding:14px 16px 26px;}
+.mode-toggle{display:flex;gap:0;width:fit-content;margin:10px auto 4px;background:#1a1f2e;border:1px solid rgba(201,151,42,.3);border-radius:11px;padding:3px;}
+.mode-btn{background:none;border:none;color:var(--itd);font-size:12.5px;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer;}
+.mode-btn.active{background:linear-gradient(135deg,#c9972a,#a8791f);color:#1a1408;}
+.vnote-panel.study-open{display:block !important;}
 .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 3px 8px;border:none;background:none;color:var(--itd);font-size:9.5px;gap:3px;white-space:nowrap;min-width:52px;}
 a.bni{text-decoration:none;}
 .bni .ic{font-size:19px;}
@@ -275,6 +289,13 @@ a.bni{text-decoration:none;}
 .vplay:active{opacity:1;transform:scale(1.15);}
 .vnote-panel{margin:2px 0 10px;}
 .vnote-inner{background:rgba(201,151,42,.14);border-left:3px solid var(--gold);border-radius:6px;padding:12px 14px;}
+.vdict-row{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0;}
+.vdict-chip{display:inline-block;font-size:11px;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(201,151,42,.3);color:var(--it);text-decoration:none;}
+.vstudy-box{margin-top:11px;padding-top:11px;border-top:1px dashed rgba(201,151,42,.25);}
+.vstudy-label{font-size:11.5px;color:var(--itd);margin-bottom:5px;}
+.vstudy-ta{width:100%;min-height:64px;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 10px;color:var(--it);font-size:12.5px;font-family:inherit;resize:vertical;}
+.vstudy-saved{display:block;font-size:10.5px;color:#8fbca8;margin-top:4px;height:13px;opacity:0;transition:opacity .3s;}
+.vstudy-saved.show{opacity:1;}
 .vnote-text{font-size:calc(13px * var(--fs-scale));line-height:1.75;color:var(--pt);margin:0 0 8px;}
 .vnote-lang{font-size:12px;color:var(--ptd);margin-bottom:5px;line-height:1.6;}
 .vnote-xref{font-size:12px;color:var(--ptd);margin-top:5px;line-height:1.6;}
@@ -339,12 +360,17 @@ a.bni{text-decoration:none;}
     </span>
     <select id="ttsVoiceSel" class="ttsvoicesel" style="display:none;"></select>
   </div>
+  <div class="mode-toggle" id="modeToggle">
+    <button class="mode-btn active" data-mode="read">📖 읽기</button>
+    <button class="mode-btn" data-mode="study">✍️ 연구</button>
+  </div>
   <div class="pcard" id="pcard"></div>
   <div class="readmarkbox" id="readmarkbox">
     <span class="widgetlabel">✅ 읽음</span>
     <button class="readmarkbtn" id="rmEn" data-lang="en">🇺🇸 영어</button>
     <button class="readmarkbtn" id="rmKr" data-lang="kr">🇰🇷 한글</button>
   </div>
+  <div id="studyDrawerM">
   <div class="stabs">
     <div class="stab active" data-t="lang">🔤 원어</div>
     <div class="stab" data-t="hist">🏛 역사</div>
@@ -361,8 +387,9 @@ a.bni{text-decoration:none;}
   <div class="spanel" id="p-plce"></div>
   <div class="spanel" id="p-xref"></div>
   <div class="spanel" id="p-serm"></div>
+  </div>
 
-  <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(201,151,42,.12);">
+  <div id="journalM" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(201,151,42,.12);">
     <div style="font-size:16px;font-weight:700;margin-bottom:10px;">📝 묵상 기록장</div>
     <div class="jtabs">
       <div class="jtab active" data-jt="observation">관찰</div>
@@ -696,6 +723,20 @@ a.bni{text-decoration:none;}
 
 <!-- 플로팅 영한사전 위젯 (드래그로 위치 이동 가능) -->
 <button id="dictFab" class="dict-fab" title="영한사전 (누르고 있으면 이동)">📘<span class="dict-fab-label">사전</span></button>
+<button id="toolsFab" class="tools-fab" title="배경연구·기록장을 팝업으로 열기">🧰<span class="dict-fab-label">도구</span></button>
+<div id="toolsFabMenu" class="tools-fab-menu" style="display:none;">
+  <button data-tool="study">📚 배경연구</button>
+  <button data-tool="journal">📝 기록장</button>
+</div>
+<div id="toolsSheetOverlay" class="tools-sheet-overlay" style="display:none;">
+  <div class="tools-sheet">
+    <div class="tools-sheet-head">
+      <span id="toolsSheetTitle">도구</span>
+      <span class="tools-sheet-close" id="toolsSheetClose">✕ 닫기</span>
+    </div>
+    <div class="tools-sheet-body" id="toolsSheetBody"></div>
+  </div>
+</div>
 <div id="dictPopup" class="dict-popup" style="display:none;">
   <div class="dict-popup-head">
     <span>📘 영한사전 (네이버)</span>
@@ -1211,6 +1252,96 @@ function parseHtml(html){
   };
 })();
 
+/* 읽기 모드 / 연구 모드 전환 */
+(function(){
+  window._passageMode = "read";
+  stor.get("passageMode").then(r=>{
+    if(r && r.value==="study"){
+      window._passageMode = "study";
+      document.querySelectorAll("#modeToggle .mode-btn").forEach(b=>b.classList.toggle("active", b.dataset.mode==="study"));
+    }
+  }).catch(()=>{});
+  document.addEventListener("click", (e)=>{
+    const btn = e.target.closest("#modeToggle .mode-btn");
+    if(!btn) return;
+    const mode = btn.dataset.mode;
+    window._passageMode = mode;
+    document.querySelectorAll("#modeToggle .mode-btn").forEach(b=>b.classList.toggle("active", b===btn));
+    try{ stor.set("passageMode", mode); }catch(err){}
+    if(typeof renderPassage === "function") renderPassage(curBook||"GEN", curCh||1);
+  });
+})();
+
+/* 절 단위 개인 연구 노트: 입력 후 800ms 동안 멈추면 자동 저장 */
+(function(){
+  const timers = {};
+  document.addEventListener("input", function(e){
+    const ta = e.target.closest(".vstudy-ta");
+    if(!ta) return;
+    const key = ta.dataset.studykey;
+    const flashEl = ta.parentElement.querySelector(`.vstudy-saved[data-savedfor="${key}"]`);
+    if(flashEl) flashEl.classList.remove("show");
+    clearTimeout(timers[key]);
+    timers[key] = setTimeout(async ()=>{
+      try{
+        await stor.set(key, ta.value);
+        if(flashEl){ flashEl.textContent = "저장됨 ✓"; flashEl.classList.add("show"); setTimeout(()=>flashEl.classList.remove("show"), 1500); }
+      }catch(err){}
+    }, 800);
+  });
+})();
+
+/* 도구 FAB: 배경연구(study-drawer)와 기록장(journal)을 팝업 바텀시트로 열고 닫는다.
+   실제 DOM 노드를 이동시키므로(복제 아님) 기존에 연결된 이벤트 리스너들이 그대로 유지된다. */
+(function(){
+  const fab = document.getElementById("toolsFab");
+  const menu = document.getElementById("toolsFabMenu");
+  const overlay = document.getElementById("toolsSheetOverlay");
+  const sheetBody = document.getElementById("toolsSheetBody");
+  const sheetTitle = document.getElementById("toolsSheetTitle");
+  const closeBtn = document.getElementById("toolsSheetClose");
+  if(!fab) return;
+  let movedEl = null, homeParent = null, homeNext = null;
+
+  function openTool(kind){
+    menu.style.display = "none";
+    const targetId = kind==="study" ? "studyDrawerM" : "journalM";
+    const title = kind==="study" ? "📚 배경연구 (원어·역사·문화·인물·지리)" : "📝 기록장 (묵상·음성·설교)";
+    const el = document.getElementById(targetId);
+    if(!el) return;
+    homeParent = el.parentNode;
+    homeNext = el.nextSibling;
+    movedEl = el;
+    sheetTitle.textContent = title;
+    sheetBody.appendChild(el);
+    el.style.display = "";
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+  function closeTool(){
+    if(movedEl && homeParent){
+      homeParent.insertBefore(movedEl, homeNext);
+    }
+    movedEl = null;
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+  }
+  fab.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    menu.style.display = menu.style.display==="none" ? "flex" : "none";
+  });
+  document.addEventListener("click", (e)=>{
+    if(menu.style.display!=="none" && !menu.contains(e.target) && e.target!==fab){
+      menu.style.display = "none";
+    }
+  });
+  menu.querySelectorAll("button[data-tool]").forEach(btn=>{
+    btn.addEventListener("click", ()=>openTool(btn.dataset.tool));
+  });
+  if(closeBtn) closeBtn.addEventListener("click", closeTool);
+  if(overlay) overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeTool(); });
+})();
+
 /* 성경 본문 캐시: 한 번 불러온 장은 로컬에 저장해서, 이후 성경 본문 전체 검색에 활용한다.
    (앱이 매 장을 실시간 API로 가져오는 구조라, 캐시가 쌓일수록 검색 가능 범위가 자연스럽게 넓어짐)
    단, 캐시된 결과에 영어 본문이 비어 있는데 지금은 API 키/영어 역본이 설정되어 있다면
@@ -1360,18 +1491,32 @@ async function renderPassage(book, ch){
       <div class="cohead cohead-en" onclick="togglePassageCol('en')">영어 (${window._enBibleName||"English"}) <span class="coexpand">⤢</span></div><div class="cohead cohead-kr" onclick="togglePassageCol('kr')">한글 (개역한글) <span class="coexpand">⤢</span></div>
       ${verses.map(v=>{
         const vn=noteByVerse[v.n];
-        const toggleHtml=vn?`<span class="vnote-toggle" data-vnt="${v.n}" title="절 단위 주석 보기">📖</span>`:"";
-        const panelHtml=vn?`<div class="vnote-panel" id="vnote-${v.n}" style="display:none;grid-column:1/-1;">
+        const toggleHtml=`<span class="vnote-toggle" data-vnt="${v.n}" title="절 단위 주석·연구 보기">📖</span>`;
+        const dictNames = [].concat((notes&&notes.people)||[], (notes&&notes.places)||[]);
+        const dictChipsHtml = dictNames.length ? `<div class="vdict-row">${dictNames.map(nm=>{
+          const kind = ((notes.places)||[]).includes(nm) ? 'place' : 'person';
+          const label = kind==='place' ? '🗺️' : '👤';
+          return `<a class="vdict-chip" href="${dictSearchLink(nm, kind)}" target="_blank" rel="noopener">${label} ${esc(nm)}</a>`;
+        }).join("")}</div>` : "";
+        const studyKey = `vstudy:${book}.${ch}.${v.n}`;
+        const isStudyMode = window._passageMode === "study";
+        const panelHtml=`<div class="vnote-panel${isStudyMode?" study-open":""}" id="vnote-${v.n}" style="display:${isStudyMode?"block":"none"};grid-column:1/-1;">
           <div class="vnote-inner">
-            <p class="vnote-text">${esc(vn.note)}</p>
-            ${(vn.lang&&vn.lang.length)?vn.lang.map(l=>{
+            ${vn?`<p class="vnote-text">${esc(vn.note)}</p>`:""}
+            ${(vn&&vn.lang&&vn.lang.length)?vn.lang.map(l=>{
               const link=strongLink(l.code);
               const codeHtml=link?`<a href="${link}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-weight:600;">${esc(l.code)} 🔗</a>`:esc(l.code);
               return `<div class="vnote-lang"><b style="color:var(--pt);">${esc(l.word)}</b> <span style="opacity:.75;">(${codeHtml})</span> — ${esc(l.desc)}</div>`;
             }).join(""):""}
-            ${(vn.xref&&vn.xref.length)?vn.xref.map(x=>`<div class="vnote-xref">🔗 <b style="color:var(--pt);">${esc(x.ref)}</b> — ${esc(x.note)}</div>`).join(""):""}
+            ${(vn&&vn.xref&&vn.xref.length)?vn.xref.map(x=>`<div class="vnote-xref">🔗 <b style="color:var(--pt);">${esc(x.ref)}</b> — ${esc(x.note)}</div>`).join(""):""}
+            ${dictChipsHtml}
+            <div class="vstudy-box">
+              <div class="vstudy-label">✍️ 나의 구절 연구 노트</div>
+              <textarea class="vstudy-ta" data-studykey="${studyKey}" placeholder="이 구절에 대한 나의 묵상·연구·질문을 자유롭게 적어보세요 (자동 저장됩니다)"></textarea>
+              <span class="vstudy-saved" data-savedfor="${studyKey}"></span>
+            </div>
           </div>
-        </div>`:"";
+        </div>`;
         return `
         <div class="verse ven-row" data-vn="${v.n}"><span class="vn">${v.n}</span><span class="ven" data-sentence="${(v.en||"").replace(/"/g,"&quot;")}" title="🔍 Sentence X-ray로 분석">${v.en||""}</span><span class="vplay" data-vn="${v.n}" data-lang="en" title="여기서부터 영어로 듣기">🔊</span></div>
         <div class="verse vkr-row" data-vn="${v.n}"><span class="vn favstar" data-fav="${book}.${ch}.${v.n}" data-vtext="${(v.kr||"").replace(/"/g,"&quot;")}" title="탭하여 형광펜 (다시 탭하면 색 변경)">${v.n}</span><span class="vkr">${v.kr||""}</span><span class="vplay" data-vn="${v.n}" data-lang="kr" title="여기서부터 한글로 듣기">🔊</span>${toggleHtml}</div>
@@ -1380,6 +1525,15 @@ async function renderPassage(book, ch){
     </div>
     <div class="snote">${(live&&live.length>0)?(window._apiBibleKey?"※ NIV(api.bible) + 개역한글(getbible.net) 실시간 본문":"※ 개역한글(getbible.net) — NIV 키를 설정하면 영어 본문도 표시됩니다"):`※ 이 장의 대표 구절만 표시됩니다. 파일을 다운받아 브라우저에서 직접 열면 전체 절이 모두 표시됩니다.`}</div>`;
     curPassageVerses = verses;
+    if(window._passageMode === "study"){
+      document.querySelectorAll(".vnote-toggle").forEach(el=>el.classList.add("open"));
+      document.querySelectorAll(".vstudy-ta").forEach(ta=>{
+        if(!ta.dataset.loaded){
+          ta.dataset.loaded = "1";
+          stor.get(ta.dataset.studykey).then(r=>{ if(r && r.value) ta.value = r.value; }).catch(()=>{});
+        }
+      });
+    }
     applyPassageColMode();
   } else {
     card.innerHTML=`<div class="empty"><div class="big">📖</div>본문을 불러올 수 없습니다.<br><span style="font-size:11px;">네트워크를 확인하거나 파일을 브라우저에서 직접 열어주세요.</span></div>`;
@@ -2688,6 +2842,13 @@ document.addEventListener("click", function(e){
       const willShow = panel.style.display==="none";
       panel.style.display = willShow ? "block" : "none";
       vnt.classList.toggle("open", willShow);
+      if(willShow){
+        const ta = panel.querySelector(".vstudy-ta");
+        if(ta && !ta.dataset.loaded){
+          ta.dataset.loaded = "1";
+          stor.get(ta.dataset.studykey).then(r=>{ if(r && r.value) ta.value = r.value; }).catch(()=>{});
+        }
+      }
     }
     return;
   }
