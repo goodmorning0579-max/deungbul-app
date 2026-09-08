@@ -391,8 +391,9 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .vnote-panel-d{margin:2px 0 12px;}
 .vnote-inner-d{background:rgba(201,151,42,.14);border-left:3px solid #c9972a;border-radius:8px;padding:14px 16px;}
 .vdict-row-d{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
-.vdict-chip-d{display:inline-block;font-size:11.5px;padding:4px 10px;border-radius:999px;background:rgba(201,151,42,.16);border:1px solid rgba(201,151,42,.45);color:var(--paper-text);font-weight:600;text-decoration:none;}
-.vdict-chip-d:hover{background:rgba(201,151,42,.32);border-color:#c9972a;}
+.vdict-chip-d{display:inline-block;font-size:12px;padding:5px 12px;border-radius:999px;background:#e8c877;border:1px solid #a8791f;color:#2a1a08 !important;font-weight:700;text-decoration:none;}
+.vdict-chip-d:visited{color:#2a1a08 !important;}
+.vdict-chip-d:hover{background:#f2d68e;border-color:#c9972a;}
 .vstudy-box-d{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(201,151,42,.25);}
 .vstudy-label-d{font-size:12px;color:var(--paper-text-dim);margin-bottom:6px;font-weight:600;}
 .vstudy-ta-d{width:100%;min-height:70px;background:#1f2635;border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:#e9e4d6;font-size:13px;font-family:inherit;resize:vertical;}
@@ -425,6 +426,9 @@ textarea:focus{outline:none; border-color:var(--gold);}
 .tools-sheet-overlay-d.split-view-d{background:transparent;pointer-events:none;}
 .tools-sheet-d{width:100%;max-width:760px;max-height:82vh;background:#161b26;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);display:flex;flex-direction:column;animation:toolsSheetUpD .22s ease-out;}
 .split-view-d .tools-sheet-d{max-height:50vh;height:50vh;max-width:100%;pointer-events:auto;border-top:2px solid var(--gold-bright);box-shadow:0 -10px 34px rgba(0,0,0,.6);}
+.tools-sheet-drag-d{display:flex;justify-content:center;padding:8px 0 4px;cursor:ns-resize;touch-action:none;}
+.tools-sheet-drag-bar-d{width:50px;height:5px;border-radius:3px;background:rgba(201,151,42,.5);}
+.tools-sheet-drag-d:active .tools-sheet-drag-bar-d,.tools-sheet-drag-d.dragging .tools-sheet-drag-bar-d{background:var(--gold-bright);}
 @keyframes toolsSheetUpD{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .tools-sheet-head-d{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(201,151,42,.2);font-size:15px;font-weight:700;color:var(--gold-bright);flex-shrink:0;}
 .tools-sheet-close-d{cursor:pointer;font-size:13px;color:var(--ink-text-dim);padding:6px 10px;border-radius:8px;}
@@ -463,7 +467,8 @@ textarea:focus{outline:none; border-color:var(--gold);}
   <button data-tool="journal">📝 기록장 (묵상·음성·설교)</button>
 </div>
 <div id="toolsSheetOverlayD" class="tools-sheet-overlay-d" style="display:none;">
-  <div class="tools-sheet-d">
+  <div class="tools-sheet-d" id="toolsSheetD">
+    <div class="tools-sheet-drag-d" id="toolsSheetDragD"><span class="tools-sheet-drag-bar-d"></span></div>
     <div class="tools-sheet-head-d">
       <span id="toolsSheetTitleD">도구</span>
       <span class="tools-sheet-close-d" id="toolsSheetCloseD">✕ 닫기</span>
@@ -3203,6 +3208,31 @@ async function tryRenderLiveText(chapterId){
   if(!fab) return;
   let movedEl = null, homeParent = null, homeNext = null;
 
+  const sheetEl = document.getElementById("toolsSheetD");
+  const dragHandle = document.getElementById("toolsSheetDragD");
+  let lastSheetHeightVh = 50;
+  function setSheetHeight(vh){
+    vh = Math.max(20, Math.min(85, vh));
+    lastSheetHeightVh = vh;
+    if(sheetEl){ sheetEl.style.height = vh+"vh"; sheetEl.style.maxHeight = vh+"vh"; }
+  }
+  if(dragHandle){
+    let dragging = false;
+    dragHandle.addEventListener("pointerdown", (e)=>{
+      dragging = true;
+      dragHandle.classList.add("dragging");
+      dragHandle.setPointerCapture(e.pointerId);
+    });
+    dragHandle.addEventListener("pointermove", (e)=>{
+      if(!dragging) return;
+      const vh = ((window.innerHeight - e.clientY) / window.innerHeight) * 100;
+      setSheetHeight(vh);
+    });
+    const endDrag = ()=>{ dragging = false; dragHandle.classList.remove("dragging"); };
+    dragHandle.addEventListener("pointerup", endDrag);
+    dragHandle.addEventListener("pointercancel", endDrag);
+  }
+
   function openTool(kind){
     menu.style.display = "none";
     const targetId = kind==="study" ? "studyDrawerD" : "journalD";
@@ -3216,15 +3246,11 @@ async function tryRenderLiveText(chapterId){
     sheetBody.appendChild(el);
     el.style.display = "";
     overlay.style.display = "flex";
-    if(kind==="journal"){
-      // 기록장은 화면을 가리지 않도록 하단 절반에만 고정 표시하고,
-      // 본문은 뒤에서 그대로 스크롤해서 볼 수 있게 한다(스크롤 잠금 없음).
-      overlay.classList.add("split-view-d");
-      document.body.style.overflow = "";
-    }else{
-      overlay.classList.remove("split-view-d");
-      document.body.style.overflow = "hidden";
-    }
+    // 배경연구·기록장 모두 본문을 가리지 않도록 화면을 나누어 하단에 고정 표시하고,
+    // 본문은 뒤에서 그대로 스크롤해서 볼 수 있게 한다(스크롤 잠금 없음).
+    overlay.classList.add("split-view-d");
+    document.body.style.overflow = "";
+    setSheetHeight(lastSheetHeightVh);
   }
   function closeTool(){
     if(movedEl && homeParent){

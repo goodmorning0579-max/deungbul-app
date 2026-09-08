@@ -196,6 +196,9 @@ textarea{width:100%;min-height:90px;resize:vertical;background:var(--ink3);borde
 .tools-sheet-overlay.split-view{background:transparent;pointer-events:none;}
 .tools-sheet{width:100%;max-height:84vh;background:#161b26;border-radius:16px 16px 0 0;box-shadow:0 -8px 26px rgba(0,0,0,.5);display:flex;flex-direction:column;animation:toolsSheetUp .2s ease-out;}
 .split-view .tools-sheet{max-height:50vh;height:50vh;pointer-events:auto;border-top:2px solid var(--gold-b);box-shadow:0 -10px 30px rgba(0,0,0,.6);}
+.tools-sheet-drag{display:flex;justify-content:center;padding:7px 0 3px;cursor:ns-resize;touch-action:none;}
+.tools-sheet-drag-bar{width:44px;height:5px;border-radius:3px;background:rgba(201,151,42,.5);}
+.tools-sheet-drag:active .tools-sheet-drag-bar,.tools-sheet-drag.dragging .tools-sheet-drag-bar{background:var(--gold-b);}
 @keyframes toolsSheetUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .tools-sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(201,151,42,.2);font-size:14px;font-weight:700;color:var(--gold-bright,#c9972a);flex-shrink:0;}
 .tools-sheet-close{cursor:pointer;font-size:12.5px;color:var(--itd);padding:5px 9px;border-radius:8px;}
@@ -293,7 +296,8 @@ a.bni{text-decoration:none;}
 .vnote-panel{margin:2px 0 10px;}
 .vnote-inner{background:rgba(201,151,42,.14);border-left:3px solid var(--gold);border-radius:6px;padding:12px 14px;}
 .vdict-row{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0;}
-.vdict-chip{display:inline-block;font-size:11px;padding:4px 9px;border-radius:999px;background:rgba(201,151,42,.16);border:1px solid rgba(201,151,42,.45);color:var(--pt);font-weight:600;text-decoration:none;}
+.vdict-chip{display:inline-block;font-size:11.5px;padding:5px 10px;border-radius:999px;background:#e8c877;border:1px solid #a8791f;color:#2a1a08 !important;font-weight:700;text-decoration:none;}
+.vdict-chip:visited{color:#2a1a08 !important;}
 .vstudy-box{margin-top:11px;padding-top:11px;border-top:1px dashed rgba(201,151,42,.25);}
 .vstudy-label{font-size:11.5px;color:var(--ptd);margin-bottom:5px;font-weight:600;}
 .vstudy-ta{width:100%;min-height:64px;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:8px 10px;color:var(--it);font-size:12.5px;font-family:inherit;resize:vertical;}
@@ -732,7 +736,8 @@ a.bni{text-decoration:none;}
   <button data-tool="journal">📝 기록장</button>
 </div>
 <div id="toolsSheetOverlay" class="tools-sheet-overlay" style="display:none;">
-  <div class="tools-sheet">
+  <div class="tools-sheet" id="toolsSheet">
+    <div class="tools-sheet-drag" id="toolsSheetDrag"><span class="tools-sheet-drag-bar"></span></div>
     <div class="tools-sheet-head">
       <span id="toolsSheetTitle">도구</span>
       <span class="tools-sheet-close" id="toolsSheetClose">✕ 닫기</span>
@@ -1323,6 +1328,30 @@ function parseHtml(html){
   if(!fab) return;
   let movedEl = null, homeParent = null, homeNext = null;
 
+  const sheetEl = document.getElementById("toolsSheet");
+  const dragHandle = document.getElementById("toolsSheetDrag");
+  let lastSheetHeightVh = 50;
+  function setSheetHeight(vh){
+    vh = Math.max(20, Math.min(85, vh));
+    lastSheetHeightVh = vh;
+    if(sheetEl){ sheetEl.style.height = vh+"vh"; sheetEl.style.maxHeight = vh+"vh"; }
+  }
+  if(dragHandle){
+    let dragging = false;
+    dragHandle.addEventListener("pointerdown", (e)=>{
+      dragging = true;
+      dragHandle.classList.add("dragging");
+      dragHandle.setPointerCapture(e.pointerId);
+    });
+    dragHandle.addEventListener("pointermove", (e)=>{
+      if(!dragging) return;
+      const vh = ((window.innerHeight - e.clientY) / window.innerHeight) * 100;
+      setSheetHeight(vh);
+    });
+    const endDrag = ()=>{ dragging = false; dragHandle.classList.remove("dragging"); };
+    dragHandle.addEventListener("pointerup", endDrag);
+    dragHandle.addEventListener("pointercancel", endDrag);
+  }
   function openTool(kind){
     menu.style.display = "none";
     const targetId = kind==="study" ? "studyDrawerM" : "journalM";
@@ -1336,15 +1365,11 @@ function parseHtml(html){
     sheetBody.appendChild(el);
     el.style.display = "";
     overlay.style.display = "flex";
-    if(kind==="journal"){
-      // 기록장은 화면을 가리지 않도록 하단 절반에만 고정 표시하고,
-      // 본문은 뒤에서 그대로 스크롤해서 볼 수 있게 한다(스크롤 잠금 없음).
-      overlay.classList.add("split-view");
-      document.body.style.overflow = "";
-    }else{
-      overlay.classList.remove("split-view");
-      document.body.style.overflow = "hidden";
-    }
+    // 본문을 가리지 않도록 화면을 나누어 하단에 도구를 고정 표시하고,
+    // 본문은 뒤에서 그대로 스크롤해서 볼 수 있게 한다(스크롤 잠금 없음).
+    overlay.classList.add("split-view");
+    document.body.style.overflow = "";
+    setSheetHeight(lastSheetHeightVh);
   }
   function closeTool(){
     if(movedEl && homeParent){
