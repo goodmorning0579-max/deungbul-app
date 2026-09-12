@@ -2006,10 +2006,21 @@ function highlightVerseD(vn){
   });
   const first = document.querySelector('.verse[data-v="'+vn+'"]');
   if(first){
+    // 데스크탑 레이아웃은 window가 아니라 .main 요소가 overflow-y:auto인
+    // 별도의 스크롤 컨테이너다. window.scrollTo()는 이 컨테이너에 영향을 주지 못한다.
     try{
-      const rect = first.getBoundingClientRect();
-      const targetY = window.pageYOffset + rect.top - (window.innerHeight/2) + (rect.height/2);
-      window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+      const scroller = first.closest(".main") || document.querySelector(".main");
+      if(scroller){
+        const scRect = scroller.getBoundingClientRect();
+        const elRect = first.getBoundingClientRect();
+        const delta = (elRect.top - scRect.top) - (scRect.height/2) + (elRect.height/2);
+        const targetTop = scroller.scrollTop + delta;
+        scroller.scrollTo({top: Math.max(0, targetTop), behavior: "smooth"});
+      }else{
+        const rect = first.getBoundingClientRect();
+        const targetY = window.pageYOffset + rect.top - (window.innerHeight/2) + (rect.height/2);
+        window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+      }
     }catch(err){
       try{ first.scrollIntoView({behavior:"smooth", block:"center"}); }catch(err2){}
     }

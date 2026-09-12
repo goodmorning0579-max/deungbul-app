@@ -2469,12 +2469,24 @@ function highlightVerse(vn){
   });
   const first = document.querySelector('.verse[data-vn="'+vn+'"]');
   if(first){
-    // iOS Safari에서 scrollIntoView({block:"center"})가 씹히는 경우가 있어
-    // 대상 요소가 뷰포트 중앙에 오도록 직접 위치를 계산해서 스크롤한다.
+    // 이 앱은 body/window가 스크롤되는 구조가 아니라, .app 요소 자체가
+    // overflow-y:auto인 별도의 스크롤 컨테이너다. window.scrollTo()는 이 컨테이너에
+    // 아무 영향을 주지 못하므로, 실제 스크롤 컨테이너를 찾아 그 안에서 스크롤해야 한다.
     try{
-      const rect = first.getBoundingClientRect();
-      const targetY = window.pageYOffset + rect.top - (window.innerHeight/2) + (rect.height/2);
-      window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+      const scroller = first.closest(".app") || document.querySelector(".app");
+      if(scroller){
+        const scRect = scroller.getBoundingClientRect();
+        const elRect = first.getBoundingClientRect();
+        // elRect.top은 뷰포트 기준이므로, scroller 기준 상대 위치로 변환한 뒤
+        // 현재 scrollTop에 더해서 목표 스크롤 위치를 구한다.
+        const delta = (elRect.top - scRect.top) - (scRect.height/2) + (elRect.height/2);
+        const targetTop = scroller.scrollTop + delta;
+        scroller.scrollTo({top: Math.max(0, targetTop), behavior: "smooth"});
+      }else{
+        const rect = first.getBoundingClientRect();
+        const targetY = window.pageYOffset + rect.top - (window.innerHeight/2) + (rect.height/2);
+        window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+      }
     }catch(err){
       try{ first.scrollIntoView({behavior:"smooth", block:"center"}); }catch(err2){}
     }
