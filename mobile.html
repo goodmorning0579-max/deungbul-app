@@ -2467,7 +2467,16 @@ function highlightVerse(vn){
   document.querySelectorAll('.verse[data-vn="'+vn+'"]').forEach(el=>{
     el.classList.add("tts-active");
   });
-  const first = document.querySelector('.verse[data-vn="'+vn+'"]');
+  // 화면 표시 모드(영어만/한글만/둘 다)에 따라 .ven-row 또는 .vkr-row가
+  // display:none으로 숨겨져 있을 수 있다. querySelector가 숨겨진 요소를 먼저 찾으면
+  // getBoundingClientRect()가 크기 0을 반환해 스크롤 위치 계산이 완전히 틀어지므로,
+  // 반드시 실제로 화면에 보이는(offsetParent가 null이 아닌) 요소를 골라야 한다.
+  const candidates = document.querySelectorAll('.verse[data-vn="'+vn+'"]');
+  let first = null;
+  for(const el of candidates){
+    if(el.offsetParent !== null){ first = el; break; }
+  }
+  if(!first && candidates.length) first = candidates[0];
   if(first){
     // 이 앱은 body/window가 스크롤되는 구조가 아니라, .app 요소 자체가
     // overflow-y:auto인 별도의 스크롤 컨테이너다. window.scrollTo()는 이 컨테이너에

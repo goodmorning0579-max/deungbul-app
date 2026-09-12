@@ -2004,7 +2004,15 @@ function highlightVerseD(vn){
   document.querySelectorAll('.verse[data-v="'+vn+'"]').forEach(el=>{
     el.classList.add("tts-active-d");
   });
-  const first = document.querySelector('.verse[data-v="'+vn+'"]');
+  // 영어만/한글만 보기 모드에서는 .v-en-row 또는 .v-kr-row가 display:none으로
+  // 숨겨져 있을 수 있다. querySelector가 숨겨진 요소를 먼저 찾으면 getBoundingClientRect()가
+  // 크기 0을 반환해 스크롤 계산이 틀어지므로, 실제로 화면에 보이는 요소를 골라야 한다.
+  const candidatesD = document.querySelectorAll('.verse[data-v="'+vn+'"]');
+  let first = null;
+  for(const el of candidatesD){
+    if(el.offsetParent !== null){ first = el; break; }
+  }
+  if(!first && candidatesD.length) first = candidatesD[0];
   if(first){
     // 데스크탑 레이아웃은 window가 아니라 .main 요소가 overflow-y:auto인
     // 별도의 스크롤 컨테이너다. window.scrollTo()는 이 컨테이너에 영향을 주지 못한다.
