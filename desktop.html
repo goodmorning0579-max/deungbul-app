@@ -2172,78 +2172,44 @@ function hideTTSFloatControlD(){
    재생 = 기억해 둔 절 번호부터 speakVerseQueueD를 다시 호출해 그 절의 처음부터 재생.
    (절 단위로만 되감기는 되지만, 절 중간 위치까지 정확히 이어 읽는 것보다
     모든 기기에서 100% 확실하게 동작하는 쪽이 훨씬 중요하다.) */
-let ttsPauseUsedNativeD = false; // 이번 일시정지에서 네이티브 pause()를 사용했는지 기록
+// iOS Safari의 speechSynthesis.pause()/resume()은 멈춘 뒤 다시 깨어나지 않는 경우가 매우 흔해
+// 이 두 API는 아예 사용하지 않는다. "일시정지"는 완전히 cancel()하고 현재 절 번호만 기억해 두며,
+// "재생"은 그 절부터 speak()를 새로 호출한다. iOS에서는 cancel() 직후 곧바로 speak()를 호출하면
+// 음성 엔진이 무시하는 경우가 있어 반드시 setTimeout으로 최소 250ms 이상의 지연을 두어야 한다.
+let ttsResumeTimerD = null;
 function toggleTTSPauseD(){
   if(!("speechSynthesis" in window)) return;
-  if(!ttsUserPausedD && !window.speechSynthesis.speaking) return;
+  const floatElD = document.getElementById("ttsFloatControlD");
+  const floatVisibleD = floatElD && floatElD.style.display !== "none";
+  if(!ttsUserPausedD && !window.speechSynthesis.speaking && !floatVisibleD) return;
   const pauseBtn = document.getElementById("ttsFloatPauseBtnD");
   const label = document.getElementById("ttsFloatLabelD");
+  if(ttsResumeTimerD){ clearTimeout(ttsResumeTimerD); ttsResumeTimerD = null; }
   if(ttsUserPausedD){
-    if(ttsPauseUsedNativeD){
-      // 네이티브 pause()로 멈췄던 경우, resume()으로 그 자리에서 이어 재생.
-      // iOS Safari는 cancel() 직후 speak()를 호출하면 음성 엔진이 응답하지 않는 경우가 있어
-      // 같은 발화를 이어가는 resume()이 더 안정적으로 동작한다.
-      try{ window.speechSynthesis.resume(); }catch(err){}
-      ttsUserPausedD = false;
-      if(pauseBtn) pauseBtn.textContent = "⏸";
-      if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
-      const myId = ttsPlaybackIdD;
-      setTimeout(()=>{
-        if(myId !== ttsPlaybackIdD) return;
-        if(ttsUserPausedD) return;
-        if(!window.speechSynthesis.speaking){
-          ttsPlaybackIdD++;
-          if(ttsCurrentLangD) speakVerseQueueD(ttsCurrentLangD, ttsCurrentIdxD, ttsPlaybackIdD);
-        }
-      }, 400);
-    }else{
-      // 재생 버튼: 일시정지했던 절부터 다시 시작.
-      ttsPlaybackIdD++;
-      const myId = ttsPlaybackIdD;
-      ttsUserPausedD = false;
-      if(pauseBtn) pauseBtn.textContent = "⏸";
-      if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
-      try{ window.speechSynthesis.cancel(); }catch(e){}
-      try{ window.speechSynthesis.resume(); }catch(e){}
-      setTimeout(()=>{
-        if(myId !== ttsPlaybackIdD) return;
-        if(ttsCurrentLangD){ speakVerseQueueD(ttsCurrentLangD, ttsCurrentIdxD, myId); }
-      }, 300);
-    }
+    // 재생: 일시정지했던 절부터 새로 speak() 시작
+    ttsPlaybackIdD++;
+    const myId = ttsPlaybackIdD;
+    ttsUserPausedD = false;
+    if(pauseBtn) pauseBtn.textContent = "⏸";
+    if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    ttsResumeTimerD = setTimeout(()=>{
+      ttsResumeTimerD = null;
+      if(myId !== ttsPlaybackIdD) return;
+      if(ttsCurrentLangD){ speakVerseQueueD(ttsCurrentLangD, ttsCurrentIdxD, myId); }
+    }, 300);
   }else{
-    // 일시정지 버튼: 먼저 네이티브 pause()를 시도한다. iOS Safari 등에서는
-    // 이 방식이 즉시 멈추고 resume()으로 정확히 이어지는 반면, cancel()은
-    // 현재 발화가 끝날 때까지 지연되거나 뒤이은 speak()가 무시되는 문제가 있다.
-    let usedNative = false;
-    try{
-      if(typeof window.speechSynthesis.pause === "function"){
-        window.speechSynthesis.pause();
-        usedNative = true;
-      }
-    }catch(err){ usedNative = false; }
-    ttsPauseUsedNativeD = usedNative;
-    if(!usedNative){
-      window.speechSynthesis.cancel();
-    }
+    // 일시정지: 현재 발화를 완전히 취소하고 위치만 기억해둔다
+    ttsPlaybackIdD++;
+    try{ window.speechSynthesis.cancel(); }catch(e){}
     ttsUserPausedD = true;
     if(pauseBtn) pauseBtn.textContent = "▶";
     if(label) label.textContent = label.textContent.replace("읽는 중", "일시정지됨");
-    if(usedNative){
-      const myId = ttsPlaybackIdD;
-      setTimeout(()=>{
-        if(myId !== ttsPlaybackIdD) return;
-        if(!ttsUserPausedD) return;
-        if(window.speechSynthesis.speaking && !window.speechSynthesis.paused){
-          window.speechSynthesis.cancel();
-          ttsPauseUsedNativeD = false;
-        }
-      }, 500);
-    }
   }
 }
 document.addEventListener("click",(e)=>{
-  if(e.target.id==="ttsFloatPauseBtnD"){ toggleTTSPauseD(); return; }
-  if(e.target.id==="ttsFloatStopBtnD"){ stopTTSD(); return; }
+  if(e.target.closest && e.target.closest("#ttsFloatPauseBtnD")){ toggleTTSPauseD(); return; }
+  if(e.target.closest && e.target.closest("#ttsFloatStopBtnD")){ stopTTSD(); return; }
 });
 function setTTSButtonStateD(lang){
   const krBtn=document.getElementById("ttsKrD"), enBtn=document.getElementById("ttsEnD"), stopBtn=document.getElementById("ttsStopD");

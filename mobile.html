@@ -2521,10 +2521,18 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   }
   let started = false;
   utter.onstart = ()=>{ started = true; };
-  utter.onend = ()=>{ speakVerseQueue(lang, idx+1, myPlaybackId, 0); };
+  utter.onend = ()=>{
+    // iOS Safari는 cancel()을 호출해도 onerror가 아니라 그냥 onend를 그대로 호출해버리는
+    // 경우가 있다. 그러면 일시정지를 눌렀는데도 다음 절로 곧장 넘어가 버리므로,
+    // playbackId 비교만으로는 부족하고 "사용자가 방금 일시정지를 눌렀는지" 자체를 직접 확인해야 한다.
+    if(ttsUserPaused) return;
+    speakVerseQueue(lang, idx+1, myPlaybackId, 0);
+  };
   utter.onerror = (ev)=>{
-    // "interrupted"는 정지 버튼을 눌렀을 때 정상적으로 발생하므로 재시도하지 않음
-    if(ev && ev.error === "interrupted") return;
+    // "interrupted"/"canceled"는 정지·일시정지 버튼을 눌러 cancel()을 호출했을 때
+    // 정상적으로 발생하는 에러이므로(브라우저마다 다른 문자열을 씀) 재시도하지 않는다.
+    if(ttsUserPaused) return;
+    if(ev && (ev.error === "interrupted" || ev.error === "canceled" || ev.error === "cancelled")) return;
     speakVerseQueue(lang, idx+1, myPlaybackId, 0);
   };
   ttsUtterance = utter;
@@ -2622,79 +2630,50 @@ function hideTTSFloatControl(){
   const el = document.getElementById("ttsFloatControl");
   if(el) el.style.display = "none";
 }
-let ttsPauseUsedNative = false; // 이번 일시정지에서 네이티브 pause()를 사용했는지 (재개 방식을 맞추기 위해 기록)
+// iOS Safari의 speechSynthesis.pause()/resume()은 멈춘 뒤 다시 깨어나지 않는 경우가 매우 흔해
+// (한 번 pause 상태로 들어가면 영구히 소리가 안 나옴) 이 두 API는 아예 사용하지 않는다.
+// 대신 "일시정지"는 완전히 cancel()하고 현재 절 번호만 기억해 두는 방식으로,
+// "재생"은 그 절부터 speak()를 새로 호출하는 방식으로 구현한다.
+// iOS에서는 cancel() 직후 곧바로 speak()를 호출하면 음성 엔진이 무시하는 경우가 있어,
+// 반드시 setTimeout으로 최소 250ms 이상의 지연을 둔 뒤에 speak()를 호출해야 한다.
+let ttsResumeTimer = null;
 function toggleTTSPause(){
   if(!("speechSynthesis" in window)) return;
-  if(!ttsUserPaused && !window.speechSynthesis.speaking) return;
+  // speechSynthesis.speaking은 기기에 따라 타이밍이 어긋나 실제로 재생 중인데도
+  // false를 반환하는 경우가 있어, 이 값 하나만으로 "재생 세션이 있는지"를 판단하지 않는다.
+  // 플로팅 컨트롤이 화면에 떠 있다는 것 자체가 재생 세션이 살아있다는 뜻이므로 이를 함께 확인한다.
+  const floatEl = document.getElementById("ttsFloatControl");
+  const floatVisible = floatEl && floatEl.style.display !== "none";
+  if(!ttsUserPaused && !window.speechSynthesis.speaking && !floatVisible) return;
   const pauseBtn = document.getElementById("ttsFloatPauseBtn");
   const label = document.getElementById("ttsFloatLabel");
+  if(ttsResumeTimer){ clearTimeout(ttsResumeTimer); ttsResumeTimer = null; }
   if(ttsUserPaused){
-    if(ttsPauseUsedNative){
-      // 네이티브 pause()로 멈췄던 경우, resume()으로 그 자리에서 이어 재생.
-      // (iOS Safari는 cancel() 후 곧바로 speak()를 호출하면 음성 엔진이 응답하지 않는 경우가 있어,
-      //  같은 발화를 이어가는 resume()이 훨씬 안정적으로 동작함)
-      try{ window.speechSynthesis.resume(); }catch(err){}
-      ttsUserPaused = false;
-      if(pauseBtn) pauseBtn.textContent = "⏸";
-      if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
-      // 혹시 resume()이 무시되는 기기라면 잠시 후 실제로 재생 중인지 확인해서 처음부터 이어 읽기로 폴백
-      const myId = ttsPlaybackId;
-      setTimeout(()=>{
-        if(myId !== ttsPlaybackId) return;
-        if(ttsUserPaused) return; // 그 사이 사용자가 다시 눌렀으면 무시
-        if(!window.speechSynthesis.speaking){
-          ttsPlaybackId++;
-          speakVerseQueue(ttsCurrentLang, ttsCurrentIdx, ttsPlaybackId, 0);
-        }
-      }, 400);
-    }else{
-      // "재개"는 재생을 처음 시작할 때와 완전히 동일한 방식(speakVerseQueue, 시작 실패 시 자동 재시도 포함)으로
-      // 멈췄던 절을 다시 읽는다.
-      ttsPlaybackId++;
-      const myId = ttsPlaybackId;
-      ttsUserPaused = false;
-      if(pauseBtn) pauseBtn.textContent = "⏸";
-      if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
+    // 재생: 멈췄던 절부터 새로 speak() 시작
+    ttsPlaybackId++;
+    const myId = ttsPlaybackId;
+    ttsUserPaused = false;
+    if(pauseBtn) pauseBtn.textContent = "⏸";
+    if(label) label.textContent = label.textContent.replace("일시정지됨", "읽는 중");
+    // 혹시 아직 이전 발화가 남아있다면 확실히 정리
+    try{ window.speechSynthesis.cancel(); }catch(err){}
+    ttsResumeTimer = setTimeout(()=>{
+      ttsResumeTimer = null;
+      if(myId !== ttsPlaybackId) return; // 그 사이 다시 정지/다른 조작이 있었으면 무시
       speakVerseQueue(ttsCurrentLang, ttsCurrentIdx, myId, 0);
-    }
+    }, 300);
   }else{
-    // 먼저 네이티브 pause()를 시도한다. iOS Safari 등에서는 이 방식이 즉시 멈추고
-    // resume()으로 정확히 그 지점부터 이어지는 반면, cancel()은 현재 발화가 끝날 때까지
-    // 지연되거나 그 뒤의 speak() 호출이 무시되는 문제가 있어 pause()를 우선한다.
-    let usedNative = false;
-    try{
-      if(typeof window.speechSynthesis.pause === "function"){
-        window.speechSynthesis.pause();
-        usedNative = true;
-      }
-    }catch(err){ usedNative = false; }
-    ttsPauseUsedNative = usedNative;
-    if(!usedNative){
-      // pause()를 지원하지 않는 기기에서만 완전 정지 후 재개 시 새로 시작하는 방식으로 대체
-      window.speechSynthesis.cancel();
-      ttsPlaybackId++;
-    }
+    // 일시정지: 진행 중이던 발화를 완전히 취소하고 현재 위치만 기억해 둔다
+    ttsPlaybackId++; // 취소된 발화의 onend/onerror가 뒤늦게 와도 무시되도록 무효화
+    try{ window.speechSynthesis.cancel(); }catch(err){}
     ttsUserPaused = true;
     if(pauseBtn) pauseBtn.textContent = "▶";
     if(label) label.textContent = label.textContent.replace("읽는 중", "일시정지됨");
-    // pause()가 즉시 반영되지 않는 기기 대비: 잠깐 뒤에도 여전히 speaking 상태이면(=지연 재생 중)
-    // 강제로 cancel까지 눌러 확실히 멈춘다.
-    if(usedNative){
-      const myId = ttsPlaybackId;
-      setTimeout(()=>{
-        if(myId !== ttsPlaybackId) return;
-        if(!ttsUserPaused) return;
-        if(window.speechSynthesis.speaking && !window.speechSynthesis.paused){
-          window.speechSynthesis.cancel();
-          ttsPauseUsedNative = false;
-        }
-      }, 500);
-    }
   }
 }
 document.addEventListener("click",(e)=>{
-  if(e.target.id==="ttsFloatPauseBtn"){ toggleTTSPause(); return; }
-  if(e.target.id==="ttsFloatStopBtn"){ stopTTS(); return; }
+  if(e.target.closest && e.target.closest("#ttsFloatPauseBtn")){ toggleTTSPause(); return; }
+  if(e.target.closest && e.target.closest("#ttsFloatStopBtn")){ stopTTS(); return; }
 });
 function setTTSButtonState(lang){
   const krBtn=document.getElementById("ttsKr"), enBtn=document.getElementById("ttsEn"), stopBtn=document.getElementById("ttsStop");
