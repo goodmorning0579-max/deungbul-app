@@ -374,6 +374,29 @@ select{color-scheme:dark;}
 select option,select optgroup{background-color:#1f2635;color:#e9e4d6;}
 body.light-mode select{color-scheme:light;}
 body.light-mode select option,body.light-mode select optgroup{background-color:#efe8d6;color:#2b251a;}
+
+/* ===== 다크 테마 가독성 보정: 크림색 본문 상자 안의 원어 분석·암송 버튼 등 ===== */
+.vnote-panel .il-box,.vnote-panel-d .il-box,.vnote-panel .mem-row,.vnote-panel-d .mem-row,.il-box .il-ex,.mem-row .voice-open{color:#2a2318;}
+.il-box .il-head span,.il-box .il-gr,.il-box .il-src-note,.il-box .il-absent{color:#54492f;opacity:1;}
+.il-box .il-gl.il-en{color:#5b503c;opacity:1;}
+.il-box .il-i{color:#6f4a07;}
+.il-box .il-find,.il-box .il-vocadd,.mem-open,.voice-open{color:#3a2a08;border-color:rgba(111,74,7,.6);background:rgba(111,74,7,.12);}
+.il-box .il-ex{background:rgba(111,74,7,.12);border-left-color:rgba(111,74,7,.8);}
+.il-box .il-detail a{color:#1c4a73;}
+.il-box,.il-box .il-card{border-color:rgba(0,0,0,.22);}
+.il-box .il-card{background:rgba(255,255,255,.34);}
+.vn{color:#7a5208;}
+.vnum{color:#7a5208;}
+.dict-fab,.dict-fab-d{background:linear-gradient(135deg,#3f7ab0,#2a5a85);}
+a.btn{color:#1a1408 !important;}
+.ttsratebtn.active,.ttsratebtn-d.active{color:#b5dcf7;}
+.fschip.active,.fschip-d.active{color:#f7da8a;}
+a.chiplink{color:#8fc4ee;}
+body.light-mode a.chiplink{color:#1c4a73;}
+body.light-mode .ttsratebtn.active,body.light-mode .ttsratebtn-d.active{color:#1c4a73;}
+body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
+.vplay,.vnote-toggle,.vplay-d,.vnote-toggle-d{color:#54492f;}
+.sidebar-footer{color:#9aa3b8;}
 </style>
 
 </head>
@@ -413,6 +436,7 @@ body.light-mode select option,body.light-mode select optgroup{background-color:#
     <button class="ttsbtn" id="ttsKr" data-lang="kr">🇰🇷 한글</button>
     <button class="ttsbtn ttsstop" id="ttsStop" style="display:none;">⏹</button>
     <button class="ttsbtn ttscontinuous" id="ttsContinuousBtn" title="켜면 장이 끝나도 자동으로 다음 장으로 넘어가며 계속 재생됩니다">🔁 연속</button>
+    <select id="myVoiceSel" class="ttsvoicesel" data-voice="sel" title="내 목소리로 녹음한 구절을 장 단위로 이어서 듣습니다"><option value="">🎙️ 내 목소리</option></select>
     <select id="ttsRepeatSel" class="ttsvoicesel" title="같은 장을 여러 번 반복해서 재생합니다">
       <option value="1">반복 안 함</option>
       <option value="2">2번 반복</option>
@@ -627,6 +651,18 @@ body.light-mode select option,body.light-mode select optgroup{background-color:#
     </div>
   </div>
 
+  <div class="setcard" id="voice-set-card" style="border-color:rgba(232,185,74,.4);">
+    <h3>🎙️ 내 목소리 녹음 · 배경 재생</h3>
+    <p style="margin-bottom:8px;">구절마다 내 목소리를 녹음하고 장 단위로 이어 들을 수 있습니다(안드로이드·컴퓨터). 녹음은 이 기기에만 저장됩니다. 🧰 도구 → “내 목소리 녹음”에서 시작하세요.</p>
+    <div class="vset-row"><label>음질 <select id="vsetQ"><option value="12">12kbps (가장 작게)</option><option value="16">16kbps (기본)</option><option value="24">24kbps (음질 우선)</option></select></label></div>
+    <div id="vsetUsage" class="lrn-sub" style="margin:4px 0;"></div>
+    <div class="vset-row"><button data-vset="export">⬇️ 녹음 내보내기(ZIP)</button><button data-vset="import">⬆️ 가져오기</button><button data-vset="clear">🗑 전체 삭제</button></div>
+    <input type="file" id="vsetImport" accept=".zip,application/zip" style="display:none">
+    <div id="vsetMsg" class="lrn-sub"></div>
+    <label class="vset-row" style="cursor:pointer;"><input type="checkbox" id="vsetBg" style="width:18px;height:18px;"> 화면이 꺼져도 낭독 이어가기 시도 (안드로이드, 실험)</label>
+    <p id="vsetNote" class="lrn-sub">합성 음성 낭독은 휴대폰이 화면을 끄면 멈출 수 있습니다. 위 옵션은 안드로이드에서 소리가 이어지도록 돕는 실험 기능이라 기기에 따라 효과가 없을 수 있습니다. 내 목소리 녹음을 재생할 때는 화면이 꺼져도 이어집니다.</p>
+  </div>
+
   <div class="setcard" style="border-color:rgba(143,196,238,.35);">
     <h3>🌗 화면 테마</h3>
     <p style="margin-bottom:10px;">밝은 곳에서 읽으실 때는 라이트 모드가 더 편할 수 있습니다.</p>
@@ -737,6 +773,7 @@ body.light-mode select option,body.light-mode select optgroup{background-color:#
     <span class="tagchip guide-jump" data-jumpsec="g-read">📖 성경 읽기</span>
     <span class="tagchip guide-jump" data-jumpsec="g-word">🔤 원어 분석</span>
     <span class="tagchip guide-jump" data-jumpsec="g-learn">🧠 학습 도구</span>
+    <span class="tagchip guide-jump" data-jumpsec="g-voice">🎙️ 내 목소리 녹음</span>
     <span class="tagchip guide-jump" data-jumpsec="g-story">📚 이야기 듣기</span>
     <span class="tagchip guide-jump" data-jumpsec="g-theme">🌗 화면 테마</span>
     <span class="tagchip guide-jump" data-jumpsec="g-xray">🔬 Sentence X-ray</span>
@@ -767,6 +804,10 @@ body.light-mode select option,body.light-mode select optgroup{background-color:#
     <p style="margin-top:8px;"><b>묵상 기록 내보내기.</b> 🧰 도구 → <b>“묵상 기록 내보내기”</b>에서 나의 기록, 구절 연구 노트, 설교 기록, 즐겨찾기, 암송 구절을 골라 문서로 저장합니다. 기간과 책으로 좁히고, 마크다운(.md) 또는 인쇄용(.html, 열어서 PDF로 저장) 파일로 받거나 복사할 수 있습니다. 파일은 내 기기에만 저장되며 어디에도 전송되지 않습니다. 학습 진도(암송, 낱말 카드)는 기존 백업과 구글 드라이브 자동 백업에도 포함됩니다.</p>
     <p style="margin-top:8px;"><b>추천 구절 모음.</b> 암송 창의 “추천 모음” 탭에는 복음, 믿음, 사랑, 소망과 위로, 기도, 말씀, 지혜, 두려움을 이김, 성령, 용서와 은혜, 제자의 삶, 하나님의 성품, 창조의 13개 주제와 103개 구절이 있습니다. “모두 담기”로 한 번에 내 암송 목록에 넣거나 “구절 보기”에서 골라 담을 수 있고, 이미 담긴 구절은 건너뜁니다. 오해하기 쉬운 구절(예: 예레미야 29:11, 로마서 8:28)에는 문맥 설명이 붙어 있습니다.</p>
     <p style="margin-top:8px;"><b>학습 통계.</b> 🧰 도구 → “학습 통계”(또는 암송·낱말 카드 창의 📊)에서 연속 학습일과 최근 14일 학습량(성경 읽기 포함), <b>성경 읽기 진도</b>(읽은 장 수와 구약·신약 비율, 책별 진도, 최근 7·30일, 마지막 읽은 곳), 암송 구절의 상자별 분포·정답률·오늘 복습, 헬라어와 히브리어 낱말의 진도(상위 50·100·300·1000개)와 “학습한 낱말이 본문 낱말의 몇 %를 덮는지”를 한눈에 봅니다. 성경 읽기는 이전에 남긴 읽음 표시(✅)가 모두 반영되고, 암송과 낱말 학습은 이번 버전부터 기록됩니다.</p>
+  </div>
+  <div class="setcard" id="g-voice">
+    <h3>🎙️ 내 목소리 녹음 · 장 이어 듣기</h3>
+    <p>🧰 도구 → <b>“내 목소리 녹음”</b>(또는 구절의 📖 → “🎙️ 내 목소리 녹음”)에서 한 구절씩 내 목소리를 녹음합니다(<b>안드로이드·컴퓨터 전용</b>, 아이폰에서는 이 기능이 보이지 않습니다). 녹음을 마치면 자동으로 다음 절로 넘어가고, 절 번호 칩에서 녹음된 구절(초록)을 확인합니다. 한글과 영어는 따로 저장되며, 음질은 12·16(기본)·24kbps에서 고르고 한 구절(한글)은 약 13KB입니다. <b>“▶ 내 목소리로 장 듣기”</b>는 녹음된 구절만 차례로 이어 재생하고(녹음 없는 구절은 건너뜀) 속도 조절, 반복, “다음 장 이어서”, 잠금 화면 컨트롤을 지원하며 <b>화면이 꺼져도 이어집니다</b>. 읽기 화면의 🎙 표시를 누르거나, <b>듣기 줄의 “🎙️ 내 목소리” 선택 상자</b>(한글·영어 중 고르면 바로 재생, 녹음이 있는 절 수 표시)로도 시작할 수 있고, 듣기 줄의 속도 버튼(x0.7~x2.0)·“연속”·반복 설정이 내 목소리 재생에도 그대로 적용됩니다. 합성 음성 낭독을 시작하면 내 목소리 재생은 자동으로 멈춥니다. 녹음은 이 기기에만 저장되고(전송 없음), 설정의 “내 목소리 녹음” 카드에서 사용량 확인과 ZIP 내보내기·가져오기를 합니다. 마이크는 https 주소(예: github.io)에서만 쓸 수 있습니다. 또한 안드로이드에서는 합성 음성 낭독이 화면을 꺼도 이어지도록 돕는 실험 옵션이 있으나 기기에 따라 효과가 없을 수 있습니다.</p>
   </div>
   <div class="setcard" id="g-story">
     <h3>📚 이야기 듣기</h3>
@@ -841,6 +882,8 @@ body.light-mode select option,body.light-mode select optgroup{background-color:#
   <button data-tool="journal">📝 기록장</button>
   <button data-learn="mem">🧠 구절 암송 연습</button>
   <button data-learn="voc">🃏 원어 낱말 카드</button>
+  <button data-voice="studio">🎙️ 내 목소리 녹음</button>
+  <button data-voice="play">▶ 내 목소리로 장 듣기</button>
   <button data-learn="exp">📤 묵상 기록 내보내기</button>
   <button data-learn="stat">📊 학습 통계</button>
 </div>
@@ -927,7 +970,7 @@ const stor=(typeof window!=="undefined" && window.storage && typeof window.stora
 /* 자동 백업: 백업 대상 데이터(묵상기록/통독진행/즐겨찾기/설교기록/음성기록/메모)가 저장되거나 삭제될 때마다
    자동으로 "동기화 필요" 표시를 하고, 잠시 후(또는 화면 이탈 시) 조용히 드라이브에 백업한다.
    이렇게 stor.set/delete 자체를 감싸두면, 어떤 화면의 어떤 저장 버튼을 눌러도 빠짐없이 자동 백업 대상이 된다. */
-const GDRIVE_SYNC_PREFIXES = ["j:","p:","fav:","sermon:","voice:","note:","learn:"];
+const GDRIVE_SYNC_PREFIXES = ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:"];
 (function(){
   const origSet = stor.set.bind(stor);
   const origDelete = stor.delete.bind(stor);
@@ -4007,6 +4050,19 @@ function highlightVerse(vn){
   }
 }
 let ttsCurrentLang = null, ttsCurrentIdx = 0; // resume 실패 시 폴백을 위해 현재 재생 위치를 계속 기록
+/* 성경 낭독용 본문 정리: 소리 내어 읽지 않을 표시와 안내문을 걸러 냄 */
+function __ttsClean(lang, v){
+  var t = String((lang==="en" ? v.en : v.kr) || "");
+  if(lang==="en"){
+    if(/^\s*\(영어 성경은/.test(t) || /^\s*\[이 절은 (WEB )?본문에 없습니다/.test(t)) return "";      // 영어 본문에 없는 절의 한글 안내문
+    t = t.replace(/^\s*\[WEB은 이 구절을[^\]]*\]\s*/, "");                                          // 로마서 송영 위치 안내
+    return t.trim();
+  }
+  if(/^\s*\(\s*\d*\s*절에 포함되어 있음\)\s*$/.test(t)) return "";                                  // 공식 본문이 앞 절에 합친 절(앞 절에서 이미 읽음)
+  t = t.replace(/^\s*\{([^}]*)\}\s*/, function(_,title){ return title.trim().replace(/[.。]?$/,".")+" "; });  // 시편 표제: 중괄호 없이 읽고 잠시 쉼
+  t = t.replace(/^\s*\(없음\)\s*/, "");                                                           // 일부 사본에 없는 절 표시
+  return t.trim();
+}
 async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   if(myPlaybackId !== ttsPlaybackId) return; // 그 사이 정지되었으면 중단
   ttsCurrentLang = lang; ttsCurrentIdx = idx;
@@ -4033,7 +4089,7 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
     clearTTSHighlight(); setTTSButtonState(null); releaseTTSWakeLock(); return;
   }
   const v = list[idx];
-  const text = lang==="en" ? (v.en||"") : (v.kr||"");
+  const text = __ttsClean(lang, v);
   if(!text){ speakVerseQueue(lang, idx+1, myPlaybackId, 0); return; }
   highlightVerse(v.n);
   const utter = new SpeechSynthesisUtterance(lang==="en" ? text : krBibleRefSpeech(text));
@@ -4281,7 +4337,7 @@ async function allFav(){
 
 /* ===== 백업 / 복원 ===== */
 async function exportAllData(){
-  const prefixes=["j:","p:","fav:","learn:"];
+  const prefixes=["j:","p:","fav:","sermon:","note:","vstudy:","learn:"];
   const bundle={app:"등불",version:1,exportedAt:new Date().toISOString(),entries:[]};
   for(const p of prefixes){
     try{
@@ -4963,7 +5019,7 @@ async function saveToGoogleDrive(silent){
     if(!token){ if(!silent) throw new Error("구글 인증이 필요합니다."); return false; }
     if(!silent && st) st.textContent = "⏳ 저장 중...";
     const bundle = { app:"등불", version:1, exportedAt:new Date().toISOString(), entries:[] };
-    for(const p of ["j:","p:","fav:","sermon:","voice:","note:"]){
+    for(const p of ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:"]){
       const l = await stor.list(p);
       for(const k of (l.keys||[])){
         try{ const v = await stor.get(k); if(v) bundle.entries.push({key:gdriveLocalToCommonKey(k), value:v.value}); }catch(e){}
@@ -6207,6 +6263,7 @@ document.addEventListener("change",(e)=>{
 
 
 
+
 /*LEARN-START*/
 
 /* ============================================================
@@ -6283,7 +6340,7 @@ document.addEventListener("change",(e)=>{
     renderMem();
   };
   window.__memBtnHtml=function(book,ch,v){
-    return '<div class="mem-row"><button class="mem-open" onclick="event.stopPropagation();openMemorize(\''+book+'\','+ch+','+v+')">🧠 이 구절 암송 연습</button></div>';
+    return '<div class="mem-row"><button class="mem-open" onclick="event.stopPropagation();openMemorize(\''+book+'\','+ch+','+v+')">🧠 이 구절 암송 연습</button>'+(window.__voiceBtnHtml?window.__voiceBtnHtml(book,ch,v):"")+'</div>';
   };
   function curText(){ var k=MEM.items[MEM.idx]; if(!k) return null; var p=k.split("."); var t=memVerseText(p[0],parseInt(p[1],10),parseInt(p[2],10)); return {key:k,text:(MEM.lang==="en"?t.en:t.kr)}; }
   function renderMem(){
@@ -6745,6 +6802,475 @@ document.addEventListener("change",(e)=>{
 })();
 
 /*LEARN-END*/
+
+
+
+
+
+
+
+/*VOICE-START*/
+
+/* ============================================================
+   🎙️ 내 목소리 녹음 · 장 이어 듣기 · 배경 재생 보조
+   - 녹음은 컴퓨터와 안드로이드에서만 제공(아이폰에서는 숨김)
+   - 저장: 이 기기의 IndexedDB(deungbul-voice) — 어디에도 전송하지 않음
+   - 형식: Opus(16kbps 기본) → 한 구절(한글) 약 13KB
+   ============================================================ */
+(function(){
+  var UA=navigator.userAgent||"";
+  var IS_IOS=/iPad|iPhone|iPod/.test(UA)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  var IS_ANDROID=/Android/i.test(UA);
+  var OK=!IS_IOS;                                               // 기능 표시 여부
+  var CAN_REC=OK && !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.indexedDB);
+  function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function lsGet(k,d){ try{ var v=localStorage.getItem("deungbul.voice."+k); return v==null?d:v; }catch(e){ return d; } }
+  function lsSet(k,v){ try{ localStorage.setItem("deungbul.voice."+k,String(v)); }catch(e){} }
+  function Q(){ var q=parseInt(lsGet("q","16"),10); return (q===12||q===24)?q:16; }
+  function bookName(code){ var b=BOOKS.find(function(x){return x.code===code;}); return b?b.name:code; }
+  function langName(l){ return l==="en"?("영어("+(window.__LOCAL_EN||"WEB")+")"):"한글"; }
+  function cleanKr(t){ return String(t||"").replace(/^\s*\{[^}]*\}\s*/,"").trim(); }
+  function cleanEn(t){ return String(t||"").replace(/^\s*\[WEB은 이 구절을[^\]]*\]\s*/,"").trim(); }
+  function recordable(row,lang){
+    var t=lang==="en"?cleanEn(row.en):cleanKr(row.kr);
+    if(!t) return false;
+    if(lang==="kr" && /^\(\s*\d+\s*절에 포함되어 있음\)/.test(t)) return false;
+    if(lang==="en" && (/^\(영어 성경은/.test(t) || /^\[이 절은 WEB 본문에 없습니다/.test(t))) return false;
+    return true;
+  }
+  function verseRows(book,ch,lang){
+    var rows=(window.localBibleChapter(book,ch)||[]);
+    return rows.map(function(r){ return {n:r.n, text:lang==="en"?cleanEn(r.en):cleanKr(r.kr), ok:recordable(r,lang)}; });
+  }
+  function curPassage(){
+    var b=document.getElementById("bsel")||document.getElementById("book-select"), c=document.getElementById("chsel")||document.getElementById("chapter-select");
+    return {book:b?b.value:"GEN", ch:c?parseInt(c.value,10):1};
+  }
+
+  /* ---------- 저장소(IndexedDB) ---------- */
+  var DB=null;
+  function dbOpen(){
+    return new Promise(function(res,rej){
+      if(DB) return res(DB);
+      var rq=indexedDB.open("deungbul-voice",1);
+      rq.onupgradeneeded=function(){ var os=rq.result.createObjectStore("rec",{keyPath:"id"}); os.createIndex("chap","chap"); };
+      rq.onsuccess=function(){ DB=rq.result; res(DB); };
+      rq.onerror=function(){ rej(rq.error); };
+    });
+  }
+  function dbReq(mode,fn){
+    return dbOpen().then(function(db){ return new Promise(function(res,rej){
+      var t=db.transaction("rec",mode), os=t.objectStore("rec"), out=fn(os);
+      t.oncomplete=function(){ res(out&&("result" in out)?out.result:undefined); }; t.onerror=function(){ rej(t.error); }; t.onabort=function(){ rej(t.error); };
+    }); });
+  }
+  function recId(b,c,v,l){ return b+"."+c+"."+v+"."+l; }
+  function recPut(r){ return dbReq("readwrite",function(os){ return os.put(r); }); }
+  function recGet(id){ return dbReq("readonly",function(os){ return os.get(id); }); }
+  function recDel(id){ return dbReq("readwrite",function(os){ return os.delete(id); }); }
+  function recChapter(b,c,l){ return dbReq("readonly",function(os){ return os.index("chap").getAll(b+"."+c+"."+l); }).then(function(a){ return (a||[]).sort(function(x,y){ return x.v-y.v; }); }); }
+  function recAll(){ return dbReq("readonly",function(os){ return os.getAll(); }); }
+  function recClear(){ return dbReq("readwrite",function(os){ return os.clear(); }); }
+  async function usage(){
+    var all=await recAll(), size=0; all.forEach(function(r){ size+=r.size||0; });
+    var est=null; try{ if(navigator.storage&&navigator.storage.estimate) est=await navigator.storage.estimate(); }catch(e){}
+    return {n:all.length,size:size,est:est};
+  }
+  function fmtSize(b){ return b>=1048576?(b/1048576).toFixed(1)+"MB":Math.max(1,Math.round(b/1024))+"KB"; }
+
+  /* ---------- 대화창 ---------- */
+  function overlay(id){
+    var ov=document.getElementById(id);
+    if(!ov){ ov=document.createElement("div"); ov.id=id; ov.className="lrn-overlay"; ov.innerHTML='<div class="lrn-box" role="dialog" aria-modal="true"></div>'; document.body.appendChild(ov);
+      ov.addEventListener("mousedown",function(e){ if(e.target===ov && !REC.mr) ov.style.display="none"; }); }
+    ov.style.display="flex"; return ov.querySelector(".lrn-box");
+  }
+
+  /* ---------- 녹음 ---------- */
+  var REC={stream:null,mr:null,chunks:[],t0:0,timer:null};
+  async function ensureStream(){
+    if(REC.stream && REC.stream.getTracks().some(function(t){return t.readyState==="live";})) return REC.stream;
+    REC.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,noiseSuppression:true,echoCancellation:true,autoGainControl:true}});
+    return REC.stream;
+  }
+  function releaseStream(){ if(REC.stream){ REC.stream.getTracks().forEach(function(t){ t.stop(); }); REC.stream=null; } }
+  function pickMime(){
+    var c=["audio/webm;codecs=opus","audio/ogg;codecs=opus","audio/webm","audio/mp4"];
+    for(var i=0;i<c.length;i++){ try{ if(MediaRecorder.isTypeSupported(c[i])) return c[i]; }catch(e){} }
+    return "";
+  }
+  async function startRec(){
+    var stream=await ensureStream(), mime=pickMime(), opt={audioBitsPerSecond:Q()*1000};
+    if(mime) opt.mimeType=mime;
+    var mr; try{ mr=new MediaRecorder(stream,opt); }catch(e){ mr=new MediaRecorder(stream); }
+    REC.chunks=[]; REC.mr=mr; mr.ondataavailable=function(e){ if(e.data&&e.data.size) REC.chunks.push(e.data); };
+    mr.start(); REC.t0=Date.now();
+    try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  }
+  function stopRec(){
+    return new Promise(function(res){
+      var mr=REC.mr; if(!mr) return res(null);
+      mr.onstop=function(){ var blob=new Blob(REC.chunks,{type:mr.mimeType||"audio/webm"}); var dur=(Date.now()-REC.t0)/1000; REC.mr=null; clearInterval(REC.timer); res({blob:blob,dur:dur}); };
+      try{ mr.stop(); }catch(e){ REC.mr=null; res(null); }
+    });
+  }
+
+  /* ---------- 녹음 스튜디오 ---------- */
+  var ST={book:"GEN",ch:1,lang:lsGet("lang","kr"),v:1,rows:[],have:{},auto:lsGet("auto","1")==="1",msg:"",busy:false,prev:null};
+  window.openVoiceStudio=async function(book,ch,v){
+    if(!OK) return;
+    var cp=curPassage(); ST.book=book||cp.book; ST.ch=ch||cp.ch; if(v) ST.v=v;
+    await loadStudio(); if(!v) ST.v=firstOk()||1; renderStudio();
+  };
+  function firstOk(){ var r=ST.rows.find(function(x){ return x.ok && !ST.have[x.n]; }); if(!r) r=ST.rows.find(function(x){return x.ok;}); return r?r.n:null; }
+  async function loadStudio(){
+    ST.rows=verseRows(ST.book,ST.ch,ST.lang); ST.have={};
+    try{ var list=await recChapter(ST.book,ST.ch,ST.lang); list.forEach(function(r){ ST.have[r.v]=r; }); }catch(e){ ST.msg="저장소를 열 수 없습니다: "+e.message; }
+  }
+  function renderStudio(){
+    var box=overlay("voiceOverlay"), row=ST.rows.find(function(x){return x.n===ST.v;}), recording=!!REC.mr;
+    var haveN=Object.keys(ST.have).length, okN=ST.rows.filter(function(x){return x.ok;}).length;
+    var chips=ST.rows.map(function(x){ var c=!x.ok?"na":(ST.have[x.n]?"have":""); return '<button class="vs-chip '+c+(x.n===ST.v?" cur":"")+'" data-vs-go="'+x.n+'" '+(!x.ok||recording?"disabled":"")+'>'+x.n+'</button>'; }).join("");
+    var warn="";
+    if(!CAN_REC) warn='<div class="lrn-score s1">이 환경에서는 녹음을 쓸 수 없습니다. 마이크 녹음은 https 주소(예: github.io)의 크롬에서만 됩니다.</div>';
+    else if(!window.isSecureContext) warn='<div class="lrn-score s1">보안 연결(https)이 아니어서 마이크를 쓰지 못할 수 있습니다.</div>';
+    box.innerHTML='<div class="lrn-head"><b>🎙️ 내 목소리 녹음</b><button class="lrn-x" data-vs-close="1">✕</button></div><div class="lrn-body">'+warn+
+      '<div class="lrn-ctl"><b>'+esc(bookName(ST.book))+' '+ST.ch+'장</b><label>언어 <select id="vsLang" '+(recording?"disabled":"")+'><option value="kr"'+(ST.lang==="kr"?" selected":"")+'>한글</option><option value="en"'+(ST.lang==="en"?" selected":"")+'>'+esc(langName("en"))+'</option></select></label>'+
+      '<label>음질 <select id="vsQ" '+(recording?"disabled":"")+'><option value="12"'+(Q()===12?" selected":"")+'>12kbps</option><option value="16"'+(Q()===16?" selected":"")+'>16kbps(기본)</option><option value="24"'+(Q()===24?" selected":"")+'>24kbps</option></select></label></div>'+
+      '<div class="lrn-sub">'+haveN+' / '+okN+'절 녹음됨 · 회색은 공식 본문이 앞 절에 합친 절이라 녹음하지 않습니다.</div><div class="vs-chips">'+chips+'</div>'+
+      (row&&row.ok?'<div class="lrn-ref">'+ST.v+'절 '+(ST.have[ST.v]?'<span class="lrn-tag">녹음됨 · '+esc(fmtSize(ST.have[ST.v].size))+' · '+Math.round(ST.have[ST.v].dur||0)+'초</span>':'')+'</div><div class="lrn-verse vs-text">'+esc(row.text)+'</div>':'<div class="lrn-empty">녹음할 수 있는 절을 고르세요.</div>')+
+      '<div class="lrn-btns">'+
+        (recording?'<button class="lrn-main vs-stop" data-vs-act="stop">■ 정지 <span id="vsTime">00:00</span></button>':'<button class="lrn-main" data-vs-act="rec" '+(!CAN_REC||!row||!row.ok?"disabled":"")+'>● '+(ST.have[ST.v]?'다시 녹음':'녹음')+'</button>')+
+        '<button data-vs-act="play" '+(!ST.have[ST.v]||recording?"disabled":"")+'>▶ 들어보기</button><button data-vs-act="del" '+(!ST.have[ST.v]||recording?"disabled":"")+'>🗑 삭제</button>'+
+        '<button data-vs-act="prev" '+(recording?"disabled":"")+'>‹ 이전 절</button><button data-vs-act="next" '+(recording?"disabled":"")+'>다음 절 ›</button></div>'+
+      '<label class="vs-auto"><input type="checkbox" id="vsAuto" '+(ST.auto?"checked":"")+'> 녹음을 마치면 다음 절로 이동</label>'+
+      '<div class="lrn-note" id="vsMsg">'+esc(ST.msg||"● 를 누르고 구절을 읽은 뒤 ■ 를 누르세요. 조용한 곳에서 입을 마이크 가까이에 두면 더 또렷합니다.")+'</div>'+
+      '<div class="lrn-btns"><button class="lrn-main" data-vs-act="chapter" '+(haveN&&!recording?"":"disabled")+'>▶ 이 장 이어 듣기 ('+haveN+'절)</button><button data-vs-act="clearch" '+(haveN&&!recording?"":"disabled")+'>이 장 녹음 모두 삭제</button></div></div>';
+  }
+  function nextOk(from,dir){ var i=ST.rows.findIndex(function(x){return x.n===from;}); for(i+=dir;i>=0&&i<ST.rows.length;i+=dir){ if(ST.rows[i].ok) return ST.rows[i].n; } return null; }
+  document.addEventListener("click",async function(e){
+    var t=e.target; if(!t.closest || !t.closest("#voiceOverlay")) return;
+    var go=t.closest("[data-vs-go]"); if(go){ ST.v=parseInt(go.getAttribute("data-vs-go"),10); ST.msg=""; renderStudio(); return; }
+    if(t.closest("[data-vs-close]")){ if(REC.mr){ await stopRec(); } releaseStream(); document.getElementById("voiceOverlay").style.display="none"; return; }
+    var a=t.closest("[data-vs-act]"); if(!a||a.disabled) return; var act=a.getAttribute("data-vs-act");
+    if(act==="rec"){
+      try{ await startRec(); ST.msg="🔴 녹음 중입니다…"; renderStudio();
+        REC.timer=setInterval(function(){ var s=Math.floor((Date.now()-REC.t0)/1000), el=document.getElementById("vsTime"); if(el) el.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); if(s>=180) document.querySelector('[data-vs-act="stop"]').click(); },300);
+      }catch(err){ ST.msg="⚠️ 마이크를 사용할 수 없습니다: "+(err&&err.name==="NotAllowedError"?"권한이 거부되었습니다. 브라우저 설정에서 마이크를 허용해 주세요.":(err&&err.message||err)); renderStudio(); }
+    } else if(act==="stop"){
+      var r=await stopRec();
+      if(!r||r.dur<0.8){ ST.msg="녹음이 너무 짧아 저장하지 않았습니다."; renderStudio(); return; }
+      var rec={id:recId(ST.book,ST.ch,ST.v,ST.lang),book:ST.book,ch:ST.ch,v:ST.v,lang:ST.lang,chap:ST.book+"."+ST.ch+"."+ST.lang,mime:r.blob.type,dur:r.dur,size:r.blob.size,q:Q(),ts:Date.now(),blob:r.blob};
+      try{ await recPut(rec); ST.have[ST.v]=rec; ST.msg="✅ "+ST.v+"절 저장됨 ("+fmtSize(rec.size)+", "+Math.round(r.dur)+"초)"; }catch(err){ ST.msg="⚠️ 저장하지 못했습니다: "+(err&&err.message||err); }
+      if(ST.auto){ var nx=nextOk(ST.v,1); if(nx) ST.v=nx; }
+      renderStudio(); markCurrent();
+    } else if(act==="play"){ previewPlay(ST.have[ST.v]); }
+    else if(act==="del"){ await recDel(recId(ST.book,ST.ch,ST.v,ST.lang)); delete ST.have[ST.v]; ST.msg=ST.v+"절 녹음을 삭제했습니다."; renderStudio(); markCurrent(); }
+    else if(act==="prev"){ var p=nextOk(ST.v,-1); if(p){ ST.v=p; ST.msg=""; renderStudio(); } }
+    else if(act==="next"){ var n=nextOk(ST.v,1); if(n){ ST.v=n; ST.msg=""; renderStudio(); } }
+    else if(act==="chapter"){ document.getElementById("voiceOverlay").style.display="none"; releaseStream(); window.playMyVoice(ST.book,ST.ch,ST.lang,1); }
+    else if(act==="clearch"){ if(!confirm(bookName(ST.book)+" "+ST.ch+"장의 "+langName(ST.lang)+" 녹음 "+Object.keys(ST.have).length+"개를 모두 삭제할까요?")) return;
+      for(var k in ST.have) await recDel(ST.have[k].id); ST.have={}; ST.msg="이 장의 녹음을 모두 삭제했습니다."; renderStudio(); markCurrent(); }
+  });
+  document.addEventListener("change",async function(e){
+    var id=e.target&&e.target.id; if(!id||id.indexOf("vs")!==0) return;
+    if(id==="vsLang"){ ST.lang=e.target.value==="en"?"en":"kr"; lsSet("lang",ST.lang); await loadStudio(); ST.v=firstOk()||1; ST.msg=""; renderStudio(); }
+    else if(id==="vsQ"){ lsSet("q",e.target.value); ST.msg="음질을 "+e.target.value+"kbps로 바꿨습니다(앞으로 녹음할 구절부터 적용)."; renderStudio(); }
+    else if(id==="vsAuto"){ ST.auto=e.target.checked; lsSet("auto",ST.auto?"1":"0"); }
+  });
+  var PV=null;
+  function previewPlay(rec){
+    if(!rec) return; if(PV){ try{ PV.pause(); URL.revokeObjectURL(PV.src); }catch(e){} }
+    PV=new Audio(URL.createObjectURL(rec.blob)); PV.play().catch(function(){ ST.msg="재생하지 못했습니다."; });
+  }
+
+  /* ---------- 장 이어 듣기(플레이어) ---------- */
+  var A=null;                                                   // 재생 전용 오디오 요소(잠금 화면 컨트롤과 연결)
+  var PL={list:[],i:0,book:"",ch:0,lang:"kr",speed:parseFloat(lsGet("speed","1"))||1,repeat:false,repLeft:0,cont:lsGet("cont","1")==="1",url:null,on:false};
+  function audioEl(){
+    if(A) return A; A=document.createElement("audio"); A.id="vpAudio"; A.preload="auto"; A.style.display="none"; document.body.appendChild(A);
+    A.addEventListener("ended",plEnded); A.addEventListener("play",function(){ PL.on=true; syncBar(); if("mediaSession" in navigator) navigator.mediaSession.playbackState="playing"; });
+    A.addEventListener("pause",function(){ syncBar(); if("mediaSession" in navigator) navigator.mediaSession.playbackState=A.ended||!PL.on?"none":"paused"; });
+    A.addEventListener("error",function(){ plEnded(); });
+    return A;
+  }
+  window.playMyVoice=async function(book,ch,lang,fromV){
+    if(!OK) return;
+    var cp=(book&&ch)?{book:book,ch:ch}:curPassage(); lang=lang||lsGet("lang","kr");
+    var list=await recChapter(cp.book,cp.ch,lang);
+    if(!list.length){ var other=lang==="kr"?"en":"kr"; var l2=await recChapter(cp.book,cp.ch,other); if(l2.length){ list=l2; lang=other; } }
+    if(!list.length){ toast(bookName(cp.book)+" "+cp.ch+"장에는 녹음된 구절이 없습니다. 🎙️ 녹음을 먼저 해 주세요."); return; }
+    stopTts();
+    PL.book=cp.book; PL.ch=cp.ch; PL.lang=lang; PL.list=list;
+    PL.i=Math.max(0,list.findIndex(function(r){ return r.v>=(fromV||1); })); if(PL.i<0) PL.i=0;
+    audioEl(); buildBar(); plPlay();
+  };
+  function stopTts(){                                   // 합성 음성 낭독이 켜져 있으면 끔(두 소리가 겹치지 않게)
+    try{ var sb=document.getElementById("ttsStop")||document.getElementById("ttsStopD"); if(sb && getComputedStyle(sb).display!=="none") sb.click(); }catch(e){}
+    try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  }
+  function plPlay(){
+    var r=PL.list[PL.i]; if(!r) return plStop();
+    try{ if(PL.url) URL.revokeObjectURL(PL.url); }catch(e){}
+    PL.url=URL.createObjectURL(r.blob); A.src=PL.url; A.playbackRate=PL.speed; A.defaultPlaybackRate=PL.speed;
+    var p=A.play(); if(p&&p.catch) p.catch(function(){ syncBar(); });
+    setSession(r); syncBar(); highlight(r.v);
+  }
+  async function plEnded(){
+    if(!PL.on) return;
+    if(PL.i<PL.list.length-1){ PL.i++; return plPlay(); }
+    if(PL.repeat || PL.repLeft===-1){ PL.i=0; return plPlay(); }
+    if(PL.repLeft>0){ PL.repLeft--; PL.i=0; return plPlay(); }
+    if(PL.cont){ var nx=await findNextChapter(PL.book,PL.ch,PL.lang); if(nx){ PL.book=nx.book; PL.ch=nx.ch; PL.list=nx.list; PL.i=0; toast(bookName(nx.book)+" "+nx.ch+"장으로 이어서 듣습니다."); return plPlay(); } }
+    plStop(true);
+  }
+  async function findNextChapter(book,ch,lang){
+    var bi=BOOKS.findIndex(function(b){return b.code===book;}), c=ch;
+    for(var step=0;step<40;step++){
+      c++; if(c>BOOKS[bi].chapters){ bi++; c=1; if(bi>=BOOKS.length) return null; }
+      var list=await recChapter(BOOKS[bi].code,c,lang); if(list.length) return {book:BOOKS[bi].code,ch:c,list:list};
+    }
+    return null;
+  }
+  function plStop(done){
+    PL.on=false; if(A){ try{ A.pause(); }catch(e){} A.removeAttribute("src"); try{ A.load(); }catch(e){} }
+    try{ if(PL.url) URL.revokeObjectURL(PL.url); }catch(e){} PL.url=null;
+    if("mediaSession" in navigator){ navigator.mediaSession.playbackState="none"; }
+    var b=document.getElementById("vpBar"); if(b) b.style.display="none"; clearHi();
+    if(done) toast("내 목소리 듣기를 마쳤습니다.");
+  }
+  function plToggle(){ if(!A||!PL.list.length) return; if(A.paused){ PL.on=true; A.play(); } else { A.pause(); } }
+  function plNext(){ if(PL.i<PL.list.length-1){ PL.i++; plPlay(); } }
+  function plPrev(){ if(A&&A.currentTime>3){ A.currentTime=0; return; } if(PL.i>0){ PL.i--; plPlay(); } }
+  function setSession(r){
+    if(!("mediaSession" in navigator) || typeof MediaMetadata==="undefined") return;
+    try{
+      navigator.mediaSession.metadata=new MediaMetadata({title:bookName(r.book)+" "+r.ch+":"+r.v,artist:"내 목소리 · "+langName(r.lang),album:"등불 — "+bookName(r.book)+" "+r.ch+"장"});
+      navigator.mediaSession.setActionHandler("play",function(){ plToggle(); });
+      navigator.mediaSession.setActionHandler("pause",function(){ plToggle(); });
+      navigator.mediaSession.setActionHandler("previoustrack",plPrev);
+      navigator.mediaSession.setActionHandler("nexttrack",plNext);
+      navigator.mediaSession.setActionHandler("stop",function(){ plStop(); });
+    }catch(e){}
+  }
+  function buildBar(){
+    var b=document.getElementById("vpBar");
+    if(!b){ b=document.createElement("div"); b.id="vpBar"; b.className="vp-bar";
+      b.innerHTML='<div class="vp-lab" id="vpLab"></div><div class="vp-btns"><button data-vp="prev" title="이전 절">⏮</button><button data-vp="toggle" id="vpTog" title="재생/일시정지">⏸</button><button data-vp="next" title="다음 절">⏭</button><button data-vp="stop" title="끝내기">⏹</button>'+
+        '<select id="vpSpeed" title="재생 속도"><option value="0.7">0.7×</option><option value="0.85">0.85×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>'+
+        '<label title="장이 끝나면 다음 장으로"><input type="checkbox" id="vpCont"> 다음 장</label><label title="이 장 반복"><input type="checkbox" id="vpRep"> 반복</label></div>';
+      document.body.appendChild(b);
+      b.addEventListener("click",function(e){ var x=e.target.closest("[data-vp]"); if(!x) return; var k=x.getAttribute("data-vp"); if(k==="toggle") plToggle(); else if(k==="next") plNext(); else if(k==="prev") plPrev(); else if(k==="stop") plStop(); });
+      b.addEventListener("change",function(e){ if(e.target.id==="vpSpeed"){ PL.speed=parseFloat(e.target.value)||1; lsSet("speed",PL.speed); if(A) A.playbackRate=PL.speed; } else if(e.target.id==="vpCont"){ PL.cont=e.target.checked; lsSet("cont",PL.cont?"1":"0"); } else if(e.target.id==="vpRep"){ PL.repeat=e.target.checked; PL.repLeft=0; } });
+    }
+    b.style.display="flex"; document.getElementById("vpSpeed").value=String(PL.speed); document.getElementById("vpCont").checked=PL.cont; document.getElementById("vpRep").checked=PL.repeat;
+  }
+  function syncBar(){
+    var lab=document.getElementById("vpLab"), tog=document.getElementById("vpTog"), r=PL.list[PL.i];
+    if(lab&&r) lab.textContent="🎙 "+bookName(r.book)+" "+r.ch+":"+r.v+" · "+langName(r.lang)+" ("+(PL.i+1)+"/"+PL.list.length+")";
+    if(tog) tog.textContent=(A&&!A.paused)?"⏸":"▶";
+  }
+  function toast(msg){
+    var t=document.getElementById("vpToast"); if(!t){ t=document.createElement("div"); t.id="vpToast"; t.className="vp-toast"; document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity="1"; clearTimeout(t._t); t._t=setTimeout(function(){ t.style.opacity="0"; },3500);
+  }
+
+  /* ---------- 읽기 화면 표시(🎙 마크와 재생 중인 절) ---------- */
+  function verseEls(){ return [].slice.call(document.querySelectorAll(".verse")); }
+  function verseNum(el){ var n=el.querySelector(".vn,.vnum"); return n?parseInt(n.textContent.trim(),10):NaN; }
+  function verseLang(el){ var c=el.className||""; return /(^|\s)(v-)?en-row|ven-row|v-en-row/.test(c)?"en":(/kr-row|vkr-row|v-kr-row/.test(c)?"kr":""); }
+  function passageShown(book,ch){ var cp=curPassage(); return cp.book===book && cp.ch===ch; }
+  async function markRecs(book,ch){
+    if(!OK) return;
+    var have={kr:{},en:{}};
+    try{ (await recChapter(book,ch,"kr")).forEach(function(r){ have.kr[r.v]=1; }); (await recChapter(book,ch,"en")).forEach(function(r){ have.en[r.v]=1; }); }catch(e){ return; }
+    document.querySelectorAll(".vrec").forEach(function(x){ x.remove(); });
+    verseEls().forEach(function(el){
+      var n=verseNum(el), l=verseLang(el); if(!n||!l||!have[l][n]) return;
+      var num=el.querySelector(".vn,.vnum"), s=document.createElement("span"); s.className="vrec"; s.setAttribute("data-vrec",n+":"+l); s.title="내 목소리 녹음("+langName(l)+") — 눌러서 여기부터 이어 듣기"; s.textContent="🎙";
+      num.parentNode.insertBefore(s,num.nextSibling);
+    });
+  }
+  function markCurrent(){ if(passageShown(ST.book,ST.ch)){ markRecs(ST.book,ST.ch); updateMyVoiceSel(ST.book,ST.ch); } }
+  function clearHi(){ document.querySelectorAll(".vrec-now").forEach(function(x){ x.classList.remove("vrec-now"); }); }
+  function highlight(v){
+    clearHi(); if(!passageShown(PL.book,PL.ch)) return;
+    verseEls().forEach(function(el){ if(verseNum(el)===v){ el.classList.add("vrec-now"); } });
+    var first=document.querySelector(".vrec-now"); if(first){ try{ first.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){} }
+  }
+  document.addEventListener("click",function(e){
+    var m=e.target.closest&&e.target.closest(".vrec"); if(!m) return; e.stopPropagation(); e.preventDefault();
+    var p=m.getAttribute("data-vrec").split(":"), cp=curPassage(); window.playMyVoice(cp.book,cp.ch,p[1],parseInt(p[0],10));
+  },true);
+  if(OK && typeof window.renderPassage==="function"){
+    var _rp=window.renderPassage;
+    window.renderPassage=async function(b,c){ var r=await _rp.apply(this,arguments); try{ await markRecs(b,c); await updateMyVoiceSel(b,c); if(PL.on) highlight((PL.list[PL.i]||{}).v); }catch(e){} return r; };
+  }
+
+
+  /* ---------- 듣기 줄의 "내 목소리로 듣기" 선택 상자 ---------- */
+  async function updateMyVoiceSel(book,ch){
+    var sel=document.getElementById("myVoiceSel"); if(!sel||!OK) return;
+    var n={kr:0,en:0};
+    try{ n.kr=(await recChapter(book,ch,"kr")).length; n.en=(await recChapter(book,ch,"en")).length; }catch(e){}
+    var cur=sel.value;
+    sel.innerHTML='<option value="">🎙️ 내 목소리</option><option value="kr"'+(n.kr?"":" disabled")+'>한글 — '+(n.kr?n.kr+"절 녹음":"녹음 없음")+'</option><option value="en"'+(n.en?"":" disabled")+'>영어('+(window.__LOCAL_EN||"WEB")+') — '+(n.en?n.en+"절 녹음":"녹음 없음")+'</option>';
+    sel.value=""; sel.title=(n.kr||n.en)?"이 장에 녹음한 내 목소리를 이어서 듣습니다":"이 장에는 녹음이 없습니다. 도구(🧰) → 내 목소리 녹음에서 녹음하세요";
+  }
+  document.addEventListener("change",function(e){
+    if(e.target.id!=="myVoiceSel") return; var lang=e.target.value; if(!lang) return;
+    var cp=curPassage(), cb=document.getElementById("ttsContinuousBtn")||document.getElementById("ttsContinuousBtnD"), rs=document.getElementById("ttsRepeatSel")||document.getElementById("ttsRepeatSelD");
+    if(cb){ PL.cont=cb.classList.contains("on"); }                       // 듣기 줄의 "연속" 상태를 그대로 따름
+    var rv=rs?parseInt(rs.value,10):1; PL.repLeft=(rv===-1)?-1:Math.max(0,(rv||1)-1); PL.repeat=false;
+    window.playMyVoice(cp.book,cp.ch,lang,1);
+    e.target.value="";
+  });
+  document.addEventListener("click",function(e){                              // 듣기 줄의 속도 버튼(x0.7~x2.0)이 내 목소리에도 적용
+    var r=e.target.closest&&e.target.closest(".ttsratebtn,.ttsratebtn-d"); if(!r) return;
+    var v=parseFloat(r.getAttribute("data-rate")); if(!v) return; PL.speed=v; lsSet("speed",v); if(A) A.playbackRate=v;
+    var sp=document.getElementById("vpSpeed"); if(sp) sp.value=String(v);
+  },true);
+  window.addEventListener("load",function(){ var cp=curPassage(); updateMyVoiceSel(cp.book,cp.ch); });
+
+  /* ---------- 구절 패널과 도구 메뉴 연결 ---------- */
+  if(OK){
+    window.__voiceBtnHtml=function(book,ch,v){ return ' <button class="voice-open" onclick="event.stopPropagation();openVoiceStudio(\''+book+'\','+ch+','+v+')">🎙️ 내 목소리 녹음</button>'; };
+  } else {
+    document.addEventListener("DOMContentLoaded",hideVoiceUI); window.addEventListener("load",hideVoiceUI);
+  }
+  function hideVoiceUI(){ document.querySelectorAll("[data-voice],#voice-set-card").forEach(function(x){ x.style.display="none"; }); }
+  document.addEventListener("click",function(e){
+    var b=e.target.closest&&e.target.closest("[data-voice]"); if(!b) return;
+    var m=document.getElementById("toolsFabMenu")||document.getElementById("toolsFabMenuD"); if(m) m.style.display="none";
+    var w=b.getAttribute("data-voice"); if(w==="studio") window.openVoiceStudio(); else if(w==="play") window.playMyVoice();
+  });
+
+  /* ---------- 설정 카드: 사용량, 내보내기/가져오기, 배경 낭독 보조 ---------- */
+  async function refreshSet(){
+    var el=document.getElementById("vsetUsage"); if(!el||!OK) return;
+    try{ var u=await usage(); var q=u.est&&u.est.quota?" · 기기 저장소 "+fmtSize(u.est.usage||0)+" 사용 / 약 "+fmtSize(u.est.quota)+" 허용":""; el.textContent="저장된 녹음 "+u.n+"개 · "+fmtSize(u.size)+q; }catch(e){ el.textContent="저장소를 열 수 없습니다."; }
+    var q2=document.getElementById("vsetQ"); if(q2) q2.value=String(Q());
+    var bg=document.getElementById("vsetBg"); if(bg) bg.checked=BG_ON();
+    var note=document.getElementById("vsetNote"); if(note&&!CAN_REC) note.textContent="이 환경에서는 녹음을 쓸 수 없습니다(마이크 녹음은 https 주소의 안드로이드·컴퓨터 크롬에서 됩니다).";
+  }
+  if(OK && "IntersectionObserver" in window){
+    window.addEventListener("load",function(){ var c=document.getElementById("voice-set-card"); if(c) new IntersectionObserver(function(en){ if(en[0].isIntersecting) refreshSet(); }).observe(c); });
+  }
+  document.addEventListener("change",function(e){
+    if(e.target.id==="vsetQ"){ lsSet("q",e.target.value); refreshSet(); }
+    else if(e.target.id==="vsetBg"){ lsSet("bg",e.target.checked?"1":"0"); if(!e.target.checked) kaStop(); }
+    else if(e.target.id==="vsetImport"){ importZip(e.target.files&&e.target.files[0]); e.target.value=""; }
+  });
+  document.addEventListener("click",async function(e){
+    var b=e.target.closest&&e.target.closest("[data-vset]"); if(!b) return; var a=b.getAttribute("data-vset"), msg=document.getElementById("vsetMsg");
+    if(a==="export"){ if(msg) msg.textContent="묶는 중…"; try{ var n=await exportZip(); if(msg) msg.textContent=n?("✅ "+n+"개 녹음을 ZIP 파일로 저장했습니다."):"내보낼 녹음이 없습니다."; }catch(err){ if(msg) msg.textContent="⚠️ "+err.message; } }
+    else if(a==="import"){ document.getElementById("vsetImport").click(); }
+    else if(a==="clear"){ var u=await usage(); if(!u.n){ if(msg) msg.textContent="삭제할 녹음이 없습니다."; return; } if(confirm("저장된 녹음 "+u.n+"개를 모두 삭제할까요? 되돌릴 수 없습니다. 먼저 내보내기를 권합니다.")){ await recClear(); if(msg) msg.textContent="모두 삭제했습니다."; refreshSet(); var cp=curPassage(); markRecs(cp.book,cp.ch); } }
+  });
+
+  /* ---------- ZIP 내보내기/가져오기(압축 없이 담기) ---------- */
+  var CRC=null;
+  function crc32(u8){ if(!CRC){ CRC=new Uint32Array(256); for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); CRC[n]=c>>>0; } } var c2=0xFFFFFFFF; for(var i=0;i<u8.length;i++) c2=CRC[(c2^u8[i])&255]^(c2>>>8); return (c2^0xFFFFFFFF)>>>0; }
+  function u16(n){ return new Uint8Array([n&255,(n>>>8)&255]); } function u32(n){ return new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]); }
+  function extOf(m){ return /mp4/.test(m||"")?"m4a":(/ogg/.test(m||"")?"ogg":"webm"); }
+  async function exportZip(){
+    var all=await recAll(); if(!all.length) return 0;
+    var enc=new TextEncoder(), parts=[], central=[], offset=0, index=[];
+    async function add(name,data){
+      var nameB=enc.encode(name), isBlob=(data instanceof Blob), buf=isBlob?new Uint8Array(await data.arrayBuffer()):data, crc=crc32(buf), size=buf.length;
+      var head=[u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(size),u32(size),u16(nameB.length),u16(0),nameB];
+      var hlen=0; head.forEach(function(x){ hlen+=x.length; });
+      parts.push.apply(parts,head); parts.push(isBlob?data:buf);
+      central.push({nameB:nameB,crc:crc,size:size,off:offset}); offset+=hlen+size;
+    }
+    for(var i=0;i<all.length;i++){ var r=all[i], path=r.book+"/"+r.ch+"/"+r.v+"_"+r.lang+"."+extOf(r.mime); index.push({id:r.id,book:r.book,ch:r.ch,v:r.v,lang:r.lang,mime:r.mime,dur:r.dur,size:r.size,q:r.q,ts:r.ts,path:path}); await add(path,r.blob); }
+    await add("index.json",enc.encode(JSON.stringify({app:"deungbul-voice",version:1,items:index})));
+    var cdStart=offset, cdParts=[], cdLen=0;
+    central.forEach(function(c){ var h=[u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(c.crc),u32(c.size),u32(c.size),u16(c.nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(c.off),c.nameB]; h.forEach(function(x){ cdLen+=x.length; cdParts.push(x); }); });
+    var end=[u32(0x06054b50),u16(0),u16(0),u16(central.length),u16(central.length),u32(cdLen),u32(cdStart),u16(0)];
+    var blob=new Blob(parts.concat(cdParts,end),{type:"application/zip"}), url=URL.createObjectURL(blob), a=document.createElement("a");
+    var d=new Date(), stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+    a.href=url; a.download="등불_내목소리녹음_"+stamp+".zip"; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); },2000);
+    return all.length;
+  }
+  async function importZip(file){
+    var msg=document.getElementById("vsetMsg"); if(!file) return;
+    try{
+      var buf=new Uint8Array(await file.arrayBuffer()), dv=new DataView(buf.buffer), dec=new TextDecoder("utf-8"), i=buf.length-22;
+      while(i>=0 && dv.getUint32(i,true)!==0x06054b50) i--; if(i<0) throw new Error("ZIP 파일이 아닙니다.");
+      var cnt=dv.getUint16(i+10,true), cdOff=dv.getUint32(i+16,true), p=cdOff, ent={};
+      for(var k=0;k<cnt;k++){
+        if(dv.getUint32(p,true)!==0x02014b50) throw new Error("ZIP 구조를 읽을 수 없습니다.");
+        var method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true), nlen=dv.getUint16(p+28,true), xlen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true), lho=dv.getUint32(p+42,true);
+        var name=dec.decode(buf.subarray(p+46,p+46+nlen)); ent[name]={method:method,csize:csize,lho:lho}; p+=46+nlen+xlen+clen;
+      }
+      function data(name){ var e=ent[name]; if(!e) return null; if(e.method!==0) throw new Error("이 앱이 만든 ZIP만 가져올 수 있습니다."); var o=e.lho, nl=dv.getUint16(o+26,true), xl=dv.getUint16(o+28,true); return buf.subarray(o+30+nl+xl,o+30+nl+xl+e.csize); }
+      var idx=JSON.parse(dec.decode(data("index.json")||new Uint8Array())); if(!idx||idx.app!=="deungbul-voice") throw new Error("등불 녹음 ZIP이 아닙니다.");
+      var n=0; for(var j=0;j<idx.items.length;j++){ var it=idx.items[j], d=data(it.path); if(!d) continue;
+        await recPut({id:it.id,book:it.book,ch:it.ch,v:it.v,lang:it.lang,chap:it.book+"."+it.ch+"."+it.lang,mime:it.mime,dur:it.dur,size:d.length,q:it.q,ts:it.ts,blob:new Blob([d.slice()],{type:it.mime})}); n++; }
+      if(msg) msg.textContent="✅ 녹음 "+n+"개를 가져왔습니다."; refreshSet(); var cp=curPassage(); markRecs(cp.book,cp.ch);
+    }catch(err){ if(msg) msg.textContent="⚠️ 가져오지 못했습니다: "+err.message; }
+  }
+  window.__voiceDebug={exportZip:exportZip,importZip:importZip,recAll:recAll,recPut:recPut,recChapter:recChapter,PL:PL,ST:ST,usage:usage};
+
+  /* ---------- 합성 음성 낭독의 배경 재생 보조(안드로이드, 실험) ----------
+     무음 오디오를 함께 재생해 브라우저가 "미디어 재생 중"으로 보게 합니다. 기기에 따라 효과가 없을 수 있습니다. */
+  function BG_ON(){ return lsGet("bg","1")==="1"; }
+  var KA=null, kaTimer=null, kaLast=0;
+  function silentWav(){
+    var n=8000, b=new Uint8Array(44+n), dv=new DataView(b.buffer);
+    function s(o,t){ for(var i=0;i<t.length;i++) b[o+i]=t.charCodeAt(i); }
+    s(0,"RIFF"); dv.setUint32(4,36+n,true); s(8,"WAVE"); s(12,"fmt "); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true); dv.setUint32(24,8000,true); dv.setUint32(28,8000,true); dv.setUint16(32,1,true); dv.setUint16(34,8,true); s(36,"data"); dv.setUint32(40,n,true);
+    for(var i=0;i<n;i++) b[44+i]=128; return new Blob([b],{type:"audio/wav"});
+  }
+  function kaStart(){
+    kaLast=Date.now(); clearTimeout(kaTimer);
+    if(!IS_ANDROID || !BG_ON() || (A && !A.paused)) return;
+    if(!KA){ KA=document.createElement("audio"); KA.id="vpKeepalive"; KA.loop=true; KA.src=URL.createObjectURL(silentWav()); KA.style.display="none"; document.body.appendChild(KA); }
+    if(KA.paused){ var p=KA.play(); if(p&&p.catch) p.catch(function(){}); }
+    if("mediaSession" in navigator && typeof MediaMetadata!=="undefined"){ try{ navigator.mediaSession.metadata=new MediaMetadata({title:"등불 낭독",artist:"성경 읽기",album:"등불"}); navigator.mediaSession.playbackState="playing"; }catch(e){} }
+  }
+  function kaStop(){ clearTimeout(kaTimer); if(KA){ try{ KA.pause(); }catch(e){} } if("mediaSession" in navigator && !PL.on){ try{ navigator.mediaSession.playbackState="none"; }catch(e){} } }
+  function kaIdle(){
+    clearTimeout(kaTimer);
+    kaTimer=setTimeout(function(){
+      var busy=window.speechSynthesis && (speechSynthesis.speaking||speechSynthesis.pending);
+      var recent=Date.now()-kaLast<4000;
+      if((busy||recent) && Date.now()-kaLast<20*60*1000) return kaIdle();      // 아직 읽는 중이면 계속 유지(최대 20분 무소식이면 정지)
+      kaStop();
+    },4500);
+  }
+  if(window.speechSynthesis && !window.speechSynthesis.__vk){
+    var ss=window.speechSynthesis, os=ss.speak.bind(ss), oc=ss.cancel.bind(ss);
+    ss.speak=function(u){ try{ if(PL.on) plStop(); if(IS_ANDROID){ kaStart(); u.addEventListener("end",kaIdle); u.addEventListener("error",kaIdle); } }catch(e){} return os(u); };
+    ss.cancel=function(){ var r=oc(); if(IS_ANDROID) kaIdle(); return r; };
+    ss.__vk=1;
+  }
+
+  /* ---------- 스타일 ---------- */
+  var css=document.createElement("style");
+  css.textContent=
+    "#myVoiceSel{max-width:150px;text-overflow:ellipsis;}@media (max-width:600px){#myVoiceSel{max-width:118px;font-size:12px;}}"+
+    ".voice-open{font-size:12px;padding:5px 12px;border-radius:14px;border:1px solid rgba(212,175,55,.6);background:rgba(212,175,55,.15);color:inherit;cursor:pointer;font-weight:600;}"+
+    "body.light-mode .voice-open{border-color:rgba(111,74,7,.6);background:rgba(111,74,7,.12);}"+
+    ".vs-chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 8px;}.vs-chip{min-width:34px;padding:5px 7px;border-radius:8px;border:1px solid rgba(128,128,128,.5);background:rgba(128,128,128,.14);color:inherit;font-size:12.5px;cursor:pointer;}"+
+    ".vs-chip.have{background:rgba(92,170,120,.4);border-color:rgba(92,170,120,.9);}.vs-chip.cur{outline:2px solid rgba(212,175,55,.95);font-weight:700;}.vs-chip.na{opacity:.35;cursor:not-allowed;}.vs-chip:disabled{cursor:default;}"+
+    ".vs-text{font-size:19px;line-height:1.9;}.vs-stop{background:rgba(220,70,70,.45)!important;border-color:rgba(220,70,70,.95)!important;}.vs-auto{display:block;margin:6px 0;font-size:12.5px;}"+
+    ".lrn-btns button:disabled{opacity:.4;cursor:not-allowed;}"+
+    ".vrec{margin-left:3px;font-size:12px;cursor:pointer;opacity:.9;}.vrec:hover{opacity:1;transform:scale(1.15);}.vrec-now{background:rgba(212,175,55,.28)!important;border-radius:6px;outline:2px solid rgba(212,175,55,.8);}"+
+    ".vp-bar{position:fixed;left:8px;right:84px;bottom:70px;z-index:9990;display:none;flex-direction:column;gap:4px;padding:8px 10px;border-radius:12px;background:#1f2635;color:#e9e4d6;border:1px solid rgba(212,175,55,.6);box-shadow:0 4px 18px rgba(0,0,0,.45);font-size:12.5px;}"+
+    ".vp-lab{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.vp-btns{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}.vp-btns button{font-size:16px;padding:3px 9px;border-radius:8px;border:1px solid rgba(128,128,128,.5);background:rgba(128,128,128,.18);color:inherit;cursor:pointer;}"+
+    ".vp-btns select{font-size:12px;padding:3px 4px;border-radius:7px;background-color:#2a3345;color:#e9e4d6;border:1px solid rgba(128,128,128,.5);}.vp-btns label{font-size:11.5px;display:flex;align-items:center;gap:3px;}"+
+    "@media (min-width:900px){.vp-bar{left:250px;right:110px;bottom:14px;}}"+
+    ".vp-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:130px;z-index:9991;background:rgba(20,24,34,.95);color:#e9e4d6;padding:9px 14px;border-radius:12px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:88vw;text-align:center;}"+
+    ".vset-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0;font-size:13px;}.vset-row button{font-size:13px;padding:7px 12px;border-radius:10px;border:1px solid rgba(128,128,128,.5);background:rgba(128,128,128,.14);color:inherit;cursor:pointer;}"+
+    "body.light-mode .vp-bar,body.light-mode .vp-toast{background:#efe8d6;color:#2b251a;border-color:rgba(111,74,7,.6);}body.light-mode .vp-btns select{background-color:#e1d7bf;color:#2b251a;}"+
+    "body.light-mode .vs-chip.cur{outline-color:rgba(111,74,7,.9);}body.light-mode .vrec-now{background:rgba(111,74,7,.18)!important;outline-color:rgba(111,74,7,.8);}"+
+    ".vp-bar option,.lrn-box select option{background-color:#1f2635;color:#e9e4d6;}body.light-mode .vp-bar option{background-color:#efe8d6;color:#2b251a;}";
+  document.head.appendChild(css);
+})();
+
+/*VOICE-END*/
 </script>
 
 <!-- 구글 캘린더 일정 추가/수정 모달 -->
