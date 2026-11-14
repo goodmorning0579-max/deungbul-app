@@ -3105,7 +3105,7 @@ async function renderPassage(book, ch){
   (notes && notes.verses ? notes.verses : []).forEach(v=>{ if(v.note) noteByVerse[v.n]=v; });
   if(verses && verses.length){
     card.innerHTML=`<div class="passage-grid" id="passage-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
-      <div class="cohead cohead-en" onclick="togglePassageCol('en')">영어 (${window._enLiveName||window._enBibleName||"English"}) <span class="coexpand">⤢</span></div><div class="cohead cohead-kr" onclick="togglePassageCol('kr')">한글 (개역한글) <span class="coexpand">⤢</span></div>
+      <div class="cohead cohead-en" onclick="togglePassageCol('en')">영어 (${window.__EN_PREF==="NIV" ? (window._enLiveName||window._enBibleName||"NIV") : "WEB"}) <span class="coexpand">⤢</span></div><div class="cohead cohead-kr" onclick="togglePassageCol('kr')">한글 (개역한글) <span class="coexpand">⤢</span></div>
       ${verses.map(v=>{
         const vn=noteByVerse[v.n];
         const toggleHtml=`<span class="vnote-toggle" data-vnt="${v.n}" title="절 단위 주석·연구 보기 (원어 분석 포함)">📖</span>`;

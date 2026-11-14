@@ -2970,9 +2970,10 @@ async function renderPassage(bookCode, chapter){
     : "이 장은 아직 심층연구 노트가 준비되지 않았습니다 — 읽기와 기록장은 그대로 사용하실 수 있어요.";
 
   const grid = document.getElementById("bilingual-grid");
-  grid.innerHTML = `<div class="col-head col-head-en" onclick="togglePassageColD('en')">${window._enLiveName||window._enBibleName||"English"} <span class="coexpand-d">⤢</span></div><div class="col-head col-head-kr" onclick="togglePassageColD('kr')">한글 <span class="coexpand-d">⤢</span></div>`;
+  grid.innerHTML = `<div class="col-head col-head-en" onclick="togglePassageColD('en')">${window.__EN_PREF==="NIV" ? (window._enLiveName||window._enBibleName||"NIV") : "WEB"} <span class="coexpand-d">⤢</span></div><div class="col-head col-head-kr" onclick="togglePassageColD('kr')">한글 <span class="coexpand-d">⤢</span></div>`;
 
   const liveVerses = await tryRenderLiveText(currentPassageKey).catch(()=>null);
+  try{ var __he=grid.querySelector(".col-head-en"); if(__he && __he.firstChild) __he.firstChild.nodeValue=(window.__EN_PREF==="NIV" ? (window._enLiveName||window._enBibleName||"NIV") : "WEB")+" "; }catch(e){}
   const verses = (liveVerses && liveVerses.length>0) ? liveVerses : (notes ? notes.verses : null);
 
   if(verses && verses.length){
