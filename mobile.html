@@ -6325,7 +6325,7 @@ document.addEventListener("change",(e)=>{
   }
   if(document.readyState==="complete") setTimeout(init,50); else window.addEventListener("load",function(){ setTimeout(init,50); });
   var css=document.createElement("style");
-  css.textContent="#vsel{flex:0 0 auto;width:76px;min-width:0;}.passage-bar #vsel{width:auto;}";
+  css.textContent=".selbar{gap:6px;flex-wrap:nowrap;align-items:stretch;}.selbar select{min-width:0;padding:8px 6px;font-size:13px;text-overflow:ellipsis;}.selbar #bsel{flex:1 1 0;}.selbar #chsel{flex:0 0 auto;width:72px;}#vsel{flex:0 0 auto;width:68px;}.selbar .bsopen{flex:0 0 auto;padding:8px 9px;}.passage-bar #vsel{width:auto;}";
   document.head.appendChild(css);
 })();
 /*VSEL-END*/
