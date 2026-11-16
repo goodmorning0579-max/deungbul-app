@@ -5558,7 +5558,7 @@ async function showReadReminderBanner(){
   banner.dataset.goCh = goCh || "";
   banner.style.display = "flex";
   if("Notification" in window && Notification.permission === "granted" && document.hidden){
-    try{ new Notification("등불 🪔", { body: msg.replace("🪔 ",""), icon: "icon-192.png?v=28" }); }catch(e){}
+    try{ new Notification("등불 🪔", { body: msg.replace("🪔 ",""), icon: "deungbul-192.png" }); }catch(e){}
   }
 }
 document.addEventListener("click",(e)=>{
@@ -6474,7 +6474,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-16 · v30";
+  var V="2026-11-16 · v32";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -6551,11 +6551,11 @@ document.addEventListener("change",(e)=>{
   }
   async function sha(s){ try{ var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("chx|"+s)); return Array.prototype.map.call(new Uint8Array(b),function(x){ return pad(x.toString(16)).slice(-2); }).join(""); }catch(e){ return "plain:"+s; } }
 
-  var TABS=[["members","👥 성도"],["groups","🏛 조직·셀"],["att","✅ 출석"],["care","💌 돌봄"],["cal","🗓 연중행사"],["news","📢 소식"],["stats","📊 통계"],["set","⚙ 설정"]];
+  var TABS=[["members","👥 성도"],["groups","🏛 조직·셀"],["att","✅ 출석"],["care","💌 돌봄"],["cal","🗓 연중행사"],["news","📢 소식"],["stats","📊 통계"],["set","⚙ 설정"],["help","📖 설명서"]];
   function render(){
     var t=document.getElementById("chxTabs"); if(!t) return;
     t.innerHTML=TABS.map(function(x){ return '<button class="chx-tab'+(S.tab===x[0]?" on":"")+'" data-chx="tab" data-v="'+x[0]+'">'+x[1]+'</button>'; }).join("");
-    var h=""; try{ h=({members:vMembers,groups:vGroups,att:vAtt,care:vCare,cal:vCal,news:vNews,stats:vStats,set:vSet})[S.tab](); }catch(e){ h='<div class="chx-card">화면을 그리는 중 오류가 났습니다: '+esc(e.message)+'</div>'; }
+    var h=""; try{ h=({members:vMembers,groups:vGroups,att:vAtt,care:vCare,cal:vCal,news:vNews,stats:vStats,set:vSet,help:vHelp})[S.tab](); }catch(e){ h='<div class="chx-card">화면을 그리는 중 오류가 났습니다: '+esc(e.message)+'</div>'; }
     var b=bodyEl(), y=b.scrollTop; b.innerHTML=h; b.scrollTop=y;
   }
 
@@ -6574,7 +6574,7 @@ document.addEventListener("change",(e)=>{
     var h=ban+'<div class="chx-row"><input id="chxQ" class="chx-in" placeholder="이름·전화·가족·메모 검색" value="'+esc(S.q)+'"><select id="chxFlt" class="chx-in" style="max-width:150px">'+opts.replace('value="'+S.flt+'"','value="'+S.flt+'" selected')+'</select></div>'+
       '<div class="chx-row" style="justify-content:space-between;align-items:center"><span class="chx-dim">총 '+DB.members.length+'명 · 표시 '+list.length+'명</span><span><button class="chx-btn" data-chx="qm-open">여러 명 등록</button> <button class="chx-btn chx-pri" data-chx="m-add">＋ 성도 추가</button></span></div>'+
       '<div class="chx-row" style="flex-wrap:wrap"><label class="chx-btn">📥 엑셀(CSV) 가져오기<input type="file" id="chxCsv" accept=".csv,text/csv,.txt" style="display:none"></label><button class="chx-btn" data-chx="csv-tpl">양식 받기</button></div>';
-    if(!DB.members.length) h+='<div class="chx-card chx-dim">아직 등록된 성도가 없습니다. [＋ 성도 추가]로 시작하세요. 이미 엑셀 명단이 있다면 위의 <b>📥 엑셀(CSV) 가져오기</b>를 쓰세요. [양식 받기]로 빈 양식을 받을 수 있습니다.</div>';
+    if(!DB.members.length) h+='<div class="chx-card chx-dim">아직 등록된 성도가 없습니다. [＋ 성도 추가]로 시작하세요. 처음이시면 위쪽 <b>📖 설명서</b> 탭을 먼저 보세요. 이미 엑셀 명단이 있다면 위의 <b>📥 엑셀(CSV) 가져오기</b>를 쓰세요. [양식 받기]로 빈 양식을 받을 수 있습니다.</div>';
     h+=list.map(function(m){
       var gs=groupsOf(m).map(function(g){ return esc(g.name); }).join(" · "), bd=daysToBirthday(m.birth);
       return '<div class="chx-item chx-mi" data-chx="m-edit" data-id="'+m.id+'">'+av(m)+'<div style="flex:1;min-width:0"><div><b>'+esc(m.name)+'</b> <span class="chx-tag">'+esc(m.role||"성도")+'</span>'+(m.status&&m.status!=="활동"?' <span class="chx-tag chx-warn">'+esc(m.status)+'</span>':'')+(m.stage&&m.stage!=="정착 완료"?' <span class="chx-tag chx-ok">'+esc(m.stage)+'</span>':'')+(bd!==null&&bd<=7?' <span class="chx-tag chx-ok">🎂 '+(bd===0?"오늘":bd+"일 후")+'</span>':'')+'</div><div class="chx-dim">'+(gs||"소속 없음")+(m.phone?' · '+esc(m.phone):'')+(relText(m)?' · 👪 '+esc(relText(m)):'')+'</div></div></div>';
@@ -6901,6 +6901,26 @@ document.addEventListener("change",(e)=>{
     w.document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=1100"><title>'+title+'</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;margin:0;padding:12px;color:#000}h1{text-align:center;font-size:20px;margin:0 0 4px}.sub{text-align:center;font-size:12px;margin-bottom:8px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #333;padding:0 3px;height:'+(list.length>28?"19px":"26px")+';font-size:'+(list.length>28?"11px":"13px")+';text-align:center;overflow:hidden;white-space:nowrap}th{background:#eee}.no{width:34px}.nm{width:78px}.rl{width:56px}.ph{width:108px}.dt{width:'+(wide?"34":"46")+'px}.bg{width:90px}tr.sum td{background:#f5f5f5;font-weight:700}.btn{margin-top:10px}@media print{.btn{display:none}}</style><h1>'+title+'</h1><div class="sub">'+y0+'년 '+(m0+1)+'월 ~ '+(function(){ var e=dates.length?dates[dates.length-1]:ym+"-01"; return e.slice(0,4)+"년 "+(+e.slice(5,7))+"월"; })()+' · 출석 ○ / 결석 ×</div><table><thead>'+th+'</thead><tbody>'+body+blank+sum+'</tbody></table><div class="btn"><button onclick="window.print()">인쇄 / PDF 저장</button> <span style="font-size:12px">(인쇄 설정에서 용지 방향을 가로로 하세요)</span></div>');
     w.document.close(); mClose();
   }
+
+  /* ---------- 사용 설명서 ---------- */
+  var HELP=[{"n": "1", "t": "처음 시작", "b": "<ul>\n<li>앱 하단 <b>⛪ 교회</b>(데스크탑은 왼쪽 메뉴)를 눌러 <b>안내문</b>을 확인합니다.</li>\n<li>모든 자료는 <b>이 기기에만</b> 저장됩니다. 서버로 전송되지 않습니다.</li>\n<li>설정 탭에서 <b>잠금 PIN</b>을 정해 두면 앱을 열 때마다 PIN을 묻습니다.</li></ul>", "w": false, "j": "set"}, {"n": "2", "t": "성도 등록", "b": "<ul>\n<li><b>＋ 성도 추가</b>: 이름·전화·생일·직분·사진·가족 관계까지 한 명씩.</li>\n<li><b>여러 명 등록</b>: 이름을 줄바꿈·쉼표로 나열(전화번호는 이름 뒤에). 생일 등은 나중에 보충.</li>\n<li><b>📥 엑셀(CSV) 가져오기</b>: <b>양식 받기</b>로 받은 양식에 입력해 가져옵니다. 제목 줄(이름·전화·생일·직분·소속…)만 맞으면 열 순서는 달라도 되고, 한글 엑셀(CSV) 파일도 읽습니다. 이미 있는 이름+전화는 건너뛰고, 없는 소속은 새로 만듭니다.</li></ul>", "w": false, "j": "members"}, {"n": "3", "t": "기관·셀 만들기", "b": "<ul>\n<li><b>🏛 기관(부서)</b>(장년부·청년부 등)와 <b>🔸 셀</b>을 만들고 <b>리더·회장·임원</b>을 등록된 성도 중에서 고릅니다.</li>\n<li>화면 안의 <b>＋ 새 성도 바로 등록</b>으로 명단에 없는 사람도 즉시 추가할 수 있습니다.</li>\n<li>기관 안에 셀을 두면 기관 출석에 셀원이 함께 집계됩니다.</li></ul>", "w": false, "j": "groups"}, {"n": "4", "t": "출석", "b": "<ul>\n<li><b>✅ 출석</b> 탭에서 날짜·모임을 고르고 이름을 누르면 <b>미체크 → 출석 → 결석</b>으로 바뀌며 자동 저장됩니다.</li>\n<li><b>🖨 출석부 인쇄</b>: 모임·시작 달·기간(1~3개월)·요일을 골라 가로 A4 <b>종이 출석부</b>를 인쇄합니다. 기록해 둔 출결을 ○/×로 미리 채울 수도 있습니다.</li></ul>", "w": false, "j": "att"}, {"n": "5", "t": "돌봄", "b": "<ul>\n<li><b>💌 돌봄</b> 탭: 오늘 생일, 7일 안 생일, <b>연속 결석자</b>가 자동으로 나옵니다.</li>\n<li>심방·기도 기록과 <b>후속 조치 날짜</b>를 남기면 때가 되었을 때 알려 줍니다.</li>\n<li>새가족은 <b>등록 → 1주차 심방 → 새가족반 → 셀 배정 → 정착 완료</b> 단계를 추적합니다.</li></ul>", "w": false, "j": "care"}, {"n": "6", "t": "소식·연중행사표", "b": "<ul>\n<li><b>📢 소식</b>: 공지·행사·주보를 써서 <b>공유</b>(카카오톡 등)할 수 있습니다.</li>\n<li><b>🗓 연중행사</b> 탭: 월별·연간 달력에 입력·수정·삭제, 매년 반복, <b>절기 기본 입력</b>(부활절·추수감사주일 등), 인쇄/CSV 지원.</li></ul>", "w": false, "j": "cal"}, {"n": "7", "t": "임원에게 나눠 주기", "b": "<ul>\n<li>회장·임원은 <b>자기 기관만</b> 봐야 하므로, <b>🏛 조직·셀</b> 탭에서 해당 조직을 열어 <b>📤 이 조직 자료 내보내기</b>로 그 기관 자료만 <b>암호화 파일</b>로 만들어 전달합니다.</li>\n<li>임원이 기록해 돌려준 파일은 설정 탭의 <b>백업 불러오기</b>로 열면 <b>“합칠까요?”</b> 안내가 나와 기존 자료에 합칠 수 있습니다.</li></ul>", "w": false, "j": "groups"}, {"n": "!", "t": "꼭 지켜 주세요", "b": "<ul>\n<li><b>백업</b>: 폰 분실·앱 삭제·브라우저 데이터 삭제 시 자료가 사라집니다. 설정 탭의 <b>🔐 암호 백업 받기</b>를 <b>매주</b> 받아 다른 곳(클라우드·PC)에 보관하세요. 암호는 분실하면 복구할 수 없습니다.</li>\n<li><b>PIN은 화면 잠금</b>일 뿐 파일 자체 암호화는 아닙니다. 백업·내보내기 파일은 반드시 암호를 지정하세요.</li>\n<li>전화·생일·사진은 <b>개인정보</b>입니다. 목적(목회 돌봄) 외에 쓰거나 무단으로 넘기지 마세요.</li></ul>", "w": true, "j": ""}];
+  var HELP_CSS=" @page{size:A4;margin:11mm 12mm} *{box-sizing:border-box}body{font-family:\"Noto Sans CJK KR\",\"Noto Sans KR\",\"Malgun Gothic\",sans-serif;color:#1d1a16;font-size:10.2pt;line-height:1.5;margin:0} header{display:flex;align-items:center;gap:12px;border-bottom:3px solid #b8832a;padding-bottom:8px;margin-bottom:10px} header img{width:54px;height:54px;border-radius:12px} h1{font-size:17pt;margin:0;color:#5a3a10}header p{margin:2px 0 0;font-size:9.5pt;color:#6b5a44} .cols{columns:2;column-gap:16px} section{break-inside:avoid;margin:0 0 9px;border:1px solid #e0d2b5;border-radius:8px;padding:7px 10px;background:#fffaf0} h2{font-size:11pt;margin:0 0 3px;color:#8a5a12}h2 span{display:inline-block;background:#b8832a;color:#fff;border-radius:50%;width:19px;height:19px;text-align:center;line-height:19px;font-size:9.5pt;margin-right:5px} ul{margin:2px 0 0;padding-left:16px}li{margin:1px 0}b{color:#5a3a10} .warn{border-color:#d9a0a0;background:#fff3f1}.warn h2{color:#a02828} footer{margin-top:4px;font-size:8.5pt;color:#6b5a44;text-align:center;border-top:1px solid #e0d2b5;padding-top:5px} ";
+  var JNAME={set:"⚙ 설정",members:"👥 성도",groups:"🏛 조직·셀",att:"✅ 출석",care:"💌 돌봄",cal:"🗓 연중행사"};
+  function vHelp(){
+    var h='<div class="chx-card"><h3>📖 사용 설명서</h3><div class="chx-dim">목회자·기관 회장·임원이 처음 쓸 때 보는 안내입니다. 항목을 누르면 펼쳐지고, 아래 버튼으로 해당 화면으로 바로 갈 수 있습니다.</div>'+
+      '<div class="chx-row" style="margin-top:8px"><button class="chx-btn chx-pri" data-chx="help-print">🖨 1페이지로 인쇄 / PDF 저장</button></div></div>';
+    h+=HELP.map(function(s,i){
+      return '<details class="chx-card'+(s.w?" chx-warn2":"")+'"'+(i===0||s.w?" open":"")+'><summary style="cursor:pointer;font-weight:700;font-size:15px">'+s.n+'. '+s.t+'</summary><div class="chx-help">'+s.b+(s.j?'<div style="margin-top:8px"><button class="chx-btn" data-chx="tab" data-v="'+s.j+'">'+JNAME[s.j]+' 화면으로 가기 →</button></div>':'')+'</div></details>';
+    }).join("");
+    h+='<div class="chx-dim" style="margin:8px 0">문의·개인정보 처리 안내는 설정 탭의 안내와 privacy.html 6-1항을 보세요.</div>';
+    return h;
+  }
+  function printHelp(){
+    var w=window.open("","_blank"); if(!w){ alert("팝업이 막혀 있습니다. 팝업을 허용해 주세요."); return; }
+    var body=HELP.map(function(s){ return '<section'+(s.w?' class="warn"':'')+'><h2><span>'+s.n+'</span>'+s.t+'</h2>'+s.b+'</section>'; }).join("");
+    w.document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>등불 교회·성도 관리 사용 안내</title><style>'+HELP_CSS+'</style><header><div><h1>등불 · 교회·성도 관리 사용 안내</h1><p>목회자·기관 회장·임원용 1페이지</p></div></header><div class="cols">'+body+'</div><footer>등불 · 시편 119:105</footer><p class="np"><button onclick="window.print()">인쇄 / PDF 저장</button></p><style>@media print{.np{display:none}}</style>');
+    w.document.close();
+  }
   function parseCsv(txt){
     var rows=[],row=[],cur="",q=false; txt=txt.replace(/^﻿/,"");
     for(var i=0;i<txt.length;i++){ var c=txt[i];
@@ -7136,6 +7156,7 @@ document.addEventListener("change",(e)=>{
       case "bk": backup(); break;
       case "g-exp": exportGroup(id); break;
       case "qm-open": quickMemberForm(); break;
+      case "help-print": printHelp(); break;
       case "csv-tpl": csvTemplate(); break;
       case "imp-go": importGo(); break;
       case "pa-open": printAttForm(); break;
@@ -7221,7 +7242,7 @@ document.addEventListener("change",(e)=>{
     ".chx-pri{background:var(--ac);color:#111;border-color:var(--ac);font-weight:700;}.chx-dg{color:var(--dg);border-color:var(--dg);}"+
     ".chx-card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin:10px 0;}.chx-card h3{margin:0 0 6px;font-size:16px;}.chx-warn2{border-color:var(--wn);}"+
     ".chx-item{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:10px 12px;margin:6px 0;cursor:pointer;}"+
-    ".chx-dim{color:var(--tx2);font-size:13px;}.chx-sub{margin:16px 0 4px;font-weight:700;color:var(--ac);}"+
+    ".chx-dim{color:var(--tx2);font-size:13px;}.chx-help ul{margin:6px 0 0;padding-left:18px;}.chx-help li{margin:4px 0;line-height:1.55;}details.chx-card>summary{list-style:none;}details.chx-card>summary::-webkit-details-marker{display:none;}details.chx-card>summary::before{content:'▸ ';}details.chx-card[open]>summary::before{content:'▾ ';}.chx-sub{margin:16px 0 4px;font-weight:700;color:var(--ac);}"+
     ".chx-tag{display:inline-block;font-size:11.5px;border:1px solid var(--bd);border-radius:10px;padding:1px 7px;color:var(--tx2);}.chx-warn{color:var(--wn);border-color:var(--wn);}.chx-ok{color:var(--ok);border-color:var(--ok);}"+
     ".chx-att{display:flex;justify-content:space-between;align-items:center;user-select:none;}.chx-att.on{border-color:var(--ok);}.chx-att.off{border-color:var(--dg);}.chx-state{font-weight:700;}"+
     ".chx-modal{position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:16px 10px;}"+
