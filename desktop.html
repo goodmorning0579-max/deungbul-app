@@ -3528,7 +3528,34 @@ if("speechSynthesis" in window){
   loadVoiceListD();
   window.speechSynthesis.onvoiceschanged = loadVoiceListD;
 }
+function __voiceScoreQ(v){
+  const nm=((v.name||"")+" "+(v.voiceURI||"")).toLowerCase(), lang=(v.lang||"").toLowerCase().replace("_","-");
+  let s=0;
+  if(/neural|natural|premium|enhanced|wavenet|studio|hq|고품질/.test(nm)) s+=40;
+  if(/google|구글/.test(nm)) s+=14;
+  if(/samsung|삼성/.test(nm)) s+=10;
+  if(/sunhi|sun-hi|injoon|yuna|heami|hyunsu|seoyeon|jimin|inwoo/.test(nm)) s+=12;
+  if(v.localService===false || /network|online/.test(nm)) s+=16;
+  if(/compact|espeak|festival|flite/.test(nm)) s-=30;
+  if(lang==="ko-kr"||lang==="en-us") s+=2;
+  if(v.default) s+=1;
+  return s;
+}
+function __voiceTag(v){ const nm=((v.name||"")+" "+(v.voiceURI||"")).toLowerCase(); return (v.localService===false||/network|online/.test(nm)) ? " 🌐온라인" : " 📱기기"; }
+function __voiceSaved(lang){ try{ return localStorage.getItem("ttsVoiceURI:"+lang)||null; }catch(e){ return null; } }
+function __voiceSave(lang,u){ try{ localStorage.setItem("ttsVoiceURI:"+lang,u); }catch(e){} }
+/* 낭독용 다듬기: 따옴표·말줄임·대시를 읽지 않게 하고, 절 끝에 마침표가 없으면 붙여 억양이 자연스럽게 내려가게 한다 */
+function __ttsPolish(t,lang){
+  t=String(t||"").replace(/[\u201C\u201D\u300C\u300D\u300E\u300F"]/g,"").replace(/[\u2018\u2019]/g,"'")
+    .replace(/[\u2014\u2013]/g,", ").replace(/\u2026/g,", ").replace(/[\[\]{}]/g,"").replace(/\s+/g," ").trim();
+  if(lang!=="en"){ t=t.replace(/\s*[;:]\s*/g,", "); }
+  if(t && !/[.?!。]$/.test(t)) t+=".";
+  return t;
+}
 function scoreVoiceD(v){
+  return __voiceScoreQ(v);
+}
+function __scoreVoiceOldD(v){
   const name=(v.name||"").toLowerCase();
   let score=0;
   HQ_VOICE_HINTS_D.forEach(h=>{ if(name.includes(h)) score+=10; });
@@ -3547,9 +3574,9 @@ function populateVoiceSelectD(lang){
   curTTSDropdownLangD=lang;
   const voices=voicesForLangD(lang);
   if(!voices.length){ sel.style.display="none"; sel.innerHTML=""; return; }
-  sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${i===0?" ⭐추천":""}</option>`).join("");
-  const saved = selectedVoiceURID[lang];
-  if(saved && voices.some(v=>v.voiceURI===saved)) sel.value=saved;
+  sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${__voiceTag(v)}${i===0?" ⭐추천":""}</option>`).join("");
+  const saved = selectedVoiceURID[lang] || __voiceSaved(lang);
+  if(saved && voices.some(v=>v.voiceURI===saved)){ sel.value=saved; selectedVoiceURID[lang]=saved; }
   else selectedVoiceURID[lang]=sel.value;
   sel.style.display="";
 }
@@ -3641,7 +3668,7 @@ async function speakVerseQueueD(lang, idx, myPlaybackId){
   highlightVerseD(v.n);
   ttsCurrentIdxD = idx;
   ttsCurrentLangD = lang;
-  const utter = new SpeechSynthesisUtterance(lang==="en" ? text : krBibleRefSpeech(text));
+  const utter = new SpeechSynthesisUtterance(__ttsPolish(lang==="en" ? text : krBibleRefSpeech(text), lang));
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = ttsRateD;
   const chosenURI = selectedVoiceURID[lang];
@@ -6810,6 +6837,52 @@ window.loadApiKey().then(async function(){
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addBtn); else addBtn();
 })();
 /*BW-END*/
+
+/*TTSQ-START*/
+/* ===== 낭독 음성 품질 보조: 고른 음성 기억, 시험 듣기, 늦게 로드되는 음성 목록 재확인 ===== */
+(function(){
+  "use strict";
+  var D="D";
+  function g(n){ try{ return eval(n); }catch(e){ return undefined; } }
+  function selEl(){ return document.getElementById("ttsVoiceSel"+D); }
+  function curLang(){ return g("curTTSDropdownLang"+D)||"kr"; }
+  function save(){
+    var s=selEl(); if(!s||!s.value) return;
+    try{ localStorage.setItem("ttsVoiceURI:"+curLang(), s.value); }catch(e){}
+    try{ var m=g("selectedVoiceURI"+D); if(m) m[curLang()]=s.value; }catch(e){}
+  }
+  function test(){
+    if(!window.speechSynthesis) return;
+    var s=selEl(), lang=curLang(), voices=window.speechSynthesis.getVoices()||[], v=null;
+    for(var i=0;i<voices.length;i++){ if(s && voices[i].voiceURI===s.value){ v=voices[i]; break; } }
+    var u=new SpeechSynthesisUtterance(lang==="en"?"In the beginning, God created the heavens and the earth.":"태초에 하나님이 천지를 창조하시니라. 여호와는 나의 목자시니 내가 부족함이 없으리로다.");
+    u.lang=lang==="en"?"en-US":"ko-KR"; if(v) u.voice=v;
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    window.speechSynthesis.speak(u);
+  }
+  function addUi(){
+    var s=selEl(); if(!s||document.getElementById("ttsVoiceTest"+D)) return;
+    var b=document.createElement("button"); b.type="button"; b.id="ttsVoiceTest"+D; b.className=(s.className||"ttsvoicesel"); b.textContent="🔈 음성 시험";
+    b.title="고른 음성으로 짧은 문장을 들어 봅니다"; b.style.cursor="pointer"; b.style.display=s.style.display;
+    s.parentNode.insertBefore(b,s.nextSibling);
+    b.addEventListener("click",test);
+    new MutationObserver(function(){ b.style.display=s.style.display; }).observe(s,{attributes:true,attributeFilter:["style"]});
+    s.title="낭독 음성 선택 (🌐온라인 음성이 대체로 더 자연스럽고, 📱기기 음성은 인터넷 없이도 됩니다)";
+  }
+  function init(){
+    addUi();
+    document.addEventListener("change",function(e){ if(e.target&&e.target.id==="ttsVoiceSel"+D) save(); });
+    /* 안드로이드는 음성 목록이 늦게 채워지는 경우가 있어 몇 번 다시 확인한다 */
+    [600,1800,4000].forEach(function(ms){ setTimeout(function(){ try{
+      if(window.speechSynthesis && (window.speechSynthesis.getVoices()||[]).length){
+        var f=window["loadVoiceList"+D]||g("loadVoiceList"+D); if(typeof f==="function") f();
+      }
+      addUi();
+    }catch(e){} },ms); });
+  }
+  if(document.readyState==="complete") setTimeout(init,50); else window.addEventListener("load",function(){ setTimeout(init,50); });
+})();
+/*TTSQ-END*/
 
 /*NAV-START*/
 /* ===== 돌아가기: 앱 안의 ← 돌아가기 버튼 + 스마트폰 뒤로가기(◁) 연동 =====
