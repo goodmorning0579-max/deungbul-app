@@ -6474,7 +6474,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-16 · v23";
+  var V="2026-11-16 · v24";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -6572,7 +6572,7 @@ document.addEventListener("change",(e)=>{
       DB.groups.map(function(g){ return '<option value="'+g.id+'"'+(S.flt===g.id?" selected":"")+'>'+(g.kind==="org"?"🏛 ":"🔸 ")+esc(g.name)+'</option>'; }).join("");
     var sm=todaySummary(), ban=(sm.bds.length||sm.ab.length)?'<div class="chx-card chx-warn2" style="margin:0 0 8px">'+(sm.bds.length?'🎂 오늘 생일: '+sm.bds.map(function(m){ return esc(m.name); }).join(", "):'')+(sm.bds.length&&sm.ab.length?'<br>':'')+(sm.ab.length?'📞 연속 결석 '+sm.ab.length+'명 — 돌봄 탭에서 확인':'')+'</div>':'';
     var h=ban+'<div class="chx-row"><input id="chxQ" class="chx-in" placeholder="이름·전화·가족·메모 검색" value="'+esc(S.q)+'"><select id="chxFlt" class="chx-in" style="max-width:150px">'+opts.replace('value="'+S.flt+'"','value="'+S.flt+'" selected')+'</select></div>'+
-      '<div class="chx-row" style="justify-content:space-between;align-items:center"><span class="chx-dim">총 '+DB.members.length+'명 · 표시 '+list.length+'명</span><button class="chx-btn chx-pri" data-chx="m-add">＋ 성도 추가</button></div>';
+      '<div class="chx-row" style="justify-content:space-between;align-items:center"><span class="chx-dim">총 '+DB.members.length+'명 · 표시 '+list.length+'명</span><span><button class="chx-btn" data-chx="qm-open">여러 명 등록</button> <button class="chx-btn chx-pri" data-chx="m-add">＋ 성도 추가</button></span></div>';
     if(!DB.members.length) h+='<div class="chx-card chx-dim">아직 등록된 성도가 없습니다. [＋ 성도 추가]로 시작하세요. 이미 엑셀 명단이 있다면 설정 탭의 <b>CSV 가져오기</b>를 쓰세요.</div>';
     h+=list.map(function(m){
       var gs=groupsOf(m).map(function(g){ return esc(g.name); }).join(" · "), bd=daysToBirthday(m.birth);
@@ -6638,6 +6638,37 @@ document.addEventListener("change",(e)=>{
     if(free.length){ h+='<div class="chx-sub">기관에 속하지 않은 셀</div>'; free.forEach(function(c){ h+=gline(c,0); }); }
     return h;
   }
+  function memberChips(gid){
+    return DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return memberChip(m,gid&&(m.groups||[]).indexOf(gid)>=0); }).join("")||'<span class="chx-dim">등록된 성도가 아직 없습니다</span>';
+  }
+  function memberChip(m,on){ return '<label class="chx-chk"><input type="checkbox" name="gm" value="'+m.id+'"'+(on?" checked":"")+'> '+esc(m.name)+'</label>'; }
+  /* 성도 바로 등록(여러 명 한꺼번에 가능) */
+  function quickMemberForm(){
+    modal('<h3>＋ 성도 바로 등록</h3><div class="chx-form"><label>이름 (여러 명은 줄바꿈 또는 쉼표로 구분)<textarea class="chx-in" id="q_names" rows="5" placeholder="김믿음 010-1111-2222&#10;이소망&#10;박사랑, 최은혜"></textarea></label>'+
+      '<div class="chx-dim">이름 뒤에 전화번호를 띄어 쓰면 함께 저장됩니다. 생일·가족·사진 등은 나중에 [👥 성도]에서 보충하세요.</div>'+
+      '<label>직분<select class="chx-in" id="q_role">'+ROLES.map(function(r){ return '<option'+(r==="성도"?" selected":"")+'>'+r+'</option>'; }).join("")+'</select></label></div>'+
+      '<div class="chx-row" style="margin-top:10px"><span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="qm-save">등록</button></div>');
+  }
+  function saveQuick(){
+    var raw=document.getElementById("q_names").value, role=val("q_role")||"성도", made=[], skip=0;
+    raw.split(/[\n,;]+/).forEach(function(line){
+      line=line.trim(); if(!line) return;
+      var ph=(line.match(/0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}/)||[""])[0].trim(), nm=line.replace(ph,"").trim();
+      if(!nm) return;
+      if(DB.members.some(function(m){ return m.name===nm && (m.phone||"")===ph; })){ skip++; return; }
+      var m={id:uid(),name:nm,phone:ph,birth:"",role:role,status:"활동",groups:[],family:"",memo:"",joined:todayIso()};
+      DB.members.push(m); made.push(m);
+    });
+    if(!made.length){ alert(skip?"이미 등록된 성도입니다.":"이름을 입력해 주세요."); return; }
+    save(); mClose();
+    var box=document.getElementById("g_members");
+    if(box){
+      if(!DB.members.filter(function(x){ return made.indexOf(x)<0; }).length) box.innerHTML="";
+      made.forEach(function(m){ box.insertAdjacentHTML("beforeend",memberChip(m,true));
+        ["g_leader","g_om0","g_om1","g_om2","g_om3","g_om4"].forEach(function(i){ var s=document.getElementById(i); if(s){ var o=document.createElement("option"); o.value=m.id; o.textContent=m.name; s.appendChild(o); } }); });
+      alert(made.length+"명을 등록해 소속 성도에 체크했습니다. 리더·임원은 위 목록에서 고르세요."+(skip?" (중복 "+skip+"명 제외)":""));
+    } else { alert(made.length+"명을 등록했습니다."+(skip?" (중복 "+skip+"명 제외)":"")); render(); }
+  }
   function groupForm(id,kind){
     var g=id?gById(id):{id:"",name:"",kind:kind||"cell",parent:"",leader:"",meet:""};
     var orgs=DB.groups.filter(function(x){ return x.kind==="org"&&x.id!==g.id; });
@@ -6646,6 +6677,7 @@ document.addEventListener("change",(e)=>{
       (g.kind==="cell"?'<label>소속 기관<select class="chx-in" id="g_parent"><option value="">(없음)</option>'+orgs.map(function(o){ return '<option value="'+o.id+'"'+(g.parent===o.id?" selected":"")+'>'+esc(o.name)+'</option>'; }).join("")+'</select></label>':'')+
       '<label>리더<select class="chx-in" id="g_leader"><option value="">(미지정)</option>'+DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return '<option value="'+m.id+'"'+(g.leader===m.id?" selected":"")+'>'+esc(m.name)+'</option>'; }).join("")+'</select></label>'+
       '<div><div class="chx-lbl">임원 (회장·총무 등)</div>'+[0,1,2,3,4].map(function(i){ var of=(g.officers||[])[i]||{t:"",mid:""}; return '<div class="chx-row"><select class="chx-in" id="g_ot'+i+'" style="max-width:120px"><option value="">직책</option>'+OFFICER_TITLES.map(function(x){ return '<option'+(of.t===x?" selected":"")+'>'+x+'</option>'; }).join("")+'</select><select class="chx-in" id="g_om'+i+'"><option value="">(성도 선택)</option>'+DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return '<option value="'+m.id+'"'+(of.mid===m.id?" selected":"")+'>'+esc(m.name)+'</option>'; }).join("")+'</select></div>'; }).join("")+'</div>'+
+      '<div><div class="chx-lbl">소속 성도 ('+(g.kind==="org"?"기관에 직접 속하는 성도":"셀원")+')</div><div class="chx-chks" id="g_members">'+memberChips(g.id)+'</div><div class="chx-dim" style="margin:6px 0 4px">리더·임원은 등록된 성도 중에서 고릅니다. 아직 등록하지 않았다면 바로 등록하세요.</div><button type="button" class="chx-btn chx-pri" data-chx="qm-open">＋ 새 성도 바로 등록</button></div>'+
       '<label>모임 정보<input class="chx-in" id="g_meet" value="'+esc(g.meet)+'" placeholder="예: 매주 금 저녁 8시, 김집사 댁"></label></div>'+
       '<div class="chx-row" style="margin-top:10px;flex-wrap:wrap">'+(id?'<button class="chx-btn chx-dg" data-chx="g-del" data-id="'+id+'">삭제</button><button class="chx-btn" data-chx="g-exp" data-id="'+id+'">📤 이 조직 자료 내보내기</button>':'')+'<span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="g-save" data-id="'+id+'" data-k="'+g.kind+'">저장</button></div>');
   }
@@ -6653,6 +6685,8 @@ document.addEventListener("change",(e)=>{
     var name=val("g_name"); if(!name){ alert("이름을 입력해 주세요."); return; }
     var g=id?gById(id):{id:uid(),kind:kind}; if(!id) DB.groups.push(g);
     g.name=name; g.officers=[0,1,2,3,4].map(function(i){ return {t:val("g_ot"+i),mid:val("g_om"+i)}; }).filter(function(o){ return o.t&&o.mid; }); g.leader=val("g_leader"); g.meet=val("g_meet"); if(g.kind==="cell") g.parent=val("g_parent");
+    if(document.getElementById("g_members")){ var chk={}; Array.prototype.forEach.call(document.querySelectorAll('input[name="gm"]:checked'),function(c){ chk[c.value]=1; });
+      DB.members.forEach(function(m){ m.groups=m.groups||[]; var has=m.groups.indexOf(g.id)>=0; if(chk[m.id]&&!has) m.groups.push(g.id); else if(!chk[m.id]&&has) m.groups=m.groups.filter(function(x){ return x!==g.id; }); }); }
     if(g.leader){ var lm=mById(g.leader); if(lm){ lm.groups=lm.groups||[]; if(lm.groups.indexOf(g.id)<0) lm.groups.push(g.id); } }
     save(); mClose(); render();
   }
@@ -6991,6 +7025,8 @@ document.addEventListener("change",(e)=>{
       case "n-del": if(confirm("이 기록을 삭제할까요?")){ DB.notes=DB.notes.filter(function(n){ return n.id!==id; }); save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render(); } break;
       case "bk": backup(); break;
       case "g-exp": exportGroup(id); break;
+      case "qm-open": quickMemberForm(); break;
+      case "qm-save": saveQuick(); break;
       case "bk-enc": encBackup(""); break;
       case "pw-no": mClose(); if(PWRES){ PWRES(null); PWRES=null; } break;
       case "pw-ok": { var p1=val("pw1"), p2=document.getElementById("pw2"); if(p1.length<6){ alert("암호는 6자 이상으로 해 주세요."); break; } if(p2&&p2.value.trim()!==p1){ alert("두 암호가 다릅니다."); break; } mClose(); if(PWRES){ PWRES(p1); PWRES=null; } break; }
@@ -7050,7 +7086,7 @@ document.addEventListener("change",(e)=>{
   function addEntry(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("chxEntry")) return;
     var d=document.createElement("div"); d.id="chxEntry"; d.style.cssText="margin:14px 0;padding:12px;border:1px solid rgba(201,151,42,.5);border-radius:12px;";
-    d.innerHTML='<b>⛪ 교회·성도 관리</b><div style="font-size:13px;opacity:.75;margin:4px 0 8px">성도 명단 · 기관/셀 · 출석 · 심방/기도 기록 (이 기기에만 저장)</div><button data-church style="padding:9px 14px;border-radius:9px;border:1px solid rgba(201,151,42,.7);background:transparent;color:inherit;font-weight:700;cursor:pointer;">열기</button> <button data-learn="exp" style="padding:9px 14px;border-radius:9px;border:1px solid rgba(201,151,42,.4);background:transparent;color:inherit;cursor:pointer;margin-left:6px;">📤 묵상 기록 내보내기</button>';
+    d.innerHTML='<b>⛪ 교회·성도 관리</b><div style="font-size:13px;opacity:.75;margin:4px 0 8px">성도 명단 · 기관/셀 · 출석 · 심방/기도 기록 (이 기기에만 저장)</div><button data-church style="padding:9px 14px;border-radius:9px;border:1px solid rgba(201,151,42,.7);background:transparent;color:inherit;font-weight:700;cursor:pointer;">열기</button>';
     host.insertBefore(d,host.firstChild);
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addEntry); else addEntry();
