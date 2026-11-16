@@ -563,7 +563,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
   <button data-learn="voc">🃏 원어 낱말 카드</button>
   <button data-voice="studio">🎙️ 내 목소리 녹음</button>
   <button data-voice="play">▶ 내 목소리로 장 듣기</button>
-  <button data-learn="exp">📤 묵상 기록 내보내기</button>
+  <button data-church>⛪ 교회·성도 관리</button>
   <button data-learn="stat">📊 학습 통계</button>
 </div>
 <div id="toolsSheetOverlayD" class="tools-sheet-overlay-d" style="display:none;">
@@ -599,6 +599,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
   <nav>
     <div class="nav-item active" data-view="read"><span class="nav-icon">📖</span>오늘의 본문</div>
     <div class="nav-item" data-view="calendar"><span class="nav-icon">🗓️</span>캘린더 · 통독</div>
+    <div class="nav-item" data-church><span class="nav-icon">⛪</span>교회 · 성도 관리</div>
     <div class="nav-item" data-view="people"><span class="nav-icon">👤</span>인물 사전</div>
     <div class="nav-item" data-view="places"><span class="nav-icon">🗺️</span>지리 사전</div>
     <div class="nav-item" data-view="words"><span class="nav-icon">🔤</span>원어 사전</div>
@@ -1085,7 +1086,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
       <h3 style="color:var(--gold-bright);font-size:16px;margin-bottom:8px;">🧠 구절 암송 · 🃏 낱말 카드 · 📤 기록 내보내기</h3>
       <p style="font-size:13px;color:#c9c4b3;line-height:1.8;"><b>구절 암송.</b> 구절의 📖를 열고 <b>“🧠 이 구절 암송 연습”</b>을 누르면(또는 🧰 도구 → “구절 암송 연습”) 암송 창이 열립니다. 방식은 ① 빈칸 채우기(가릴 낱말 30·50·70%·모두), ② 첫 글자 힌트, ③ 전체 쓰기(정확도를 낱말 단위로 채점)이고, 한글과 영어를 고를 수 있습니다. 연습 뒤 “외웠어요”를 누르면 복습 간격이 1일→3일→7일→14일→30일로 늘어나고, “다시 볼게요”를 누르면 처음으로 돌아갑니다. “내 암송 구절” 탭에서 오늘 복습할 구절을 한꺼번에 시작할 수 있습니다.</p>
       <p style="font-size:13px;color:#c9c4b3;line-height:1.8;margin-top:8px;"><b>원어 낱말 카드.</b> 🧰 도구 → <b>“원어 낱말 카드”</b>에서 헬라어(신약)와 히브리어(구약)의 자주 나오는 낱말을 카드로 익힙니다. 덱은 빈도순 상위 50·100·300·1000, 오늘 복습, 내 낱말 카드이며, 기본은 전치사·접속사를 뺀 내용어입니다. 카드를 눌러 뒤집으면 뜻과 예문 구절이 나오고, “알아요/모르겠어요”로 복습 일정이 정해집니다. 4지선다로 퀴즈도 풀 수 있고, 원어 분석 카드에서 “➕ 내 낱말 카드에 추가”로 나만의 덱을 만들 수 있습니다.</p>
-      <p style="font-size:13px;color:#c9c4b3;line-height:1.8;margin-top:8px;"><b>묵상 기록 내보내기.</b> 🧰 도구 → <b>“묵상 기록 내보내기”</b>에서 나의 기록, 구절 연구 노트, 설교 기록, 즐겨찾기, 암송 구절을 골라 문서로 저장합니다. 기간과 책으로 좁히고, 마크다운(.md) 또는 인쇄용(.html, 열어서 PDF로 저장) 파일로 받거나 복사할 수 있습니다. 파일은 내 기기에만 저장되며 어디에도 전송되지 않습니다. 학습 진도(암송, 낱말 카드)는 기존 백업과 구글 드라이브 자동 백업에도 포함됩니다.</p>
+      <p style="font-size:13px;color:#c9c4b3;line-height:1.8;margin-top:8px;"><b>묵상 기록 내보내기.</b> ⚙️ 설정(또는 설정 화면 위쪽) → <b>“묵상 기록 내보내기”</b>에서 나의 기록, 구절 연구 노트, 설교 기록, 즐겨찾기, 암송 구절을 골라 문서로 저장합니다. 기간과 책으로 좁히고, 마크다운(.md) 또는 인쇄용(.html, 열어서 PDF로 저장) 파일로 받거나 복사할 수 있습니다. 파일은 내 기기에만 저장되며 어디에도 전송되지 않습니다. 학습 진도(암송, 낱말 카드)는 기존 백업과 구글 드라이브 자동 백업에도 포함됩니다.</p>
       <p style="font-size:13px;color:#c9c4b3;line-height:1.8;margin-top:8px;"><b>추천 구절 모음.</b> 암송 창의 “추천 모음” 탭에는 복음, 믿음, 사랑, 소망과 위로, 기도, 말씀, 지혜, 두려움을 이김, 성령, 용서와 은혜, 제자의 삶, 하나님의 성품, 창조의 13개 주제와 103개 구절이 있습니다. “모두 담기”로 한 번에 내 암송 목록에 넣거나 “구절 보기”에서 골라 담을 수 있고, 이미 담긴 구절은 건너뜁니다. 오해하기 쉬운 구절(예: 예레미야 29:11, 로마서 8:28)에는 문맥 설명이 붙어 있습니다.</p>
       <p style="font-size:13px;color:#c9c4b3;line-height:1.8;margin-top:8px;"><b>학습 통계.</b> 🧰 도구 → “학습 통계”(또는 암송·낱말 카드 창의 📊)에서 연속 학습일과 최근 14일 학습량(성경 읽기 포함), <b>성경 읽기 진도</b>(읽은 장 수와 구약·신약 비율, 책별 진도, 최근 7·30일, 마지막 읽은 곳), 암송 구절의 상자별 분포·정답률·오늘 복습, 헬라어와 히브리어 낱말의 진도(상위 50·100·300·1000개)와 “학습한 낱말이 본문 낱말의 몇 %를 덮는지”를 한눈에 봅니다. 성경 읽기는 이전에 남긴 읽음 표시(✅)가 모두 반영되고, 암송과 낱말 학습은 이번 버전부터 기록됩니다.</p>
     </div>
@@ -6868,7 +6869,7 @@ window.loadApiKey().then(async function(){
   function addUi(){
     var s=selEl(); if(!s||document.getElementById("ttsVoiceTest"+D)) return;
     var b=document.createElement("button"); b.type="button"; b.id="ttsVoiceTest"+D; b.className=(s.className||"ttsvoicesel"); b.textContent="🔈 음성 시험";
-    b.title="고른 음성으로 짧은 문장을 들어 봅니다"; b.style.cursor="pointer"; b.style.display=s.style.display;
+    b.title="고른 음성으로 짧은 문장을 들어 봅니다"; b.style.cssText+=";cursor:pointer;white-space:nowrap;flex:0 0 auto;writing-mode:horizontal-tb;width:auto;min-width:max-content;align-self:center;"; b.style.display=s.style.display;
     s.parentNode.insertBefore(b,s.nextSibling);
     b.addEventListener("click",test);
     new MutationObserver(function(){ b.style.display=s.style.display; }).observe(s,{attributes:true,attributeFilter:["style"]});
@@ -6889,6 +6890,626 @@ window.loadApiKey().then(async function(){
 })();
 /*TTSQ-END*/
 
+/*VER-START*/
+(function(){
+  var V="2026-11-16 · v23";
+  function add(){
+    var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
+    var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
+    host.appendChild(d);
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",add); else add();
+  window.__appVer=V;
+})();
+/*VER-END*/
+/*CHURCH-START*/
+/* ===== ⛪ 교회·성도 관리: 성도 명단 · 기관/셀 편성 · 출석 · 돌봄(심방·기도·생일) — 모든 자료는 이 기기에만 저장 ===== */
+(function(){
+  "use strict";
+  var KEY="church:v1", UNLOCKED=false;
+  var OFFICER_TITLES=["회장","부회장","총무","서기","회계","부장","차장","리더","부리더","기타"];
+  var ROLES=["목사","전도사","장로","권사","안수집사","집사","성도","청년","학생","어린이","새가족"];
+  var NOTE_TYPES=["심방","기도제목","연락","상담","기타"];
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function pad(n){ return (n<10?"0":"")+n; }
+  function iso(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function todayIso(){ return iso(new Date()); }
+  function lastSunday(){ var d=new Date(); d.setDate(d.getDate()-d.getDay()); return iso(d); }
+  function load(){
+    var d=null; try{ d=JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){}
+    d=d||{}; d.v=1; ["groups","members","notes","posts"].forEach(function(k){ d[k]=d[k]||[]; }); d.att=d.att||{}; return d;
+  }
+  var DB=load();
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){ alert("저장 공간이 부족하거나 저장이 막혀 있습니다. 설정 탭에서 백업 파일을 먼저 받아 두세요."); } }
+  function gById(id){ return DB.groups.filter(function(g){ return g.id===id; })[0]; }
+  function mById(id){ return DB.members.filter(function(m){ return m.id===id; })[0]; }
+  function mName(id){ var m=mById(id); return m?m.name:"(삭제됨)"; }
+  function groupsOf(m){ return (m.groups||[]).map(gById).filter(Boolean); }
+  function membersOfGroup(gid){
+    if(gid==="worship") return DB.members.filter(function(m){ return m.status!=="휴면" && m.status!=="이명"; });
+    var g=gById(gid); if(!g) return [];
+    return DB.members.filter(function(m){ return (m.groups||[]).indexOf(gid)>=0 || (g.kind==="org" && groupsOf(m).some(function(x){ return x.parent===gid; })); });
+  }
+  function daysToBirthday(b){
+    var m=String(b||"").match(/(\d{4}-)?(\d{2})-(\d{2})$/); if(!m) return null;
+    var now=new Date(); now=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var d=new Date(now.getFullYear(),parseInt(m[2],10)-1,parseInt(m[3],10));
+    if(d<now) d=new Date(now.getFullYear()+1,parseInt(m[2],10)-1,parseInt(m[3],10));
+    return Math.round((d-now)/86400000);
+  }
+  function dl(name,blob){ var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  function csvCell(v){ v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+
+  /* ---------- 화면 뼈대 ---------- */
+  var S={tab:"members",q:"",flt:"all",attDate:lastSunday(),attGroup:"worship",ov:null};
+  function ov(){ return document.getElementById("churchOverlay"); }
+  function bodyEl(){ return document.getElementById("chxBody"); }
+  function open(){
+    if(ov()) return;
+    var el=document.createElement("div"); el.id="churchOverlay"; el.className="chx-ov";
+    el.innerHTML='<div class="chx-panel"><div class="chx-head"><b>⛪ 교회·성도 관리</b><button class="chx-close" data-chx="close" title="닫기">✕</button></div>'+
+      '<div class="chx-tabs" id="chxTabs"></div><div class="chx-body" id="chxBody"></div></div>';
+    document.body.appendChild(el);
+    ["toolsFabMenu","toolsFabMenuD"].forEach(function(i){ var m=document.getElementById(i); if(m) m.style.display="none"; });
+    if(DB.pin && !UNLOCKED) return lockScreen();
+    if(!DB.ack) return notice();
+    render();
+  }
+  function close(){ var e=ov(); if(e) e.remove(); UNLOCKED=false; document.querySelectorAll(".chx-modal").forEach(function(m){ m.remove(); }); }
+  function notice(){
+    bodyEl().innerHTML='<div class="chx-card"><h3>시작하기 전에</h3><p>성도의 이름·연락처·생일·가정 사정은 <b>개인정보</b>입니다. 본인(또는 보호자)의 동의를 받은 범위에서 <b>꼭 필요한 정보만</b> 입력해 주세요.</p>'+
+      '<ul><li>입력한 자료는 <b>이 기기의 브라우저에만</b> 저장되며 서버로 전송되지 않습니다.</li><li>기기를 바꾸거나 브라우저 데이터를 지우면 사라지므로 <b>설정 탭에서 정기적으로 백업</b>하세요.</li><li>백업 파일에는 개인정보가 그대로 들어 있으니 안전한 곳에만 보관하세요.</li><li>설정 탭에서 4자리 <b>비밀번호(PIN)</b>를 걸어 둘 수 있습니다.</li></ul>'+
+      '<button class="chx-btn chx-pri" data-chx="ack">확인했습니다</button></div>';
+    document.getElementById("chxTabs").innerHTML="";
+  }
+  function lockScreen(){
+    document.getElementById("chxTabs").innerHTML="";
+    bodyEl().innerHTML='<div class="chx-card" style="text-align:center"><h3>🔒 비밀번호 입력</h3><input id="chxPin" class="chx-in" type="password" inputmode="numeric" maxlength="4" placeholder="숫자 4자리" style="text-align:center;max-width:180px"><div id="chxPinMsg" class="chx-dim" style="margin:8px 0"></div><button class="chx-btn chx-pri" data-chx="unlock">열기</button></div>';
+  }
+  async function sha(s){ try{ var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("chx|"+s)); return Array.prototype.map.call(new Uint8Array(b),function(x){ return pad(x.toString(16)).slice(-2); }).join(""); }catch(e){ return "plain:"+s; } }
+
+  var TABS=[["members","👥 성도"],["groups","🏛 조직·셀"],["att","✅ 출석"],["care","💌 돌봄"],["cal","🗓 연중행사"],["news","📢 소식"],["stats","📊 통계"],["set","⚙ 설정"]];
+  function render(){
+    var t=document.getElementById("chxTabs"); if(!t) return;
+    t.innerHTML=TABS.map(function(x){ return '<button class="chx-tab'+(S.tab===x[0]?" on":"")+'" data-chx="tab" data-v="'+x[0]+'">'+x[1]+'</button>'; }).join("");
+    var h=""; try{ h=({members:vMembers,groups:vGroups,att:vAtt,care:vCare,cal:vCal,news:vNews,stats:vStats,set:vSet})[S.tab](); }catch(e){ h='<div class="chx-card">화면을 그리는 중 오류가 났습니다: '+esc(e.message)+'</div>'; }
+    var b=bodyEl(), y=b.scrollTop; b.innerHTML=h; b.scrollTop=y;
+  }
+
+  /* ---------- 성도 ---------- */
+  function vMembers(){
+    var q=S.q.trim().toLowerCase(), list=DB.members.slice();
+    if(S.flt==="new") list=list.filter(function(m){ return m.role==="새가족"||m.newFam; });
+    else if(S.flt==="rest") list=list.filter(function(m){ return m.status==="휴면"||m.status==="이명"; });
+    else if(S.flt==="none") list=list.filter(function(m){ return !(m.groups||[]).length; });
+    else if(S.flt!=="all") list=membersOfGroup(S.flt).filter(function(m){ return list.indexOf(m)>=0; });
+    if(q) list=list.filter(function(m){ return (m.name+" "+(m.phone||"")+" "+(m.family||"")+" "+(m.memo||"")).toLowerCase().indexOf(q)>=0; });
+    list.sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); });
+    var opts='<option value="all">전체</option><option value="new">새가족</option><option value="rest">휴면·이명</option><option value="none">소속 없음</option>'+
+      DB.groups.map(function(g){ return '<option value="'+g.id+'"'+(S.flt===g.id?" selected":"")+'>'+(g.kind==="org"?"🏛 ":"🔸 ")+esc(g.name)+'</option>'; }).join("");
+    var sm=todaySummary(), ban=(sm.bds.length||sm.ab.length)?'<div class="chx-card chx-warn2" style="margin:0 0 8px">'+(sm.bds.length?'🎂 오늘 생일: '+sm.bds.map(function(m){ return esc(m.name); }).join(", "):'')+(sm.bds.length&&sm.ab.length?'<br>':'')+(sm.ab.length?'📞 연속 결석 '+sm.ab.length+'명 — 돌봄 탭에서 확인':'')+'</div>':'';
+    var h=ban+'<div class="chx-row"><input id="chxQ" class="chx-in" placeholder="이름·전화·가족·메모 검색" value="'+esc(S.q)+'"><select id="chxFlt" class="chx-in" style="max-width:150px">'+opts.replace('value="'+S.flt+'"','value="'+S.flt+'" selected')+'</select></div>'+
+      '<div class="chx-row" style="justify-content:space-between;align-items:center"><span class="chx-dim">총 '+DB.members.length+'명 · 표시 '+list.length+'명</span><button class="chx-btn chx-pri" data-chx="m-add">＋ 성도 추가</button></div>';
+    if(!DB.members.length) h+='<div class="chx-card chx-dim">아직 등록된 성도가 없습니다. [＋ 성도 추가]로 시작하세요. 이미 엑셀 명단이 있다면 설정 탭의 <b>CSV 가져오기</b>를 쓰세요.</div>';
+    h+=list.map(function(m){
+      var gs=groupsOf(m).map(function(g){ return esc(g.name); }).join(" · "), bd=daysToBirthday(m.birth);
+      return '<div class="chx-item chx-mi" data-chx="m-edit" data-id="'+m.id+'">'+av(m)+'<div style="flex:1;min-width:0"><div><b>'+esc(m.name)+'</b> <span class="chx-tag">'+esc(m.role||"성도")+'</span>'+(m.status&&m.status!=="활동"?' <span class="chx-tag chx-warn">'+esc(m.status)+'</span>':'')+(m.stage&&m.stage!=="정착 완료"?' <span class="chx-tag chx-ok">'+esc(m.stage)+'</span>':'')+(bd!==null&&bd<=7?' <span class="chx-tag chx-ok">🎂 '+(bd===0?"오늘":bd+"일 후")+'</span>':'')+'</div><div class="chx-dim">'+(gs||"소속 없음")+(m.phone?' · '+esc(m.phone):'')+(relText(m)?' · 👪 '+esc(relText(m)):'')+'</div></div></div>';
+    }).join("");
+    return h;
+  }
+  function modal(html){
+    var m=document.createElement("div"); m.className="chx-modal"; m.innerHTML='<div class="chx-mbox">'+html+'</div>'; document.body.appendChild(m); return m;
+  }
+  function mClose(){ var a=document.querySelectorAll(".chx-modal"); if(a.length) a[a.length-1].remove(); }
+  function memberForm(id){
+    var m=id?mById(id):{id:"",name:"",phone:"",birth:"",gender:"",role:"성도",status:"활동",groups:[],family:"",memo:"",joined:todayIso(),address:""};
+    var gcb=DB.groups.map(function(g){ return '<label class="chx-chk"><input type="checkbox" name="mg" value="'+g.id+'"'+((m.groups||[]).indexOf(g.id)>=0?" checked":"")+'> '+(g.kind==="org"?"🏛 ":"🔸 ")+esc(g.name)+'</label>'; }).join("")||'<span class="chx-dim">조직·셀 탭에서 먼저 만들어 주세요</span>';
+    S.photo=m.photo||"";
+    var relRows=[0,1,2].map(function(i){ var r=(m.rel||[])[i]||{t:"",mid:""}; return '<div class="chx-row"><select class="chx-in" id="f_rt'+i+'" style="max-width:110px"><option value="">관계</option>'+RELS.map(function(x){ return '<option'+(r.t===x?" selected":"")+'>'+x+'</option>'; }).join("")+'</select><select class="chx-in" id="f_rm'+i+'"><option value="">(성도 선택)</option>'+DB.members.filter(function(x){ return x.id!==m.id; }).sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(x){ return '<option value="'+x.id+'"'+(r.mid===x.id?" selected":"")+'>'+esc(x.name)+'</option>'; }).join("")+'</select></div>'; }).join("");
+    var mm=modal('<h3>'+(id?"성도 정보":"성도 추가")+'</h3><div class="chx-row" style="align-items:center"><span id="f_photoBox">'+av(m)+'</span><label class="chx-btn">📷 사진<input type="file" id="f_photo" accept="image/*" style="display:none"></label><button class="chx-btn" data-chx="photo-del">사진 지우기</button></div><div class="chx-form">'+
+      '<label>이름 *<input class="chx-in" id="f_name" value="'+esc(m.name)+'"></label>'+
+      '<label>전화번호<input class="chx-in" id="f_phone" inputmode="tel" value="'+esc(m.phone)+'" placeholder="010-0000-0000"></label>'+
+      '<label>생일 (연-월-일 또는 월-일)<input class="chx-in" id="f_birth" value="'+esc(m.birth)+'" placeholder="1985-03-21"></label>'+
+      '<div class="chx-row"><label style="flex:1">직분<select class="chx-in" id="f_role">'+ROLES.map(function(r){ return '<option'+(m.role===r?" selected":"")+'>'+r+'</option>'; }).join("")+'</select></label>'+
+      '<label style="flex:1">상태<select class="chx-in" id="f_status">'+["활동","휴면","이명"].map(function(r){ return '<option'+((m.status||"활동")===r?" selected":"")+'>'+r+'</option>'; }).join("")+'</select></label></div>'+
+      '<div><div class="chx-lbl">소속(기관·셀, 여러 개 가능)</div><div class="chx-chks">'+gcb+'</div></div>'+
+      '<div><div class="chx-lbl">가족 관계 (등록된 성도와 연결)</div>'+relRows+'</div><label>가족 메모<input class="chx-in" id="f_family" value="'+esc(m.family)+'" placeholder="예: 자녀 2명(미등록)"></label>'+
+      '<label>새가족 정착 단계<select class="chx-in" id="f_stage">'+STAGES.map(function(x){ return '<option value="'+x+'"'+((m.stage||"")===x?" selected":"")+'>'+(x||"(해당 없음)")+'</option>'; }).join("")+'</select></label>'+
+      '<label>등록일<input class="chx-in" id="f_joined" type="date" value="'+esc(m.joined)+'"></label>'+
+      '<label>메모<textarea class="chx-in" id="f_memo" rows="3">'+esc(m.memo)+'</textarea></label></div>'+
+      '<div class="chx-row" style="margin-top:10px;flex-wrap:wrap">'+
+      (id?(m.phone?'<a class="chx-btn" href="tel:'+esc(m.phone)+'">📞 전화</a><a class="chx-btn" href="sms:'+esc(m.phone)+'">💬 문자</a>':'')+'<button class="chx-btn" data-chx="n-add" data-id="'+id+'">📝 기록</button><button class="chx-btn chx-dg" data-chx="m-del" data-id="'+id+'">삭제</button>':'')+
+      '<span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="m-save" data-id="'+id+'">저장</button></div>'+
+      (id?'<div class="chx-sub">최근 기록</div>'+(DB.notes.filter(function(n){ return n.mid===id; }).sort(function(a,b){ return a.date<b.date?1:-1; }).slice(0,5).map(noteHtml).join("")||'<div class="chx-dim">기록 없음</div>'):''));
+    mm.dataset.id=id||"";
+  }
+  function val(i){ var e=document.getElementById(i); return e?e.value.trim():""; }
+  function saveMember(id){
+    var name=val("f_name"); if(!name){ alert("이름을 입력해 주세요."); return; }
+    var m=id?mById(id):{id:uid()}; if(!id) DB.members.push(m);
+    m.name=name; m.phone=val("f_phone"); m.birth=val("f_birth"); m.role=val("f_role"); m.status=val("f_status"); m.family=val("f_family"); m.joined=val("f_joined"); m.stage=val("f_stage"); m.photo=S.photo||""; m.rel=[0,1,2].map(function(i){ return {t:val("f_rt"+i),mid:val("f_rm"+i)}; }).filter(function(r){ return r.t&&r.mid; }); m.memo=document.getElementById("f_memo").value.trim();
+    m.groups=Array.prototype.map.call(document.querySelectorAll('input[name="mg"]:checked'),function(c){ return c.value; });
+    save(); mClose(); render();
+  }
+  function delMember(id){
+    var m=mById(id); if(!m) return;
+    if(!confirm("‘"+m.name+"’ 성도를 삭제할까요?\n이 성도의 기록·출석도 함께 지워집니다. (되돌릴 수 없음)")) return;
+    DB.members=DB.members.filter(function(x){ return x.id!==id; });
+    DB.notes=DB.notes.filter(function(n){ return n.mid!==id; });
+    DB.groups.forEach(function(g){ if(g.leader===id) g.leader=""; });
+    Object.keys(DB.att).forEach(function(k){ delete DB.att[k][id]; });
+    save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render();
+  }
+
+  /* ---------- 조직·셀 ---------- */
+  function vGroups(){
+    var orgs=DB.groups.filter(function(g){ return g.kind==="org"; }), cells=DB.groups.filter(function(g){ return g.kind==="cell"; });
+    function gline(g,ind){
+      var n=membersOfGroup(g.id).length;
+      return '<div class="chx-item" style="margin-left:'+ind+'px" data-chx="g-edit" data-id="'+g.id+'"><div><b>'+(g.kind==="org"?"🏛 ":"🔸 ")+esc(g.name)+'</b> <span class="chx-tag">'+n+'명</span></div><div class="chx-dim">'+(g.leader?"리더 "+esc(mName(g.leader)):"리더 미지정")+((g.officers||[]).length?" · "+g.officers.map(function(o){ return esc(o.t)+" "+esc(mName(o.mid)); }).join(", "):"")+(g.meet?" · "+esc(g.meet):"")+'</div></div>';
+    }
+    var h='<div class="chx-row" style="justify-content:flex-end"><button class="chx-btn" data-chx="g-add" data-k="org">＋ 기관(부서)</button><button class="chx-btn chx-pri" data-chx="g-add" data-k="cell">＋ 셀</button></div>';
+    if(!DB.groups.length) h+='<div class="chx-card chx-dim"><b>기관</b>은 청년부·교구·성가대 같은 큰 단위, <b>셀</b>은 소그룹입니다. 셀은 기관 아래에 둘 수도 있고, 기관 없이 만들 수도 있습니다.</div>';
+    orgs.forEach(function(o){ h+=gline(o,0); cells.filter(function(c){ return c.parent===o.id; }).forEach(function(c){ h+=gline(c,18); }); });
+    var free=cells.filter(function(c){ return !c.parent||!gById(c.parent); });
+    if(free.length){ h+='<div class="chx-sub">기관에 속하지 않은 셀</div>'; free.forEach(function(c){ h+=gline(c,0); }); }
+    return h;
+  }
+  function groupForm(id,kind){
+    var g=id?gById(id):{id:"",name:"",kind:kind||"cell",parent:"",leader:"",meet:""};
+    var orgs=DB.groups.filter(function(x){ return x.kind==="org"&&x.id!==g.id; });
+    var mm=modal('<h3>'+(g.kind==="org"?"기관(부서)":"셀")+(id?" 수정":" 추가")+'</h3><div class="chx-form">'+
+      '<label>이름 *<input class="chx-in" id="g_name" value="'+esc(g.name)+'" placeholder="'+(g.kind==="org"?"예: 청년부":"예: 믿음셀")+'"></label>'+
+      (g.kind==="cell"?'<label>소속 기관<select class="chx-in" id="g_parent"><option value="">(없음)</option>'+orgs.map(function(o){ return '<option value="'+o.id+'"'+(g.parent===o.id?" selected":"")+'>'+esc(o.name)+'</option>'; }).join("")+'</select></label>':'')+
+      '<label>리더<select class="chx-in" id="g_leader"><option value="">(미지정)</option>'+DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return '<option value="'+m.id+'"'+(g.leader===m.id?" selected":"")+'>'+esc(m.name)+'</option>'; }).join("")+'</select></label>'+
+      '<div><div class="chx-lbl">임원 (회장·총무 등)</div>'+[0,1,2,3,4].map(function(i){ var of=(g.officers||[])[i]||{t:"",mid:""}; return '<div class="chx-row"><select class="chx-in" id="g_ot'+i+'" style="max-width:120px"><option value="">직책</option>'+OFFICER_TITLES.map(function(x){ return '<option'+(of.t===x?" selected":"")+'>'+x+'</option>'; }).join("")+'</select><select class="chx-in" id="g_om'+i+'"><option value="">(성도 선택)</option>'+DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return '<option value="'+m.id+'"'+(of.mid===m.id?" selected":"")+'>'+esc(m.name)+'</option>'; }).join("")+'</select></div>'; }).join("")+'</div>'+
+      '<label>모임 정보<input class="chx-in" id="g_meet" value="'+esc(g.meet)+'" placeholder="예: 매주 금 저녁 8시, 김집사 댁"></label></div>'+
+      '<div class="chx-row" style="margin-top:10px;flex-wrap:wrap">'+(id?'<button class="chx-btn chx-dg" data-chx="g-del" data-id="'+id+'">삭제</button><button class="chx-btn" data-chx="g-exp" data-id="'+id+'">📤 이 조직 자료 내보내기</button>':'')+'<span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="g-save" data-id="'+id+'" data-k="'+g.kind+'">저장</button></div>');
+  }
+  function saveGroup(id,kind){
+    var name=val("g_name"); if(!name){ alert("이름을 입력해 주세요."); return; }
+    var g=id?gById(id):{id:uid(),kind:kind}; if(!id) DB.groups.push(g);
+    g.name=name; g.officers=[0,1,2,3,4].map(function(i){ return {t:val("g_ot"+i),mid:val("g_om"+i)}; }).filter(function(o){ return o.t&&o.mid; }); g.leader=val("g_leader"); g.meet=val("g_meet"); if(g.kind==="cell") g.parent=val("g_parent");
+    if(g.leader){ var lm=mById(g.leader); if(lm){ lm.groups=lm.groups||[]; if(lm.groups.indexOf(g.id)<0) lm.groups.push(g.id); } }
+    save(); mClose(); render();
+  }
+  function delGroup(id){
+    var g=gById(id); if(!g) return;
+    if(!confirm("‘"+g.name+"’을(를) 삭제할까요?\n성도 자체는 지워지지 않고 이 소속만 해제됩니다.")) return;
+    DB.groups=DB.groups.filter(function(x){ return x.id!==id; });
+    DB.groups.forEach(function(x){ if(x.parent===id) x.parent=""; });
+    DB.members.forEach(function(m){ m.groups=(m.groups||[]).filter(function(x){ return x!==id; }); });
+    Object.keys(DB.att).forEach(function(k){ if(k.split("|")[1]===id) delete DB.att[k]; });
+    save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render();
+  }
+
+  /* ---------- 출석 ---------- */
+  function attKey(){ return S.attDate+"|"+S.attGroup; }
+  function sessionsOf(gid){
+    return Object.keys(DB.att).filter(function(k){ return k.split("|")[1]===gid; }).map(function(k){ return k.split("|")[0]; }).sort();
+  }
+  function vAtt(){
+    var gopts='<option value="worship"'+(S.attGroup==="worship"?" selected":"")+'>⛪ 주일예배(전체)</option>'+DB.groups.map(function(g){ return '<option value="'+g.id+'"'+(S.attGroup===g.id?" selected":"")+'>'+(g.kind==="org"?"🏛 ":"🔸 ")+esc(g.name)+'</option>'; }).join("");
+    var list=membersOfGroup(S.attGroup).sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); });
+    var rec=DB.att[attKey()]||{}, pres=list.filter(function(m){ return rec[m.id]===1; }).length;
+    var h='<div class="chx-row"><input type="date" id="chxAttDate" class="chx-in" value="'+S.attDate+'"><select id="chxAttGroup" class="chx-in">'+gopts+'</select></div>'+
+      '<div class="chx-row" style="justify-content:space-between;align-items:center"><span><b>출석 '+pres+'</b> / '+list.length+'명'+(list.length?' ('+Math.round(pres*100/list.length)+'%)':'')+'</span><span><button class="chx-btn" data-chx="att-all">전원 출석</button><button class="chx-btn" data-chx="att-none">전원 해제</button></span></div>';
+    if(!list.length) h+='<div class="chx-card chx-dim">이 모임에 소속된 성도가 없습니다. 성도 정보에서 소속을 지정해 주세요.</div>';
+    h+=list.map(function(m){ var on=rec[m.id]===1, off=rec[m.id]===0;
+      return '<div class="chx-item chx-att '+(on?"on":off?"off":"")+'" data-chx="att-tog" data-id="'+m.id+'"><div><b>'+esc(m.name)+'</b> <span class="chx-tag">'+esc(m.role||"")+'</span></div><div class="chx-state">'+(on?"✅ 출석":off?"❌ 결석":"· 미체크")+'</div></div>'; }).join("");
+    h+='<div class="chx-dim" style="margin-top:6px">누를 때마다 미체크 → 출석 → 결석 순으로 바뀌며 자동 저장됩니다.</div>';
+    return h;
+  }
+  function absentStreak(gid,minN){
+    var ss=sessionsOf(gid); if(ss.length<minN) return [];
+    var last=ss.slice(-minN), out=[];
+    membersOfGroup(gid).forEach(function(m){ if(last.every(function(d){ var r=DB.att[d+"|"+gid]; return r && r[m.id]===0; })) out.push(m); });
+    return out;
+  }
+
+  /* ---------- 돌봄 ---------- */
+  function noteHtml(n){
+    return '<div class="chx-item"><div><b>'+esc(mName(n.mid))+'</b> <span class="chx-tag">'+esc(n.type)+'</span> <span class="chx-dim">'+esc(n.date)+'</span>'+(n.follow&&!n.done?' <span class="chx-tag chx-warn">후속 필요</span>':'')+'</div><div style="white-space:pre-wrap">'+esc(n.text)+'</div>'+
+      '<div class="chx-row" style="margin-top:4px">'+(n.follow&&!n.done?'<button class="chx-btn" data-chx="n-done" data-id="'+n.id+'">후속 완료</button>':'')+'<button class="chx-btn" data-chx="n-del" data-id="'+n.id+'">삭제</button></div></div>';
+  }
+  function vCare(){
+    var h='<div class="chx-row" style="justify-content:flex-end"><button class="chx-btn chx-pri" data-chx="n-add" data-id="">＋ 심방·기도 기록</button></div>';
+    var bds=DB.members.map(function(m){ return {m:m,d:daysToBirthday(m.birth)}; }).filter(function(x){ return x.d!==null&&x.d<=14; }).sort(function(a,b){ return a.d-b.d; });
+    h+='<div class="chx-sub">🎂 앞으로 2주 생일</div>'+(bds.length?bds.map(function(x){ return '<div class="chx-item" data-chx="m-edit" data-id="'+x.m.id+'"><b>'+esc(x.m.name)+'</b> <span class="chx-dim">'+esc(x.m.birth.slice(-5))+' · '+(x.d===0?"오늘":x.d+"일 후")+'</span></div>'; }).join(""):'<div class="chx-dim">없음</div>');
+    var ab=absentStreak("worship",2);
+    h+='<div class="chx-sub">📞 주일예배 연속 결석(최근 2회 기록 기준)</div>'+(ab.length?ab.map(function(m){ return '<div class="chx-item" data-chx="m-edit" data-id="'+m.id+'"><b>'+esc(m.name)+'</b> <span class="chx-dim">'+esc(m.phone||"")+'</span></div>'; }).join(""):'<div class="chx-dim">'+(sessionsOf("worship").length<2?"출석 기록이 2회 이상 쌓이면 표시됩니다":"없음")+'</div>');
+    var fu=DB.notes.filter(function(n){ return n.follow&&!n.done; }).sort(function(a,b){ return a.date<b.date?-1:1; });
+    h+='<div class="chx-sub">⏳ 후속 조치가 필요한 기록</div>'+(fu.length?fu.map(noteHtml).join(""):'<div class="chx-dim">없음</div>');
+    h+='<div class="chx-sub">🗒 최근 기록</div>'+(DB.notes.length?DB.notes.slice().sort(function(a,b){ return a.date<b.date?1:-1; }).slice(0,30).map(noteHtml).join(""):'<div class="chx-dim">아직 기록이 없습니다</div>');
+    return h;
+  }
+  function noteForm(mid){
+    if(!DB.members.length){ alert("먼저 성도를 등록해 주세요."); return; }
+    modal('<h3>심방·기도 기록</h3><div class="chx-form"><label>성도<select class="chx-in" id="n_mid">'+DB.members.slice().sort(function(a,b){ return a.name.localeCompare(b.name,"ko"); }).map(function(m){ return '<option value="'+m.id+'"'+(m.id===mid?" selected":"")+'>'+esc(m.name)+'</option>'; }).join("")+'</select></label>'+
+      '<div class="chx-row"><label style="flex:1">날짜<input type="date" class="chx-in" id="n_date" value="'+todayIso()+'"></label><label style="flex:1">종류<select class="chx-in" id="n_type">'+NOTE_TYPES.map(function(t){ return '<option>'+t+'</option>'; }).join("")+'</select></label></div>'+
+      '<label>내용<textarea class="chx-in" id="n_text" rows="4" placeholder="나눈 이야기, 기도제목 등"></textarea></label><label class="chx-chk"><input type="checkbox" id="n_follow"> 후속 조치(연락·심방)가 필요함</label></div>'+
+      '<div class="chx-row" style="margin-top:10px"><span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="n-save">저장</button></div>');
+  }
+
+  /* ---------- 설정·백업 ---------- */
+  function vSet(){
+    var lb=DB.lastBackup?new Date(DB.lastBackup).toLocaleDateString("ko-KR"):"없음";
+    var warn=(DB.members.length && (!DB.lastBackup || Date.now()-DB.lastBackup>30*864e5))?'<div class="chx-card chx-warn2">⚠ 마지막 백업이 한 달 넘게 지났거나 없습니다. 아래 [백업 파일 받기]를 눌러 보관하세요.</div>':'';
+    return warn+'<div class="chx-card"><h3>백업·복원</h3><div class="chx-dim">마지막 백업: '+lb+'</div><div class="chx-row" style="flex-wrap:wrap;margin-top:8px"><button class="chx-btn chx-pri" data-chx="bk">💾 백업 파일 받기</button><button class="chx-btn chx-pri" data-chx="bk-enc">🔐 암호 백업 받기</button><label class="chx-btn">📂 백업 불러오기<input type="file" id="chxRestore" accept=".json,application/json" style="display:none"></label></div></div>'+
+      '<div class="chx-card"><h3>엑셀(CSV)</h3><div class="chx-row" style="flex-wrap:wrap"><button class="chx-btn" data-chx="csv-m">성도 명단 내보내기</button><button class="chx-btn" data-chx="csv-a">출석 기록 내보내기</button><label class="chx-btn">성도 CSV 가져오기<input type="file" id="chxCsv" accept=".csv,text/csv" style="display:none"></label></div><div class="chx-dim" style="margin-top:6px">가져오기 형식: 첫 줄 제목, 열 순서 <b>이름,전화,생일,직분,가족,메모</b></div></div>'+
+      '<div class="chx-card"><h3>비밀번호(PIN)</h3><div class="chx-dim">'+(DB.pin?"설정됨 — 이 화면을 열 때마다 입력합니다.":"설정하면 이 화면을 열 때 4자리 숫자를 묻습니다.")+'</div><div class="chx-row" style="margin-top:8px"><input id="chxNewPin" class="chx-in" type="password" inputmode="numeric" maxlength="4" placeholder="새 4자리" style="max-width:130px"><button class="chx-btn" data-chx="pin-set">설정</button>'+(DB.pin?'<button class="chx-btn" data-chx="pin-off">해제</button>':'')+'</div><div class="chx-dim" style="margin-top:4px">잊어버리면 복구할 수 없으니 기억하기 쉬운 숫자로 정하세요. (백업 파일은 PIN과 무관하게 열립니다)</div></div>'+
+      '<div class="chx-card"><h3>🔔 생일·결석 알림</h3><div class="chx-dim">앱을 열 때(하루 한 번) 오늘 생일과 연속 결석을 폰 알림으로 알려 드립니다. 앱이 닫혀 있을 때 자동으로 울리는 알림은 서버가 있어야 해서 지원하지 않습니다. PIN을 설정하면 알림에 이름 대신 인원수만 표시합니다.</div><div class="chx-row" style="margin-top:8px"><button class="chx-btn" data-chx="notify">'+(DB.notify?"알림 끄기":"알림 켜기")+'</button></div></div>'+
+      '<div class="chx-card"><h3>전체 삭제</h3><div class="chx-dim">이 기기의 교회 자료(성도·조직·출석·기록)를 모두 지웁니다.</div><button class="chx-btn chx-dg" style="margin-top:8px" data-chx="wipe">모든 자료 삭제</button></div>';
+  }
+  function backup(){
+    DB.lastBackup=Date.now(); save();
+    dl("등불_교회자료_"+todayIso()+".json",new Blob([JSON.stringify(DB)],{type:"application/json"})); render();
+  }
+  function exportGroup(id){
+    if(confirm("파일을 암호로 잠글까요?\n[확인]=암호로 잠금(권장), [취소]=그냥 내보내기")){ encBackup(id); return; }
+    var out=buildPartial(id); if(!out) return; dl("등불_"+out.from+"_자료_"+todayIso()+".json",new Blob([JSON.stringify(out)],{type:"application/json"}));
+  }
+  function buildPartial(id){
+    var g=gById(id); if(!g) return null;
+    var gids=[g.id]; if(g.kind==="org") DB.groups.forEach(function(c){ if(c.parent===g.id) gids.push(c.id); });
+    var mset={}; gids.forEach(function(x){ membersOfGroup(x).forEach(function(m){ mset[m.id]=1; }); });
+    (g.officers||[]).forEach(function(o){ if(mById(o.mid)) mset[o.mid]=1; }); if(g.leader&&mById(g.leader)) mset[g.leader]=1;
+    var out={v:1,partial:true,from:g.name,at:Date.now(),posts:(DB.posts||[]).filter(function(p){ return gids.indexOf(p.group)>=0; }),groups:DB.groups.filter(function(x){ return gids.indexOf(x.id)>=0; }),members:DB.members.filter(function(m){ return mset[m.id]; }),notes:DB.notes.filter(function(n){ return mset[n.mid]; }),att:{}};
+    Object.keys(DB.att).forEach(function(k){ if(gids.indexOf(k.split("|")[1])>=0){ var r={}; Object.keys(DB.att[k]).forEach(function(i){ if(mset[i]) r[i]=DB.att[k][i]; }); out.att[k]=r; } });
+    return out;
+  }
+  function mergeIn(d){
+    function up(arr,items){ items.forEach(function(it){ var i=arr.findIndex(function(x){ return x.id===it.id; }); if(i>=0) arr[i]=it; else arr.push(it); }); }
+    DB.posts=DB.posts||[]; up(DB.groups,d.groups||[]); up(DB.members,d.members||[]); up(DB.notes,d.notes||[]); up(DB.posts,d.posts||[]);
+    Object.keys(d.att||{}).forEach(function(k){ DB.att[k]=Object.assign(DB.att[k]||{},d.att[k]); });
+    save();
+  }
+  function csvMembers(){
+    var rows=[["이름","전화","생일","직분","상태","소속","가족","등록일","메모"]];
+    DB.members.forEach(function(m){ rows.push([m.name,m.phone,m.birth,m.role,m.status||"활동",groupsOf(m).map(function(g){ return g.name; }).join("/"),m.family,m.joined,m.memo]); });
+    dl("성도명단_"+todayIso()+".csv",new Blob(["﻿"+rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  }
+  function csvAtt(){
+    var rows=[["날짜","모임","이름","출결"]];
+    Object.keys(DB.att).sort().forEach(function(k){ var p=k.split("|"), g=p[1]==="worship"?"주일예배":(gById(p[1])||{name:"(삭제됨)"}).name; Object.keys(DB.att[k]).forEach(function(id){ rows.push([p[0],g,mName(id),DB.att[k][id]===1?"출석":"결석"]); }); });
+    dl("출석기록_"+todayIso()+".csv",new Blob(["﻿"+rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  }
+  function parseCsv(txt){
+    var rows=[],row=[],cur="",q=false; txt=txt.replace(/^﻿/,"");
+    for(var i=0;i<txt.length;i++){ var c=txt[i];
+      if(q){ if(c==='"'){ if(txt[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
+      else if(c==='"') q=true; else if(c===","){ row.push(cur); cur=""; } else if(c==="\n"){ row.push(cur.replace(/\r$/,"")); rows.push(row); row=[]; cur=""; } else cur+=c; }
+    if(cur||row.length){ row.push(cur.replace(/\r$/,"")); rows.push(row); }
+    return rows;
+  }
+
+  /* ---------- 사진·가족·정착 단계 보조 ---------- */
+  var STAGES=["","등록","1주차 심방","새가족반","셀 배정","정착 완료"];
+  var RELS=["배우자","부모","자녀","형제자매","기타"];
+  function av(m){ return m.photo?'<img class="chx-av" src="'+m.photo+'" alt="">':'<span class="chx-av chx-av0">'+esc((m.name||"?").slice(0,1))+'</span>'; }
+  function resizePhoto(file,cb){
+    var rd=new FileReader(); rd.onload=function(){ var im=new Image(); im.onload=function(){
+      var s=160/Math.max(im.width,im.height,160), w=Math.round(im.width*Math.min(1,s)), h=Math.round(im.height*Math.min(1,s));
+      var c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(im,0,0,w,h); cb(c.toDataURL("image/jpeg",.72)); };
+      im.onerror=function(){ alert("사진을 읽지 못했습니다."); }; im.src=rd.result; };
+    rd.readAsDataURL(file);
+  }
+  function relText(m){ return (m.rel||[]).filter(function(r){ return mById(r.mid); }).map(function(r){ return r.t+" "+mName(r.mid); }).join(", "); }
+
+  /* ---------- 소식(공지·행사·주보) ---------- */
+  var POST_TYPES=["공지","행사","주보"];
+  function postLine(p){
+    var g=p.group&&gById(p.group);
+    return '<div class="chx-item" data-chx="p-edit" data-id="'+p.id+'"><div>'+(p.pin?'📌 ':'')+'<b>'+esc(p.title)+'</b> <span class="chx-tag">'+esc(p.type)+'</span>'+(g?' <span class="chx-tag">'+esc(g.name)+'</span>':'')+'</div><div class="chx-dim">'+esc(p.date||"")+(p.time?" "+esc(p.time):"")+(p.place?" · "+esc(p.place):"")+'</div></div>';
+  }
+  function vNews(){
+    var t=todayIso(), P=DB.posts||[];
+    var up=P.filter(function(p){ return p.type==="행사"&&(p.date||"")>=t; }).sort(function(a,b){ return (a.date+a.time)<(b.date+b.time)?-1:1; });
+    var past=P.filter(function(p){ return p.type==="행사"&&(p.date||"")<t; }).sort(function(a,b){ return a.date<b.date?1:-1; }).slice(0,10);
+    var no=P.filter(function(p){ return p.type==="공지"; }).sort(function(a,b){ return (b.pin?1:0)-(a.pin?1:0)||(a.date<b.date?1:-1); });
+    var bu=P.filter(function(p){ return p.type==="주보"; }).sort(function(a,b){ return a.date<b.date?1:-1; }).slice(0,8);
+    var h='<div class="chx-row" style="justify-content:flex-end"><button class="chx-btn" data-chx="p-add" data-k="공지">＋ 공지</button><button class="chx-btn" data-chx="p-add" data-k="행사">＋ 행사</button><button class="chx-btn" data-chx="p-add" data-k="주보">＋ 주보</button></div>';
+    if(!P.length) h+='<div class="chx-card chx-dim">공지·행사 일정·주보 내용을 적어 두고, 항목을 눌러 [📤 공유]하면 카카오톡·문자로 보낼 글이 만들어집니다. (금액·회계 정보는 넣지 않는 것을 권합니다)</div>';
+    h+='<div class="chx-sub">📅 다가오는 행사</div>'+(up.length?up.map(postLine).join(""):'<div class="chx-dim">없음</div>');
+    h+='<div class="chx-sub">📌 공지</div>'+(no.length?no.map(postLine).join(""):'<div class="chx-dim">없음</div>');
+    h+='<div class="chx-sub">📰 주보</div>'+(bu.length?bu.map(postLine).join(""):'<div class="chx-dim">없음</div>');
+    if(past.length) h+='<div class="chx-sub">지난 행사</div>'+past.map(postLine).join("");
+    return h;
+  }
+  function postForm(id,kind,pdate){
+    var p=id?(DB.posts||[]).filter(function(x){ return x.id===id; })[0]:{id:"",type:kind||"공지",title:"",date:pdate||todayIso(),end:"",time:"",place:"",body:"",group:"",pin:false,cat:"기타",yearly:false};
+    modal('<h3>'+esc(p.type)+(id?" 수정":" 작성")+'</h3><div class="chx-form"><label>종류<select class="chx-in" id="p_type">'+POST_TYPES.map(function(x){ return '<option'+(p.type===x?" selected":"")+'>'+x+'</option>'; }).join("")+'</select></label>'+
+      '<label>제목 *<input class="chx-in" id="p_title" value="'+esc(p.title)+'"></label>'+
+      '<div class="chx-row"><label style="flex:1">날짜<input type="date" class="chx-in" id="p_date" value="'+esc(p.date)+'"></label><label style="flex:1">시간<input class="chx-in" id="p_time" value="'+esc(p.time)+'" placeholder="오후 2시"></label></div>'+
+      '<label>장소<input class="chx-in" id="p_place" value="'+esc(p.place)+'"></label>'+
+      '<div class="chx-row"><label style="flex:1">종료일(여러 날 행사)<input type="date" class="chx-in" id="p_end" value="'+esc(p.end||"")+'"></label><label style="flex:1">분류(행사)<select class="chx-in" id="p_cat">'+Object.keys(CATS).map(function(k){ return '<option'+((p.cat||"기타")===k?" selected":"")+'>'+k+'</option>'; }).join("")+'</select></label></div>'+
+      '<label class="chx-chk"><input type="checkbox" id="p_yearly"'+(p.yearly?" checked":"")+'> 🔁 매년 같은 날짜에 반복 (행사)</label>'+
+      '<label>대상<select class="chx-in" id="p_group"><option value="">전체</option>'+DB.groups.map(function(g){ return '<option value="'+g.id+'"'+(p.group===g.id?" selected":"")+'>'+esc(g.name)+'</option>'; }).join("")+'</select></label>'+
+      '<label>내용<textarea class="chx-in" id="p_body" rows="6">'+esc(p.body)+'</textarea></label><label class="chx-chk"><input type="checkbox" id="p_pin"'+(p.pin?" checked":"")+'> 📌 위에 고정(공지)</label></div>'+
+      '<div class="chx-row" style="margin-top:10px;flex-wrap:wrap">'+(id?'<button class="chx-btn chx-dg" data-chx="p-del" data-id="'+id+'">삭제</button>':'')+'<button class="chx-btn" data-chx="p-share" data-id="'+id+'">📤 공유</button><span style="flex:1"></span><button class="chx-btn chx-close" data-chx="mclose">취소</button><button class="chx-btn chx-pri" data-chx="p-save" data-id="'+id+'">저장</button></div>');
+  }
+  function savePost(id){
+    var title=val("p_title"); if(!title){ alert("제목을 입력해 주세요."); return; }
+    DB.posts=DB.posts||[]; var p=id?DB.posts.filter(function(x){ return x.id===id; })[0]:{id:uid()}; if(!id) DB.posts.push(p);
+    p.type=val("p_type"); p.title=title; p.date=val("p_date"); p.time=val("p_time"); p.place=val("p_place"); p.group=val("p_group"); p.body=document.getElementById("p_body").value.trim(); p.pin=document.getElementById("p_pin").checked; p.end=val("p_end"); p.cat=val("p_cat"); p.yearly=document.getElementById("p_yearly").checked; if(p.end&&p.end<p.date) p.end="";
+    save(); mClose(); render();
+  }
+  function sharePost(){
+    var g=function(i){ var e=document.getElementById(i); return e?e.value.trim():""; };
+    var tx="["+g("p_type")+"] "+g("p_title")+(g("p_date")?"\n일시: "+g("p_date")+(g("p_time")?" "+g("p_time"):""):"")+(g("p_place")?"\n장소: "+g("p_place"):"")+(g("p_body")?"\n\n"+g("p_body"):"");
+    if(navigator.share){ navigator.share({text:tx}).catch(function(){}); return; }
+    try{ navigator.clipboard.writeText(tx).then(function(){ alert("복사했습니다. 카카오톡·문자에 붙여넣으세요."); },function(){ prompt("아래 글을 복사하세요",tx); }); }catch(e){ prompt("아래 글을 복사하세요",tx); }
+  }
+
+  /* ---------- 통계 ---------- */
+  function bar(label,v,max,suffix){ var w=max?Math.round(v*100/max):0; return '<div class="chx-bar"><span class="chx-bl">'+esc(label)+'</span><span class="chx-bt"><i style="width:'+w+'%"></i></span><span class="chx-bv">'+v+(suffix||"")+'</span></div>'; }
+  function vStats(){
+    var M=DB.members; if(!M.length) return '<div class="chx-card chx-dim">성도를 등록하면 통계가 표시됩니다.</div>';
+    function count(f){ var o={}; M.forEach(function(m){ var k=f(m); o[k]=(o[k]||0)+1; }); return o; }
+    function block(title,o,order){ var ks=order||Object.keys(o).sort(function(a,b){ return o[b]-o[a]; }); var mx=Math.max.apply(null,ks.map(function(k){ return o[k]||0; }).concat([1])); return '<div class="chx-card"><h3>'+title+'</h3>'+ks.map(function(k){ return bar(k,o[k]||0,mx,"명"); }).join("")+'</div>'; }
+    var yr=new Date().getFullYear();
+    var age=count(function(m){ var y=parseInt((m.birth||"").slice(0,4),10); if(!y) return "미입력"; var a=yr-y; return a<13?"어린이(~12)":a<20?"학생(13~19)":a<40?"청년(20~39)":a<60?"장년(40~59)":"노년(60~)"; });
+    var act=M.filter(function(m){ return (m.status||"활동")==="활동"; }).length;
+    var h='<div class="chx-card"><h3>요약</h3><div>전체 <b>'+M.length+'</b>명 · 활동 <b>'+act+'</b> · 휴면/이명 <b>'+(M.length-act)+'</b> · 새가족 <b>'+M.filter(function(m){ return m.role==="새가족"||m.stage; }).length+'</b></div></div>';
+    var ss=sessionsOf("worship").slice(-8), tot=membersOfGroup("worship").length;
+    if(ss.length){ h+='<div class="chx-card"><h3>주일예배 출석 추이 (최근 '+ss.length+'회)</h3>'+ss.map(function(d){ var r=DB.att[d+"|worship"]||{}, p=Object.keys(r).filter(function(i){ return r[i]===1; }).length; return bar(d.slice(5),tot?Math.round(p*100/tot):0,100,"%  ("+p+"명)"); }).join("")+'</div>'; }
+    h+=block("직분별",count(function(m){ return m.role||"성도"; }));
+    h+=block("연령대",age,["어린이(~12)","학생(13~19)","청년(20~39)","장년(40~59)","노년(60~)","미입력"].filter(function(k){ return age[k]; }));
+    var go={}; DB.groups.forEach(function(g){ go[(g.kind==="org"?"🏛 ":"🔸 ")+g.name]=membersOfGroup(g.id).length; }); if(Object.keys(go).length) h+=block("조직·셀별 인원",go);
+    var st=count(function(m){ return m.stage||""; }); delete st[""]; if(Object.keys(st).length) h+=block("새가족 정착 단계",st,STAGES.filter(function(k){ return k&&st[k]; }));
+    return h;
+  }
+
+  /* ---------- 암호 백업 ---------- */
+  function b64(u){ var s="",i=0; for(;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+  function unb64(s){ var b=atob(s), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+  async function keyFrom(pw,salt,use){ var km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]); return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:200000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,[use]); }
+  async function encObj(obj,pw){ var salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12)); var key=await keyFrom(pw,salt,"encrypt"); var ct=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,new TextEncoder().encode(JSON.stringify(obj))); return {v:1,enc:1,kdf:"PBKDF2-SHA256-200k",cipher:"AES-256-GCM",salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(ct))}; }
+  async function decObj(f,pw){ var key=await keyFrom(pw,unb64(f.salt),"decrypt"); var pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(f.iv)},key,unb64(f.data)); return JSON.parse(new TextDecoder().decode(pt)); }
+  var PWRES=null;
+  function askPw(title,again){
+    return new Promise(function(res){ PWRES=res;
+      modal('<h3>'+esc(title)+'</h3><div class="chx-form"><label>암호 (6자 이상)<input class="chx-in" id="pw1" type="password" autocomplete="new-password"></label>'+(again?'<label>암호 확인<input class="chx-in" id="pw2" type="password" autocomplete="new-password"></label><div class="chx-dim">⚠ 암호를 잊으면 파일을 열 수 없고 복구도 불가능합니다. 암호는 파일과 따로 전달하세요.</div>':'')+'</div><div class="chx-row" style="margin-top:10px"><span style="flex:1"></span><button class="chx-btn chx-close" data-chx="pw-no">취소</button><button class="chx-btn chx-pri" data-chx="pw-ok" data-again="'+(again?1:0)+'">확인</button></div>');
+    });
+  }
+  async function encBackup(partialId){
+    var pw=await askPw("암호로 잠글 백업",true); if(!pw) return;
+    var data; if(partialId){ data=buildPartial(partialId); if(!data) return; } else { DB.lastBackup=Date.now(); save(); data=DB; }
+    var f=await encObj(data,pw); dl("등불_교회자료_잠금_"+todayIso()+".json",new Blob([JSON.stringify(f)],{type:"application/json"})); render();
+  }
+
+  /* ---------- 알림 ---------- */
+  function todaySummary(){
+    var bds=DB.members.filter(function(m){ return daysToBirthday(m.birth)===0; }), ab=absentStreak("worship",2);
+    return {bds:bds,ab:ab};
+  }
+  function notifyToday(){
+    try{
+      if(!DB.notify||!("Notification" in window)||Notification.permission!=="granted") return;
+      var t=todayIso(); if(DB.lastNotify===t) return;
+      var s=todaySummary(); if(!s.bds.length&&!s.ab.length) return;
+      var body=(s.bds.length?"🎂 오늘 생일 "+(DB.pin?s.bds.length+"명":s.bds.map(function(m){ return m.name; }).join(", ")):"")+((s.bds.length&&s.ab.length)?"\n":"")+(s.ab.length?"📞 연속 결석 "+s.ab.length+"명":"");
+      DB.lastNotify=t; save();
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(r){ if(r&&r.showNotification) r.showNotification("등불 · 교회 돌봄",{body:body}); else new Notification("등불 · 교회 돌봄",{body:body}); },function(){ new Notification("등불 · 교회 돌봄",{body:body}); });
+      else new Notification("등불 · 교회 돌봄",{body:body});
+    }catch(e){}
+  }
+  setTimeout(notifyToday,4000);
+
+  /* ---------- 🗓 연중행사표(달력) ---------- */
+  var CATS={"예배":"#4f8cff","절기":"#c9972a","교육":"#3fae78","선교":"#e5675f","친교":"#b77de6","기타":"#8a93a6"};
+  var CAL={y:new Date().getFullYear(),m:new Date().getMonth(),mode:"month",sel:todayIso()};
+  function dIso(y,m,d){ return y+"-"+pad(m+1)+"-"+pad(d); }
+  function addDays(isoStr,n){ var p=isoStr.split("-"); var d=new Date(+p[0],+p[1]-1,+p[2]+n); return iso(d); }
+  function dayDiff(a,b){ var x=a.split("-"),y=b.split("-"); return Math.round((new Date(+y[0],+y[1]-1,+y[2])-new Date(+x[0],+x[1]-1,+x[2]))/86400000); }
+  /* 한 해 안에서 발생하는 행사(매년 반복 포함) */
+  function occurrences(y){
+    var out=[];
+    (DB.posts||[]).forEach(function(p){
+      if(p.type!=="행사"||!p.date) return;
+      var span=p.end&&p.end>p.date?dayDiff(p.date,p.end):0;
+      if(p.yearly){
+        var md=p.date.slice(5); if(md==="02-29" && !(y%4===0&&(y%100!==0||y%400===0))) md="02-28";
+        var s=y+"-"+md; out.push({p:p,s:s,e:addDays(s,span)});
+      } else {
+        var e=addDays(p.date,span);
+        if(p.date.slice(0,4)<=String(y) && e.slice(0,4)>=String(y)) out.push({p:p,s:p.date,e:e});
+      }
+    });
+    return out.sort(function(a,b){ return (a.s+(a.p.time||""))<(b.s+(b.p.time||""))?-1:1; });
+  }
+  function onDay(occ,d){ return occ.filter(function(o){ return o.s<=d && d<=o.e; }); }
+  function chip(o,compact){
+    var c=CATS[o.p.cat]||CATS["기타"];
+    return '<div class="chx-ev" data-chx="p-edit" data-id="'+o.p.id+'" style="border-left:3px solid '+c+';background:'+c+'33">'+(o.p.yearly?'🔁 ':'')+esc(o.p.title)+'</div>';
+  }
+  function vCal(){
+    var y=CAL.y, m=CAL.m, occ=occurrences(y), h="";
+    h+='<div class="chx-row" style="align-items:center;justify-content:space-between"><button class="chx-btn" data-chx="cal-prev">◀</button><b style="font-size:17px">'+y+'년'+(CAL.mode==="month"?" "+(m+1)+"월":"")+'</b><button class="chx-btn" data-chx="cal-next">▶</button></div>'+
+      '<div class="chx-row" style="flex-wrap:wrap"><button class="chx-btn'+(CAL.mode==="month"?" chx-pri":"")+'" data-chx="cal-mode" data-k="month">월별 달력</button><button class="chx-btn'+(CAL.mode==="year"?" chx-pri":"")+'" data-chx="cal-mode" data-k="year">연간 목록</button><button class="chx-btn" data-chx="cal-today">오늘</button><span style="flex:1"></span><button class="chx-btn chx-pri" data-chx="ev-add" data-date="'+CAL.sel+'">＋ 행사</button></div>';
+    h+='<div class="chx-legend">'+Object.keys(CATS).map(function(k){ return '<span><i style="background:'+CATS[k]+'"></i>'+k+'</span>'; }).join("")+'<span>🔁 매년</span></div>';
+    if(CAL.mode==="month"){
+      var first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), t=todayIso();
+      h+='<div class="chx-cal">'+["일","월","화","수","목","금","토"].map(function(w,i){ return '<div class="chx-wd'+(i===0?" sun":"")+'">'+w+'</div>'; }).join("");
+      for(var i=0;i<first;i++) h+='<div class="chx-cd chx-blank"></div>';
+      for(var d=1;d<=dim;d++){
+        var ds=dIso(y,m,d), es=onDay(occ,ds), dow=(first+d-1)%7;
+        h+='<div class="chx-cd'+(ds===t?" today":"")+(ds===CAL.sel?" sel":"")+'" data-chx="cal-day" data-date="'+ds+'"><div class="chx-dn'+(dow===0?" sun":"")+'">'+d+'</div>'+
+          es.slice(0,2).map(function(o){ var c=CATS[o.p.cat]||CATS["기타"]; return '<div class="chx-dot" style="background:'+c+'">'+esc(o.p.title)+'</div>'; }).join("")+(es.length>2?'<div class="chx-more">+'+(es.length-2)+'</div>':'')+'</div>';
+      }
+      h+='</div>';
+      var sel=onDay(occ,CAL.sel);
+      h+='<div class="chx-sub">'+CAL.sel.slice(5).replace("-","월 ")+'일 행사</div>'+(sel.length?sel.map(function(o){ return chip(o)+'<div class="chx-dim" style="margin:-2px 0 6px 4px">'+esc(o.s===o.e?o.s:o.s+" ~ "+o.e)+(o.p.time?" "+esc(o.p.time):"")+(o.p.place?" · "+esc(o.p.place):"")+'</div>'; }).join(""):'<div class="chx-dim">없음 — 위 [＋ 행사]로 추가</div>');
+      var mm=occ.filter(function(o){ return o.s.slice(0,7)<=y+"-"+pad(m+1) && o.e.slice(0,7)>=y+"-"+pad(m+1); });
+      h+='<div class="chx-sub">이 달 행사 ('+mm.length+')</div>'+(mm.length?mm.map(function(o){ return '<div class="chx-item" data-chx="p-edit" data-id="'+o.p.id+'"><b>'+esc(o.p.title)+'</b> <span class="chx-tag" style="border-color:'+(CATS[o.p.cat]||CATS["기타"])+'">'+esc(o.p.cat||"기타")+'</span><div class="chx-dim">'+esc(o.s.slice(5))+(o.e!==o.s?" ~ "+esc(o.e.slice(5)):"")+(o.p.time?" · "+esc(o.p.time):"")+(o.p.place?" · "+esc(o.p.place):"")+'</div></div>'; }).join(""):'<div class="chx-dim">없음</div>');
+    } else {
+      for(var mo=0;mo<12;mo++){
+        var key=y+"-"+pad(mo+1), list=occ.filter(function(o){ return o.s.slice(0,7)<=key && o.e.slice(0,7)>=key; });
+        h+='<div class="chx-card"><div style="display:flex;justify-content:space-between"><b>'+(mo+1)+'월</b><button class="chx-btn" data-chx="cal-goto" data-m="'+mo+'" style="padding:2px 9px">달력 ▸</button></div>'+(list.length?list.map(function(o){ var c=CATS[o.p.cat]||CATS["기타"]; return '<div class="chx-ylist" data-chx="p-edit" data-id="'+o.p.id+'"><i style="background:'+c+'"></i><span class="chx-dim" style="flex:0 0 74px">'+esc(o.s.slice(5))+(o.e!==o.s?"~"+esc(o.e.slice(5)):"")+'</span><span>'+(o.p.yearly?"🔁 ":"")+esc(o.p.title)+'</span></div>'; }).join(""):'<div class="chx-dim">—</div>')+'</div>';
+      }
+    }
+    h+='<div class="chx-row" style="flex-wrap:wrap;margin-top:12px"><button class="chx-btn" data-chx="ev-seasonal">✝ '+y+'년 교회 절기 기본 입력</button><button class="chx-btn" data-chx="ev-print">🖨 '+y+'년 행사표 인쇄·PDF</button><button class="chx-btn" data-chx="ev-csv">📄 CSV</button></div>'+
+      '<div class="chx-dim" style="margin-top:6px">행사를 누르면 수정·삭제할 수 있습니다. [🔁 매년 반복]으로 저장하면 해마다 같은 날짜에 자동 표시됩니다. 절기 기본 입력은 부활절 등 교단·교회마다 다를 수 있으니 입력 후 확인·수정하세요.</div>';
+    return h;
+  }
+  function easter(y){ var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return dIso(y,mo-1,da); }
+  function nthSunday(y,m,n){ var d=new Date(y,m,1); var off=(7-d.getDay())%7; return dIso(y,m,1+off+7*(n-1)); }
+  function seasonal(y){
+    var E=easter(y), adv=(function(){ var d=new Date(y,11,25), off=d.getDay()===0?7:d.getDay(); return addDays(dIso(y,11,25),-off-21); })();
+    return [
+      ["신년예배·송구영신 새해 첫날",dIso(y,0,1),"예배",1],["사순절 시작(재의 수요일)",addDays(E,-46),"절기",0],["종려주일",addDays(E,-7),"절기",0],["고난주간 성금요일",addDays(E,-2),"절기",0],["부활주일",E,"절기",0],
+      ["어린이주일",nthSunday(y,4,1),"교육",0],["어버이주일",nthSunday(y,4,2),"친교",0],["스승주일",nthSunday(y,4,3),"교육",0],["성령강림주일",addDays(E,49),"절기",0],["맥추감사주일",nthSunday(y,6,1),"절기",0],
+      ["추수감사주일",nthSunday(y,10,3),"절기",0],["대림절 첫째 주일",adv,"절기",0],["성탄절 예배",dIso(y,11,25),"절기",1],["송구영신예배",dIso(y,11,31),"예배",1]
+    ];
+  }
+  function addSeasonal(){
+    var y=CAL.y, add=0; DB.posts=DB.posts||[];
+    seasonal(y).forEach(function(s){ if(DB.posts.some(function(p){ return p.type==="행사"&&p.title===s[0]&&(p.yearly?p.date.slice(5)===s[1].slice(5):p.date===s[1]); })) return;
+      DB.posts.push({id:uid(),type:"행사",title:s[0],date:s[1],end:"",time:"",place:"",body:"",group:"",pin:false,cat:s[2],yearly:false}); add++; });
+    save(); alert(add?add+"개 절기·행사를 넣었습니다. (부활절·대림절 등 날짜가 해마다 바뀌는 것은 해당 연도 값으로 들어갑니다)":"이미 모두 들어 있습니다."); render();
+  }
+  function printYear(){
+    var y=CAL.y, occ=occurrences(y), w=window.open("","_blank"); if(!w){ alert("팝업이 막혀 있습니다. 팝업을 허용하거나 CSV로 내보내 주세요."); return; }
+    var rows=""; for(var m=0;m<12;m++){ var key=y+"-"+pad(m+1), list=occ.filter(function(o){ return o.s.slice(0,7)<=key&&o.e.slice(0,7)>=key; });
+      rows+='<tr><th>'+(m+1)+'월</th><td>'+(list.map(function(o){ return esc(o.s.slice(8))+"일"+(o.e!==o.s?"~"+esc(o.e.slice(o.e.slice(0,7)===o.s.slice(0,7)?8:5))+(o.e.slice(0,7)===o.s.slice(0,7)?"일":""):"")+" "+esc(o.p.title)+(o.p.time?" ("+esc(o.p.time)+")":"")+(o.p.place?" @"+esc(o.p.place):""); }).join("<br>")||"")+'</td></tr>'; }
+    w.document.write('<!doctype html><meta charset="utf-8"><title>'+y+'년 교회 연중행사표</title><style>body{font-family:sans-serif;padding:20px}h1{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #444;padding:8px;vertical-align:top;font-size:14px}th{width:60px;background:#eee}@media print{button{display:none}}</style><h1>'+y+'년 교회 연중행사표</h1><table>'+rows+'</table><p><button onclick="window.print()">인쇄 / PDF 저장</button></p>');
+    w.document.close();
+  }
+  function csvYear(){
+    var rows=[["시작","종료","행사","분류","시간","장소","매년반복","내용"]]; occurrences(CAL.y).forEach(function(o){ rows.push([o.s,o.e,o.p.title,o.p.cat||"",o.p.time||"",o.p.place||"",o.p.yearly?"예":"",o.p.body||""]); });
+    dl("연중행사표_"+CAL.y+".csv",new Blob(["﻿"+rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  }
+
+  /* ---------- 이벤트 ---------- */
+  document.addEventListener("click",function(e){
+    var o=e.target.closest&&e.target.closest("[data-church]"); if(o){ e.preventDefault(); open(); return; }
+    var b=e.target.closest&&e.target.closest("[data-chx]"); if(!b) return;
+    var a=b.getAttribute("data-chx"), id=b.getAttribute("data-id")||"";
+    switch(a){
+      case "close": close(); break;
+      case "mclose": mClose(); break;
+      case "ack": DB.ack=1; save(); render(); break;
+      case "unlock": (async function(){ var p=document.getElementById("chxPin").value; if(await sha(p)===DB.pin){ UNLOCKED=true; DB.ack?render():notice(); } else document.getElementById("chxPinMsg").textContent="비밀번호가 맞지 않습니다."; })(); break;
+      case "tab": S.tab=b.getAttribute("data-v"); render(); break;
+      case "m-add": memberForm(""); break;
+      case "m-edit": memberForm(id); break;
+      case "m-save": saveMember(id); break;
+      case "m-del": delMember(id); break;
+      case "g-add": groupForm("",b.getAttribute("data-k")); break;
+      case "g-edit": groupForm(id); break;
+      case "g-save": saveGroup(id,b.getAttribute("data-k")); break;
+      case "g-del": delGroup(id); break;
+      case "att-tog": { var k=attKey(), r=DB.att[k]||(DB.att[k]={}); var c=r[id]; r[id]=(c===undefined)?1:(c===1?0:undefined); if(r[id]===undefined) delete r[id]; save(); render(); break; }
+      case "att-all": { var k2=attKey(), r2=DB.att[k2]||(DB.att[k2]={}); membersOfGroup(S.attGroup).forEach(function(m){ r2[m.id]=1; }); save(); render(); break; }
+      case "att-none": { delete DB.att[attKey()]; save(); render(); break; }
+      case "n-add": noteForm(id); break;
+      case "n-save": { var mid=val("n_mid"), tx=val("n_text"); if(!tx){ alert("내용을 입력해 주세요."); break; } DB.notes.push({id:uid(),mid:mid,date:val("n_date")||todayIso(),type:val("n_type"),text:tx,follow:document.getElementById("n_follow").checked,done:false}); save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render(); break; }
+      case "n-done": DB.notes.forEach(function(n){ if(n.id===id) n.done=true; }); save(); render(); break;
+      case "n-del": if(confirm("이 기록을 삭제할까요?")){ DB.notes=DB.notes.filter(function(n){ return n.id!==id; }); save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render(); } break;
+      case "bk": backup(); break;
+      case "g-exp": exportGroup(id); break;
+      case "bk-enc": encBackup(""); break;
+      case "pw-no": mClose(); if(PWRES){ PWRES(null); PWRES=null; } break;
+      case "pw-ok": { var p1=val("pw1"), p2=document.getElementById("pw2"); if(p1.length<6){ alert("암호는 6자 이상으로 해 주세요."); break; } if(p2&&p2.value.trim()!==p1){ alert("두 암호가 다릅니다."); break; } mClose(); if(PWRES){ PWRES(p1); PWRES=null; } break; }
+      case "p-add": postForm("",b.getAttribute("data-k")); break;
+      case "ev-add": postForm("","행사",b.getAttribute("data-date")); break;
+      case "cal-prev": if(CAL.mode==="year"){ CAL.y--; } else { CAL.m--; if(CAL.m<0){ CAL.m=11; CAL.y--; } } CAL.sel=dIso(CAL.y,CAL.m,1); render(); break;
+      case "cal-next": if(CAL.mode==="year"){ CAL.y++; } else { CAL.m++; if(CAL.m>11){ CAL.m=0; CAL.y++; } } CAL.sel=dIso(CAL.y,CAL.m,1); render(); break;
+      case "cal-mode": CAL.mode=b.getAttribute("data-k"); render(); break;
+      case "cal-today": { var n=new Date(); CAL.y=n.getFullYear(); CAL.m=n.getMonth(); CAL.sel=todayIso(); render(); break; }
+      case "cal-day": CAL.sel=b.getAttribute("data-date"); render(); break;
+      case "cal-goto": CAL.m=parseInt(b.getAttribute("data-m"),10); CAL.mode="month"; CAL.sel=dIso(CAL.y,CAL.m,1); render(); break;
+      case "ev-seasonal": addSeasonal(); break;
+      case "ev-print": printYear(); break;
+      case "ev-csv": csvYear(); break;
+      case "p-edit": postForm(id); break;
+      case "p-save": savePost(id); break;
+      case "p-share": sharePost(); break;
+      case "p-del": if(confirm("이 항목을 삭제할까요?\n(매년 반복 행사는 모든 해에서 사라집니다)")){ DB.posts=(DB.posts||[]).filter(function(x){ return x.id!==id; }); save(); document.querySelectorAll(".chx-modal").forEach(function(x){ x.remove(); }); render(); } break;
+      case "photo-del": S.photo=""; var pb=document.getElementById("f_photoBox"); if(pb) pb.innerHTML=av({name:val("f_name")}); break;
+      case "notify": (async function(){ if(DB.notify){ DB.notify=false; save(); render(); return; } if(!("Notification" in window)){ alert("이 브라우저는 알림을 지원하지 않습니다."); return; } var r=await Notification.requestPermission(); if(r==="granted"){ DB.notify=true; DB.lastNotify=""; save(); notifyToday(); render(); } else alert("알림이 허용되지 않았습니다. 브라우저 사이트 설정에서 알림을 허용해 주세요."); })(); break;
+      case "csv-m": csvMembers(); break;
+      case "csv-a": csvAtt(); break;
+      case "pin-set": (async function(){ var p=val("chxNewPin"); if(!/^\d{4}$/.test(p)){ alert("숫자 4자리를 입력해 주세요."); return; } DB.pin=await sha(p); save(); alert("비밀번호를 설정했습니다."); render(); })(); break;
+      case "pin-off": if(confirm("비밀번호를 해제할까요?")){ DB.pin=null; save(); render(); } break;
+      case "wipe": if(confirm("교회 자료를 모두 삭제할까요?\n(되돌릴 수 없습니다. 먼저 백업을 받아 두셨나요?)") && prompt("확인을 위해 ‘삭제’라고 입력해 주세요.")==="삭제"){ DB={v:1,groups:[],members:[],notes:[],att:{},ack:1}; save(); render(); } break;
+    }
+  });
+  document.addEventListener("input",function(e){
+    if(e.target.id==="chxQ"){ S.q=e.target.value; var pos=e.target.selectionStart; render(); var q=document.getElementById("chxQ"); if(q){ q.focus(); try{ q.setSelectionRange(pos,pos); }catch(_){} } }
+  });
+  document.addEventListener("change",function(e){
+    var t=e.target;
+    if(t.id==="chxFlt"){ S.flt=t.value; render(); }
+    else if(t.id==="chxAttDate"){ S.attDate=t.value||lastSunday(); render(); }
+    else if(t.id==="chxAttGroup"){ S.attGroup=t.value; render(); }
+    else if(t.id==="chxRestore"&&t.files[0]){
+      var f=t.files[0], rd=new FileReader(); rd.onload=async function(){
+        try{ var d=JSON.parse(rd.result);
+          if(d&&d.enc){ var pw=await askPw("암호를 입력하세요",false); if(!pw) return; try{ d=await decObj(d,pw); }catch(_){ alert("암호가 맞지 않거나 파일이 손상되었습니다."); return; } }
+          if(!d||d.v!==1||!Array.isArray(d.members)) throw 0;
+          if(d.partial){ if(confirm("‘"+(d.from||"조직")+"’ 자료(성도 "+d.members.length+"명)를 지금 자료에 합칠까요?\n같은 성도·조직은 불러온 내용으로 덮어쓰고, 나머지는 그대로 둡니다.")){ mergeIn(d); render(); } return; }
+          if(confirm("백업을 불러오면 지금 자료가 모두 교체됩니다. 계속할까요?\n(성도 "+d.members.length+"명)")){ var pin=DB.pin; DB=d; DB.groups=DB.groups||[]; DB.notes=DB.notes||[]; DB.posts=DB.posts||[]; DB.att=DB.att||{}; DB.pin=DB.pin||pin||null; DB.ack=1; save(); render(); }
+        }catch(_){ alert("올바른 백업 파일이 아닙니다."); } }; rd.readAsText(f); t.value="";
+    }
+    else if(t.id==="f_photo"&&t.files[0]){ resizePhoto(t.files[0],function(u){ S.photo=u; var pb=document.getElementById("f_photoBox"); if(pb) pb.innerHTML='<img class="chx-av" src="'+u+'" alt="">'; }); t.value=""; }
+    else if(t.id==="chxCsv"&&t.files[0]){
+      var f2=t.files[0], rd2=new FileReader(); rd2.onload=function(){ var rows=parseCsv(String(rd2.result)).slice(1).filter(function(r){ return (r[0]||"").trim(); });
+        if(!rows.length){ alert("가져올 줄이 없습니다."); return; }
+        if(!confirm(rows.length+"명을 명단에 추가할까요? (이미 있는 이름은 건너뜁니다)")) return;
+        var n=0; rows.forEach(function(r){ var nm=r[0].trim(); if(DB.members.some(function(m){ return m.name===nm && (m.phone||"")===(r[1]||"").trim(); })) return;
+          DB.members.push({id:uid(),name:nm,phone:(r[1]||"").trim(),birth:(r[2]||"").trim(),role:ROLES.indexOf((r[3]||"").trim())>=0?r[3].trim():"성도",status:"활동",groups:[],family:(r[4]||"").trim(),memo:(r[5]||"").trim(),joined:todayIso()}); n++; });
+        save(); alert(n+"명을 추가했습니다."); S.tab="members"; render(); };
+      rd2.readAsText(f2,"utf-8"); t.value="";
+    }
+  });
+  window.openChurch=open;
+  function addEntry(){
+    var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("chxEntry")) return;
+    var d=document.createElement("div"); d.id="chxEntry"; d.style.cssText="margin:14px 0;padding:12px;border:1px solid rgba(201,151,42,.5);border-radius:12px;";
+    d.innerHTML='<b>⛪ 교회·성도 관리</b><div style="font-size:13px;opacity:.75;margin:4px 0 8px">성도 명단 · 기관/셀 · 출석 · 심방/기도 기록 (이 기기에만 저장)</div><button data-church style="padding:9px 14px;border-radius:9px;border:1px solid rgba(201,151,42,.7);background:transparent;color:inherit;font-weight:700;cursor:pointer;">열기</button> <button data-learn="exp" style="padding:9px 14px;border-radius:9px;border:1px solid rgba(201,151,42,.4);background:transparent;color:inherit;cursor:pointer;margin-left:6px;">📤 묵상 기록 내보내기</button>';
+    host.insertBefore(d,host.firstChild);
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",addEntry); else addEntry();
+
+  var css=document.createElement("style");
+  css.textContent=
+    ".chx-ov{position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.55);display:flex;justify-content:center;align-items:stretch;}"+
+    ".chx-ov,.chx-modal{--bg:#14171f;--card:#1e2330;--tx:#eceff4;--tx2:#a9b0bf;--ac:#e0b24a;--bd:#363d50;--dg:#e5675f;--ok:#58c28a;--wn:#e0a13a;}"+
+    "body.light-mode .chx-ov,body.light-mode .chx-modal{--bg:#f7f2e6;--card:#fff;--tx:#2b2418;--tx2:#6b6150;--ac:#9a6a00;--bd:#d9cfb8;--dg:#b3362e;--ok:#1f7a4d;--wn:#9a6a00;}"+
+    "body.bw-mode .chx-ov,body.bw-mode .chx-modal{--bg:#000;--card:#000;--tx:#fff;--tx2:#e0e0e0;--ac:#ffd23f;--bd:#8a8a8a;--dg:#ff8a80;--ok:#7dffb0;--wn:#ffd23f;}"+
+    ".chx-panel{background:var(--bg);color:var(--tx);width:100%;max-width:820px;display:flex;flex-direction:column;font-size:15px;}"+
+    ".chx-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd);font-size:17px;}"+
+    ".chx-close{background:transparent;border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:14px;}"+
+    ".chx-tabs{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;border-bottom:1px solid var(--bd);}"+
+    ".chx-tab{flex:0 0 auto;background:transparent;border:1px solid var(--bd);color:var(--tx2);border-radius:18px;padding:7px 13px;cursor:pointer;font-size:14px;white-space:nowrap;}"+
+    ".chx-tab.on{background:var(--ac);color:#111;border-color:var(--ac);font-weight:700;}"+
+    ".chx-body{flex:1;overflow-y:auto;padding:12px 12px 90px;}"+
+    ".chx-row{display:flex;gap:8px;margin:6px 0;}"+
+    ".chx-in{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:9px;padding:9px 10px;font-size:15px;width:100%;box-sizing:border-box;font-family:inherit;}"+
+    ".chx-btn{display:inline-block;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:9px;padding:8px 12px;font-size:14px;cursor:pointer;text-decoration:none;white-space:nowrap;font-family:inherit;}"+
+    ".chx-pri{background:var(--ac);color:#111;border-color:var(--ac);font-weight:700;}.chx-dg{color:var(--dg);border-color:var(--dg);}"+
+    ".chx-card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin:10px 0;}.chx-card h3{margin:0 0 6px;font-size:16px;}.chx-warn2{border-color:var(--wn);}"+
+    ".chx-item{background:var(--card);border:1px solid var(--bd);border-radius:11px;padding:10px 12px;margin:6px 0;cursor:pointer;}"+
+    ".chx-dim{color:var(--tx2);font-size:13px;}.chx-sub{margin:16px 0 4px;font-weight:700;color:var(--ac);}"+
+    ".chx-tag{display:inline-block;font-size:11.5px;border:1px solid var(--bd);border-radius:10px;padding:1px 7px;color:var(--tx2);}.chx-warn{color:var(--wn);border-color:var(--wn);}.chx-ok{color:var(--ok);border-color:var(--ok);}"+
+    ".chx-att{display:flex;justify-content:space-between;align-items:center;user-select:none;}.chx-att.on{border-color:var(--ok);}.chx-att.off{border-color:var(--dg);}.chx-state{font-weight:700;}"+
+    ".chx-modal{position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:16px 10px;}"+
+    ".chx-mbox{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:14px;width:100%;max-width:520px;margin:auto;}.chx-mbox h3{margin:0 0 8px;}"+
+    ".chx-form label{display:block;margin:8px 0;font-size:13px;color:var(--tx2);}.chx-form .chx-in{margin-top:3px;}.chx-lbl{font-size:13px;color:var(--tx2);margin:8px 0 3px;}"+
+    ".chx-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--tx2);margin:4px 0 8px;}.chx-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}"+
+    ".chx-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}.chx-wd{text-align:center;font-size:12px;color:var(--tx2);padding:3px 0;}.sun{color:var(--dg) !important;}"+
+    ".chx-cd{min-height:62px;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:2px;overflow:hidden;cursor:pointer;}.chx-cd.today{border-color:var(--ac);border-width:2px;}.chx-cd.sel{background:var(--bd);}.chx-blank{background:transparent;border:0;cursor:default;}"+
+    ".chx-dn{font-size:12px;font-weight:700;}.chx-dot{font-size:10px;line-height:1.25;color:#fff;border-radius:3px;padding:0 3px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}.chx-more{font-size:10px;color:var(--tx2);}"+
+    ".chx-ev{border-radius:7px;padding:7px 9px;margin:6px 0 2px;cursor:pointer;font-weight:600;}.chx-ylist{display:flex;gap:8px;align-items:center;padding:5px 0;cursor:pointer;border-top:1px solid var(--bd);}.chx-ylist i{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}"+
+    ".chx-av{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:0 0 auto;display:inline-block;}.chx-av0{background:var(--bd);color:var(--tx);display:inline-flex;align-items:center;justify-content:center;font-weight:700;}.chx-mi{display:flex;gap:10px;align-items:center;}"+
+    ".chx-bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px;}.chx-bl{flex:0 0 96px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.chx-bt{flex:1;background:var(--bd);border-radius:6px;height:12px;overflow:hidden;}.chx-bt i{display:block;height:100%;background:var(--ac);}.chx-bv{flex:0 0 auto;min-width:60px;text-align:right;}"+
+    ".chx-chks{display:flex;flex-wrap:wrap;gap:6px;}.chx-chk{display:inline-flex !important;align-items:center;gap:5px;border:1px solid var(--bd);border-radius:14px;padding:4px 9px;color:var(--tx) !important;font-size:13.5px !important;margin:0 !important;}";
+  document.head.appendChild(css);
+})();
+/*CHURCH-END*/
+
 /*NAV-START*/
 /* ===== 돌아가기: 앱 안의 ← 돌아가기 버튼 + 스마트폰 뒤로가기(◁) 연동 =====
    열린 창 닫기 → 이전 화면 → 이전 장(스크롤 위치 포함) 순서로 되돌아가고,
@@ -6896,7 +7517,7 @@ window.loadApiKey().then(async function(){
 (function(){
   "use strict";
   var GUARD = false;
-  var OV_SEL = ".lrn-overlay,.ilf-overlay,.tools-sheet-overlay,.tools-sheet-overlay-d,.dict-popup,.dict-popup-d,#voiceOverlay,#cal-event-modal,#toolsFabMenu,#toolsFabMenuD";
+  var OV_SEL = ".chx-modal,.chx-ov,.lrn-overlay,.ilf-overlay,.tools-sheet-overlay,.tools-sheet-overlay-d,.dict-popup,.dict-popup-d,#voiceOverlay,#cal-event-modal,#toolsFabMenu,#toolsFabMenuD";
   var CLOSE_SEL = "[data-vs-close],.ilf-close,.lrn-close,[class*='close'],[id*='Close'],[id*='close'],#cal-ev-cancel-btn";
   var restoring = false, ignore = 0, ovDepth = 0, armedUntil = 0, curView = "read", booted = false;
 
