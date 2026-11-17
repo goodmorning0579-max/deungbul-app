@@ -6475,7 +6475,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v37";
+  var V="2026-11-18 · v38";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -7433,6 +7433,48 @@ document.addEventListener("change",(e)=>{
 })();
 /*CHURCH-END*/
 
+/*HDR-START*/
+/* ===== 읽을 때 위 막대 자동 숨김: 아래로 스크롤하면 위 막대가 올라가 본문이 화면 맨 위까지 보이고,
+   위로 살짝 올리면 다시 나타납니다. (설정에서 끌 수 있음) ===== */
+(function(){
+  "use strict";
+  var KEY="hdrAuto";
+  function on(){ try{ return localStorage.getItem(KEY)!=="0"; }catch(e){ return true; } }
+  var css=document.createElement("style");
+  css.textContent=".top{transition:max-height .25s ease,padding .25s ease,opacity .2s ease;max-height:45vh;overflow:hidden;}"+
+    "body.hdr-away .top{max-height:0!important;padding-top:0!important;padding-bottom:0!important;border-bottom-width:0!important;opacity:0;pointer-events:none;}"+
+    "#hdrShow{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9;display:none;padding:1px 16px 3px;border-radius:0 0 14px 14px;font-size:12px;line-height:1.2;background:rgba(14,17,25,.88);color:#f1d27a;border:1px solid rgba(201,151,42,.45);border-top:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}"+
+    "body.hdr-away #hdrShow{display:block;}";
+  document.head.appendChild(css);
+  var app=null, acc=0, last=0, btn=null;
+  function show(){ document.body.classList.remove("hdr-away"); acc=0; }
+  function hide(){ if(on()) document.body.classList.add("hdr-away"); acc=0; }
+  function onScroll(){
+    var y=app.scrollTop, d=y-last; last=y;
+    if(!on()){ show(); return; }
+    if(y<60){ show(); return; }
+    acc=(d*acc<0)?d:acc+d;
+    if(acc>28&&y>110) hide(); else if(acc<-28) show();
+  }
+  function setting(){
+    var host=document.getElementById("v-set"); if(!host||document.getElementById("hdrAutoRow")) return;
+    var d=document.createElement("div"); d.id="hdrAutoRow"; d.style.cssText="margin:14px 4px;padding:12px 14px;border:1px solid rgba(201,151,42,.3);border-radius:12px;font-size:14px;line-height:1.5;";
+    d.innerHTML='<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="hdrAutoCb" style="margin-top:4px;width:18px;height:18px"><span><b>읽을 때 위 막대 자동 숨김</b><br><span style="opacity:.75;font-size:12px">아래로 스크롤하면 위 막대가 올라가 본문이 화면 맨 위까지 보입니다. 위로 올리거나 맨 위 [▼] 단추를 누르면 다시 나옵니다.</span></span></label>';
+    var tag=document.getElementById("appVerTag"); if(tag&&tag.parentNode===host) host.insertBefore(d,tag); else host.appendChild(d);
+    var cb=d.querySelector("#hdrAutoCb"); cb.checked=on();
+    cb.addEventListener("change",function(){ try{ localStorage.setItem(KEY,cb.checked?"1":"0"); }catch(e){} if(!cb.checked) show(); });
+  }
+  function init(){
+    app=document.querySelector(".app"); if(!app) return;
+    btn=document.createElement("button"); btn.id="hdrShow"; btn.type="button"; btn.textContent="▼ 메뉴"; btn.setAttribute("aria-label","위 막대 다시 보기");
+    btn.addEventListener("click",function(){ show(); }); document.body.appendChild(btn);
+    last=app.scrollTop; app.addEventListener("scroll",onScroll,{passive:true});
+    document.addEventListener("click",function(e){ if(e.target.closest&&e.target.closest(".bni,[data-v],[data-view]")) show(); },true);
+    setting(); setTimeout(setting,1200);
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+/*HDR-END*/
 /*NAV-START*/
 /* ===== 돌아가기: 앱 안의 ← 돌아가기 버튼 + 스마트폰 뒤로가기(◁) 연동 =====
    열린 창 닫기 → 이전 화면 → 이전 장(스크롤 위치 포함) 순서로 되돌아가고,
