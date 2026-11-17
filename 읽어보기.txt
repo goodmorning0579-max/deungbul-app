@@ -1,0 +1,21 @@
+[바로가기 아이콘만 옛 그림으로 나올 때 — 교체할 파일 목록]
+
+원인: 바로가기(설치) 아이콘은 앱 화면(html)이 아니라 별도 파일(manifest.json과 아이콘 그림 파일)에서 가져옵니다.
+앱 화면 파일(mobile.html 등)만 올리면 앱 안은 새 그림이 되지만, 바로가기는 옛 그림이 그대로입니다.
+
+1) 이 압축 파일 안의 파일 13개를 GitHub 저장소의 "같은 위치"(mobile.html이 있는 곳)에 모두 올려 덮어씁니다.
+   - manifest.json, manifest-desktop.json
+   - deungbul-192.png, deungbul-512.png, deungbul-192-maskable.png, deungbul-512-maskable.png, deungbul-apple-180.png
+   - icon-192.png, icon-512.png, icon-192-maskable.png, icon-512-maskable.png, apple-touch-icon.png
+   - favicon.ico
+   (GitHub 웹: 저장소 > Add file > Upload files > 파일을 끌어다 놓고 Commit)
+2) 1~2분 뒤 폰/PC 브라우저에서 사이트를 열고 새로고침합니다.
+   설정 화면 맨 아래에 "✅ 설치 아이콘 파일: 최신"이 보이면 서버 준비 완료입니다.
+   "⚠ 옛 버전"이라고 나오면 manifest.json이 아직 안 올라간 것입니다.
+3) 옛 바로가기를 지우고 새로 만듭니다.
+   - 안드로이드: 홈 화면 아이콘 길게 눌러 삭제 → 브라우저에서 사이트를 열어 [홈 화면에 추가]
+   - PC(크롬): chrome://apps 에서 등불 우클릭 > 삭제, 바탕화면 바로가기 삭제 → 사이트에서 [설치]
+   - 이미 설치한 앱은 새 파일을 올린 뒤 하루 이틀 안에 저절로 바뀌기도 합니다.
+
+직접 확인하는 법: 브라우저 주소창에 사이트주소/manifest.json 을 입력해 보세요.
+"deungbul-192.png" 글자가 보이면 새 파일, "icon-192.png"만 보이면 옛 파일입니다.
