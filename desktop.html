@@ -607,9 +607,9 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
     <a class="nav-item" href="https://www.godpia.com/index.asp" target="_blank" rel="noopener" style="text-decoration:none;"><span class="nav-icon">🌐</span>Godpia</a>
     <div class="nav-item" data-view="song"><span class="nav-icon">🎵</span>찬양</div>
     <div class="nav-item" data-view="search"><span class="nav-icon">🔍</span>나의 기록 검색</div>
-    <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>성경 API 연동</div>
-    <div class="nav-item" data-view="guide"><span class="nav-icon">📘</span>등불 설명서</div>
     <div class="nav-item" data-view="story"><span class="nav-icon">📚</span>성경 66권 이야기</div>
+    <div class="nav-item" data-view="guide"><span class="nav-icon">📘</span>등불 설명서</div>
+    <div class="nav-item" data-view="settings"><span class="nav-icon">⚙️</span>설정</div>
   </nav>
   <div class="sidebar-footer" id="sidebar-footer">
     기록은 이 환경에 개인적으로 저장됩니다.
@@ -6884,7 +6884,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v42";
+  var V="2026-11-18 · v43";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
