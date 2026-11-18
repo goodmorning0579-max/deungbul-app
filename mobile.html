@@ -473,13 +473,13 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
   </div>
   <div id="studyDrawerM">
   <div class="stabs">
+    <div class="stab" data-t="serm">🎧 설교듣기</div>
     <div class="stab active" data-t="lang">🔤 원어</div>
     <div class="stab" data-t="hist">🏛 역사</div>
     <div class="stab" data-t="cult">🏺 문화</div>
     <div class="stab" data-t="pple">👤 인물</div>
     <div class="stab" data-t="plce">🗺 지리</div>
     <div class="stab" data-t="xref">🔗 참조</div>
-    <div class="stab" data-t="serm">🎤 설교</div>
   </div>
   <div class="spanel active" id="p-lang"></div>
   <div class="spanel" id="p-hist"></div>
@@ -975,7 +975,7 @@ const stor=(typeof window!=="undefined" && window.storage && typeof window.stora
 /* 자동 백업: 백업 대상 데이터(묵상기록/통독진행/즐겨찾기/설교기록/음성기록/메모)가 저장되거나 삭제될 때마다
    자동으로 "동기화 필요" 표시를 하고, 잠시 후(또는 화면 이탈 시) 조용히 드라이브에 백업한다.
    이렇게 stor.set/delete 자체를 감싸두면, 어떤 화면의 어떤 저장 버튼을 눌러도 빠짐없이 자동 백업 대상이 된다. */
-const GDRIVE_SYNC_PREFIXES = ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:"];
+const GDRIVE_SYNC_PREFIXES = ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:","mypick:"];
 (function(){
   const origSet = stor.set.bind(stor);
   const origDelete = stor.delete.bind(stor);
@@ -4388,7 +4388,7 @@ async function allFav(){
 
 /* ===== 백업 / 복원 ===== */
 async function exportAllData(){
-  const prefixes=["j:","p:","fav:","sermon:","note:","vstudy:","learn:"];
+  const prefixes=["j:","p:","fav:","sermon:","note:","vstudy:","learn:","mypick:"];
   const bundle={app:"등불",version:1,exportedAt:new Date().toISOString(),entries:[]};
   for(const p of prefixes){
     try{
@@ -5070,7 +5070,7 @@ async function saveToGoogleDrive(silent){
     if(!token){ if(!silent) throw new Error("구글 인증이 필요합니다."); return false; }
     if(!silent && st) st.textContent = "⏳ 저장 중...";
     const bundle = { app:"등불", version:1, exportedAt:new Date().toISOString(), entries:[] };
-    for(const p of ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:"]){
+    for(const p of ["j:","p:","fav:","sermon:","voice:","note:","vstudy:","learn:","mypick:"]){
       const l = await stor.list(p);
       for(const k of (l.keys||[])){
         try{ const v = await stor.get(k); if(v) bundle.entries.push({key:gdriveLocalToCommonKey(k), value:v.value}); }catch(e){}
@@ -6475,7 +6475,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v38";
+  var V="2026-11-18 · v40";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -6495,6 +6495,164 @@ document.addEventListener("change",(e)=>{
   window.__appVer=V;
 })();
 /*VER-END*/
+/*MYPICK-START*/
+/* ===== 내 찬양 · 내 설교자: 66권 찬양 맨 위 / 설교 찾아보기 맨 위에 "내가 추가" 칸 ===== */
+(function(){
+  var ST=(typeof stor!=="undefined")?stor:window.storage;
+  var KS="mypick:songs", KP="mypick:pastors";
+  var songs=[], pastors=[], loaded=false, openF={song:false,pas:false}, busy=false;
+  function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function rd(k){return ST.get(k).then(function(r){var a=r&&r.value?JSON.parse(r.value):[];return Array.isArray(a)?a:[];}).catch(function(){return [];});}
+  function load(){ if(loaded) return Promise.resolve(); return Promise.all([rd(KS),rd(KP)]).then(function(a){songs=a[0];pastors=a[1];loaded=true;}); }
+  function wr(k,v){ return ST.set(k,JSON.stringify(v)).catch(function(){ alert("저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요."); }); }
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+  function parseYT(u){
+    u=(u||"").trim(); if(!u) return null;
+    if(/^[\w-]{11}$/.test(u)) return {vid:u,list:""};
+    if(!/^https?:\/\//i.test(u)) u="https://"+u;
+    var x; try{x=new URL(u);}catch(e){return null;}
+    var h=x.hostname.replace(/^(www\.|m\.|music\.)/,"");
+    var vid="", list=x.searchParams.get("list")||"";
+    if(h==="youtu.be") vid=x.pathname.slice(1).split("/")[0];
+    else if(h==="youtube.com"||h==="youtube-nocookie.com"){
+      if(x.pathname==="/watch") vid=x.searchParams.get("v")||"";
+      else{ var m=x.pathname.match(/^\/(embed|shorts|live|v)\/([\w-]{11})/); if(m) vid=m[2]; }
+    } else return null;
+    if(vid&&!/^[\w-]{11}$/.test(vid)) vid="";
+    if(list&&!/^[\w-]+$/.test(list)) list="";
+    if(!vid&&!list) return null;
+    return {vid:vid,list:list};
+  }
+  function watchUrl(it){ return it.vid ? "https://www.youtube.com/watch?v="+it.vid+(it.list?"&list="+it.list:"") : "https://www.youtube.com/playlist?list="+it.list; }
+  function embedSrc(it){ return "https://www.youtube.com/embed/"+(it.vid||"videoseries")+"?autoplay=1"+(it.list?"&list="+it.list:""); }
+  function fetchTitle(it){
+    return new Promise(function(res){
+      var done=false, t=setTimeout(function(){ if(!done){done=true;res("");} },6000);
+      try{
+        fetch("https://www.youtube.com/oembed?format=json&url="+encodeURIComponent(watchUrl(it)))
+          .then(function(r){return r.ok?r.json():null;})
+          .then(function(j){ if(done)return; done=true; clearTimeout(t); res(j&&j.title?String(j.title):""); })
+          .catch(function(){ if(done)return; done=true; clearTimeout(t); res(""); });
+      }catch(e){ done=true; clearTimeout(t); res(""); }
+    });
+  }
+  function play(it){
+    var D=!!document.getElementById("miniPlayerD");
+    var box=document.getElementById(D?"miniPlayerD":"miniPlayer"), fr=document.getElementById(D?"miniPlayerFrameD":"miniPlayerFrame"), ti=document.getElementById(D?"miniPlayerTitleD":"miniPlayerTitle");
+    if(!box||!fr){ window.open(watchUrl(it),"_blank","noopener"); return; }
+    if(ti) ti.textContent="🎵 "+it.title;
+    fr.src=embedSrc(it); box.style.display="block"; box.classList.remove("minimized");
+  }
+  function ctx(){
+    try{ if(typeof BBC!=="undefined"&&typeof curBook!=="undefined"){ var b=BBC[curBook]; return {n:b?b.name:curBook,c:curCh}; } }catch(e){}
+    try{ if(typeof BOOK_BY_CODE!=="undefined"){ var b2=BOOK_BY_CODE[currentBook]; return {n:b2?b2.name:currentBook,c:currentChapter}; } }catch(e){}
+    return null;
+  }
+
+  function css(){
+    if(document.getElementById("mpCss")) return;
+    var s=document.createElement("style"); s.id="mpCss";
+    s.textContent=".mp-box{background:rgba(201,151,42,.07);border:1px solid rgba(201,151,42,.3);border-radius:12px;padding:10px 10px 6px;margin:0 0 14px}"+
+    ".mp-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--gold-b,var(--gold-bright,#e0b64a));margin-bottom:6px}"+
+    ".mp-n{flex:1;font-size:11px;font-weight:400;color:var(--itd,var(--ink-text-dim,#9a9588))}"+
+    ".mp-btn{border:1px solid rgba(201,151,42,.5);background:rgba(201,151,42,.15);color:var(--gold-b,var(--gold-bright,#e0b64a));border-radius:8px;padding:7px 12px;font-size:12.5px;cursor:pointer}"+
+    ".mp-btn.g{border-color:rgba(255,255,255,.2);background:none;color:var(--itd,var(--ink-text-dim,#9a9588))}"+
+    ".mp-row{display:flex;align-items:center;gap:8px;padding:8px 4px;border-top:1px solid rgba(255,255,255,.06);color:var(--it,var(--ink-text,#e8e4d8))}"+
+    ".mp-main{flex:1;min-width:0;display:flex;align-items:center;gap:9px;cursor:pointer;color:inherit;text-decoration:none}"+
+    ".mp-th{width:48px;height:36px;border-radius:5px;object-fit:cover;background:#222;flex-shrink:0}"+
+    ".mp-t{flex:1;min-width:0;font-size:13.5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}"+
+    ".mp-t small{display:block;font-size:11px;color:var(--itd,var(--ink-text-dim,#9a9588))}"+
+    ".mp-ic{border:0;background:none;color:inherit;opacity:.7;font-size:15px;padding:6px;cursor:pointer;text-decoration:none;flex-shrink:0}"+
+    ".mp-in{width:100%;box-sizing:border-box;padding:10px;margin-bottom:6px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.28);color:inherit;font-size:16px;font-family:inherit}"+
+    ".mp-form{padding:4px 0 8px}.mp-act{display:flex;gap:8px;align-items:center}.mp-msg{font-size:12px;color:#e8a0a0;margin-top:6px;min-height:0}"+
+    ".mp-empty{font-size:12px;color:var(--itd,var(--ink-text-dim,#9a9588));padding:4px 2px 8px;line-height:1.6}";
+    document.head.appendChild(s);
+  }
+
+  function songHtml(){
+    var f=openF.song?'<div class="mp-form"><input class="mp-in" id="mpSu" type="url" inputmode="url" placeholder="유튜브 링크를 붙여 넣으세요" autocomplete="off"><input class="mp-in" id="mpSt" placeholder="제목 (비워 두면 자동으로 가져옵니다)" autocomplete="off"><div class="mp-act"><button class="mp-btn" data-mp="song-save">저장</button><button class="mp-btn g" data-mp="song-cancel">취소</button></div><div class="mp-msg" id="mpSm"></div></div>':"";
+    var rows=songs.map(function(it){
+      return '<div class="mp-row"><div class="mp-main" data-mp="song-play" data-id="'+E(it.id)+'">'+
+        (it.vid?'<img class="mp-th" loading="lazy" alt="" src="https://img.youtube.com/vi/'+E(it.vid)+'/default.jpg" onerror="this.style.visibility=\'hidden\'">':'<span class="mp-th" style="display:flex;align-items:center;justify-content:center">📋</span>')+
+        '<span class="mp-t">'+E(it.title)+(it.list&&!it.vid?'<small>재생목록</small>':'')+'</span><span style="color:#8fc4ee">▶</span></div>'+
+        '<a class="mp-ic" href="'+E(watchUrl(it))+'" target="_blank" rel="noopener" title="유튜브에서 열기">↗</a>'+
+        '<button class="mp-ic" data-mp="song-ren" data-id="'+E(it.id)+'" title="제목 고치기">✏</button>'+
+        '<button class="mp-ic" data-mp="song-del" data-id="'+E(it.id)+'" title="삭제">✕</button></div>';
+    }).join("");
+    return '<div class="mp-box" id="mpSongBox"><div class="mp-h">⭐ 내 찬양<span class="mp-n">'+songs.length+'곡</span><button class="mp-btn" data-mp="song-toggle">＋ 링크로 추가</button></div>'+f+
+      (songs.length?rows:(openF.song?"":'<div class="mp-empty">좋아하는 찬양의 유튜브 링크를 붙여 넣어 나만의 찬양 목록을 만드세요. 이 기기에 저장되고 설정의 백업에 포함됩니다.</div>'))+'</div>';
+  }
+  function pasHtml(){
+    var c=ctx();
+    var f=openF.pas?'<div class="mp-form"><input class="mp-in" id="mpPn" placeholder="이름 (예: 홍길동 목사)" autocomplete="off"><input class="mp-in" id="mpPc" placeholder="교회 (선택)" autocomplete="off"><input class="mp-in" id="mpPu" type="url" inputmode="url" placeholder="유튜브 채널 링크 (선택)" autocomplete="off"><div class="mp-act"><button class="mp-btn" data-mp="pas-save">저장</button><button class="mp-btn g" data-mp="pas-cancel">취소</button></div><div class="mp-msg" id="mpPm"></div></div>':"";
+    var rows=pastors.map(function(p){
+      var q=c?encodeURIComponent(c.n+" "+c.c+"장 설교 "+p.name):encodeURIComponent("설교 "+p.name);
+      return '<div class="mp-row"><a class="mp-main" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener"><span style="font-size:15px">🎤</span><span class="mp-t">'+E(p.name)+(p.church?'<small>'+E(p.church)+'</small>':'')+'</span><span style="font-size:11px;color:var(--itd,var(--ink-text-dim,#9a9588))">검색 ↗</span></a>'+
+        (p.url?'<a class="mp-ic" href="'+E(p.url)+'" target="_blank" rel="noopener" title="채널 열기">📺</a>':'')+
+        '<button class="mp-ic" data-mp="pas-del" data-id="'+E(p.id)+'" title="삭제">✕</button></div>';
+    }).join("");
+    return '<div class="mp-box" id="mpPasBox"><div class="mp-h">⭐ 내가 좋아하는 설교자<span class="mp-n">'+pastors.length+'명</span><button class="mp-btn" data-mp="pas-toggle">＋ 설교자 추가</button></div>'+f+
+      (pastors.length?rows:(openF.pas?"":'<div class="mp-empty">선호하는 목사님을 추가하면 지금 보는 본문의 설교를 바로 검색할 수 있습니다.</div>'))+'</div>';
+  }
+  function injSongs(){
+    var w=document.getElementById("songListWrap")||document.getElementById("song-list-wrap-d"); if(!w) return;
+    var o=w.querySelector(".mp-box"); if(o) o.remove();
+    w.insertAdjacentHTML("afterbegin",songHtml());
+  }
+  function injPas(){
+    var p=document.getElementById("p-serm")||document.getElementById("panel-sermon"); if(!p) return;
+    var o=p.querySelector(".mp-box"); if(o) o.remove();
+    var pe=p.querySelector("p");
+    if(pe) pe.insertAdjacentHTML("afterend",pasHtml()); else p.insertAdjacentHTML("afterbegin",pasHtml());
+  }
+  function wrap(name,inj){
+    var o=window[name]; if(typeof o!=="function") return;
+    window[name]=function(){ var r=o.apply(this,arguments); css(); if(loaded) inj(); else load().then(inj); return r; };
+  }
+  wrap("renderSongList",injSongs); wrap("renderSongListD",injSongs);
+  wrap("renderSermonPanel",injPas); wrap("renderSermonPanelD",injPas);
+
+  function $(id){return document.getElementById(id);}
+  function setMsg(id,t){var e=$(id); if(e) e.textContent=t||"";}
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("[data-mp]"); if(!b) return;
+    var a=b.dataset.mp, id=b.dataset.id;
+    if(a==="song-toggle"){ openF.song=!openF.song; injSongs(); var i=$("mpSu"); if(i) i.focus(); return; }
+    if(a==="song-cancel"){ openF.song=false; injSongs(); return; }
+    if(a==="song-play"){ var it=songs.filter(function(x){return x.id===id;})[0]; if(it) play(it); return; }
+    if(a==="song-del"){ var s=songs.filter(function(x){return x.id===id;})[0]; if(s&&confirm("'"+s.title+"' 찬양을 내 목록에서 삭제할까요?")){ songs=songs.filter(function(x){return x.id!==id;}); wr(KS,songs); injSongs(); } return; }
+    if(a==="song-ren"){ var s2=songs.filter(function(x){return x.id===id;})[0]; if(!s2) return; var nt=prompt("제목을 고치세요",s2.title); if(nt&&nt.trim()){ s2.title=nt.trim().slice(0,120); wr(KS,songs); injSongs(); } return; }
+    if(a==="song-save"){
+      if(busy) return;
+      var u=$("mpSu").value, t=($("mpSt").value||"").trim();
+      var y=parseYT(u);
+      if(!y){ setMsg("mpSm","유튜브 링크가 아닙니다. 유튜브 앱에서 [공유]→[링크 복사]로 복사한 주소를 붙여 넣어 주세요."); return; }
+      if(songs.some(function(x){return x.vid===y.vid&&x.list===y.list;})){ setMsg("mpSm","이미 추가된 찬양입니다."); return; }
+      busy=true; b.disabled=true; setMsg("mpSm","제목을 확인하는 중…");
+      (t?Promise.resolve(t):fetchTitle(y)).then(function(ti){
+        busy=false;
+        songs.unshift({id:uid(),vid:y.vid,list:y.list,title:(ti||"내 찬양").slice(0,120),t:Date.now()});
+        wr(KS,songs); openF.song=false; injSongs();
+      });
+      return;
+    }
+    if(a==="pas-toggle"){ openF.pas=!openF.pas; injPas(); var i2=$("mpPn"); if(i2) i2.focus(); return; }
+    if(a==="pas-cancel"){ openF.pas=false; injPas(); return; }
+    if(a==="pas-del"){ var p=pastors.filter(function(x){return x.id===id;})[0]; if(p&&confirm("'"+p.name+"'을(를) 내 설교자 목록에서 삭제할까요?")){ pastors=pastors.filter(function(x){return x.id!==id;}); wr(KP,pastors); injPas(); } return; }
+    if(a==="pas-save"){
+      var n=($("mpPn").value||"").trim(), ch=($("mpPc").value||"").trim(), url=($("mpPu").value||"").trim();
+      if(!n){ setMsg("mpPm","이름을 입력해 주세요."); return; }
+      if(url){ if(!/^https?:\/\//i.test(url)) url="https://"+url; if(!/^https?:\/\/[^\s]+\.[^\s]+$/i.test(url)){ setMsg("mpPm","채널 링크 형식이 올바르지 않습니다."); return; } }
+      if(pastors.some(function(x){return x.name===n;})){ setMsg("mpPm","이미 추가된 설교자입니다."); return; }
+      pastors.unshift({id:uid(),name:n.slice(0,40),church:ch.slice(0,40),url:url.slice(0,300),t:Date.now()});
+      wr(KP,pastors); openF.pas=false; injPas(); return;
+    }
+  });
+  load();
+})();
+/*MYPICK-END*/
+
 /*CHURCH-START*/
 /* ===== ⛪ 교회·성도 관리: 성도 명단 · 기관/셀 편성 · 출석 · 돌봄(심방·기도·생일) — 모든 자료는 이 기기에만 저장 ===== */
 (function(){
