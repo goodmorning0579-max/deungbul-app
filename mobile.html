@@ -497,6 +497,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
       <div class="jtab" data-jt="interpretation">해석</div>
       <div class="jtab" data-jt="application">적용</div>
       <div class="jtab" data-jt="prayer">기도</div>
+      <div class="jtab" data-jt="meditation">묵상</div>
     </div>
     <textarea id="jtext" placeholder="본문에서 무엇을 발견했나요?"></textarea>
     <div class="taginrow">
@@ -514,11 +515,6 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
         <div class="jtab" data-vt="sermon">설교</div>
         <div class="jtab" data-vt="other">기타</div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
-        <span class="tagchip vrangechip active" data-vrange="전체">전체 낭독</span>
-        <span class="tagchip vrangechip" data-vrange="일부">일부 구절</span>
-      </div>
-      <input id="voiceRangeInput" placeholder="예: 1~10절 (선택, 일부 구절 선택 시)" style="display:none;width:100%;background:var(--ink3);border:1px solid rgba(201,151,42,.25);border-radius:8px;padding:9px 12px;color:var(--it);font-size:13px;margin-bottom:8px;">
       <div id="voiceRecUI">
         <button class="btn" id="voiceRecordBtn" style="width:100%;">● 녹음 시작</button>
       </div>
@@ -532,12 +528,12 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
         <div id="voiceSizeInfo" style="font-size:11px;color:var(--itd);margin-top:6px;"></div>
         <button class="btn ghost" id="voiceDiscardBtn" style="width:100%;margin-top:6px;">🗑️ 취소</button>
       </div>
+      <div id="voiceSlot"></div>
     </div>
-    <div class="elog"><h3>이 장의 기록</h3><div id="elog"></div></div>
 
     <div class="sermonbox" style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(201,151,42,.12);">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;">📢 설교 기록장</div>
-      <p style="font-size:11.5px;color:var(--itd);margin-bottom:10px;">이 본문으로 들은 설교를 최대 5개까지 기록할 수 있습니다.</p>
+      <p style="font-size:11.5px;color:var(--itd);margin-bottom:10px;">이 본문으로 들은 설교를 필요한 만큼 추가해 기록할 수 있습니다.</p>
       <div id="sermonSlots"></div>
     </div>
   </div>
@@ -2545,9 +2541,9 @@ const PEOPLE = {"하나님(엘로힘)":{"sub":"창조주 · 성경의 주인공"
 const PLACES = {"에덴 동산":{"sub":"인류 최초의 거처","ref":"창 2:8","body":"'기쁨'이라는 뜻. 네 강(비손·기혼·힛데겔·유브라데)이 흘러나온 곳으로, 하나님과 인간이 교제하던 낙원입니다. 요한계시록 22장에서 생명나무가 회복됩니다."},"아라랏 산":{"sub":"방주가 멈춘 곳","ref":"창 8:4","body":"오늘날 터키 동부 지역. 고대 우라르투 왕국의 영토로, 노아의 방주가 머문 곳입니다."},"바벨":{"sub":"바벨탑의 도시","ref":"창 11:9","body":"시날 평지에 세워진 도시. '혼잡'이라는 뜻으로 언어가 혼잡해진 사건에서 유래합니다. 후에 바벨론 제국의 수도가 되며, 요한계시록에서 세상 체제의 상징이 됩니다."},"우르":{"sub":"아브라함의 고향","ref":"창 11:31","body":"갈대아 우르. 메소포타미아 남부의 발달한 도시로, 달신 난나 숭배의 중심지였습니다."},"하란":{"sub":"아브라함의 중간 정착지","ref":"창 11:31","body":"메소포타미아 북부의 무역 도시. 데라가 죽은 곳이며, 야곱이 라반에게 피신한 곳이기도 합니다."},"세겜":{"sub":"가나안 중부의 도시","ref":"창 12:6","body":"아브라함이 가나안에서 처음 제단을 쌓은 곳. 야곱이 밭을 샀고, 요셉의 뼈가 묻힌 곳입니다. 예수님과 사마리아 여인의 만남도 이 근처(수가)입니다."},"벧엘":{"sub":"하나님의 집","ref":"창 28:19","body":"야곱이 사닥다리 꿈을 꾼 곳. 원래 이름은 루스였습니다. 후에 여로보암이 금송아지를 세운 곳이 됩니다."},"헤브론":{"sub":"족장들의 도시","ref":"창 13:18","body":"아브라함이 마므레 상수리 수풀에 거한 곳. 막벨라 굴이 있으며 아브라함·이삭·야곱과 그 아내들이 묻혔습니다. 다윗이 처음 왕이 된 곳이기도 합니다."},"막벨라 굴":{"sub":"족장들의 무덤","ref":"창 23:9","body":"아브라함이 에브론에게 은 400세겔로 산 가나안 땅 최초의 소유지. 오늘날 헤브론에 있으며 유대·이슬람·기독교 공동 성지입니다."},"소돔과 고모라":{"sub":"멸망한 죄악의 도시","ref":"창 19:24","body":"요단 평야의 성읍들로 불과 유황으로 멸망했습니다. 사해 남쪽 지역으로 추정되며, 성경에서 심판의 대표적 상징이 됩니다."},"브엘세바":{"sub":"맹세의 우물","ref":"창 21:31","body":"아브라함과 아비멜렉이 언약을 맺은 곳. '단에서 브엘세바까지'는 이스라엘 전역을 뜻하는 관용구로 남쪽 경계입니다."},"모리아 산":{"sub":"이삭을 바친 산","ref":"창 22:2","body":"'여호와께서 보신다'는 뜻. 아브라함이 이삭을 번제로 드리려 한 곳으로, 훗날 솔로몬이 성전을 세운 예루살렘 성전산입니다."},"브니엘":{"sub":"하나님의 얼굴","ref":"창 32:30","body":"야곱이 얍복강 가에서 하나님과 씨름하고 이스라엘이라는 이름을 받은 곳입니다."},"고센":{"sub":"애굽 내 이스라엘 거주지","ref":"창 47:6","body":"나일 삼각주 동부의 비옥한 지역. 야곱 가족 70명이 정착해 큰 민족으로 성장한 요람입니다."},"애굽(이집트)":{"sub":"고대 강대국","ref":"출 1:8","body":"이스라엘이 400년간 종살이한 곳. 성경에서 종종 세상과 육신을 상징하며, 출애굽은 구속의 원형이 됩니다."},"홍해":{"sub":"이스라엘이 건넌 바다","ref":"출 14:21","body":"모세가 지팡이를 들자 갈라져 이스라엘이 마른 땅으로 건넜고, 추격하던 애굽 군대는 수장되었습니다."},"시내 산(호렙 산)":{"sub":"율법을 받은 산","ref":"출 19:20","body":"모세가 십계명과 율법을 받은 곳. 엘리야도 이곳에서 세미한 음성을 들었습니다."},"가데스 바네아":{"sub":"광야 방황의 거점","ref":"민 13:26","body":"12정탐꾼을 보낸 곳. 불신앙으로 인해 이스라엘이 38년간 광야를 방황하는 계기가 된 장소입니다."},"느보 산":{"sub":"모세가 죽은 산","ref":"신 34:1","body":"요단 동편의 산. 모세가 가나안 땅을 바라보고 죽은 곳으로, 그의 무덤은 알려지지 않았습니다."},"요단 강":{"sub":"약속의 땅 경계","ref":"수 3:17","body":"이스라엘이 마른 땅으로 건넌 강. 엘리야의 승천, 나아만의 치유, 예수님의 세례가 있었던 곳입니다."},"여리고":{"sub":"종려나무 성읍","ref":"수 6:20","body":"세계 최고(最古)의 도시 중 하나. 이스라엘이 7일간 돌자 성벽이 무너졌습니다. 삭개오와 맹인 바디매오 이야기의 배경이기도 합니다."},"길갈":{"sub":"가나안 첫 진영","ref":"수 4:19","body":"요단을 건넌 후 12돌을 세우고 할례를 행한 곳. '애굽의 수치를 굴러가게 했다'는 뜻입니다."},"실로":{"sub":"초기 성막의 자리","ref":"수 18:1","body":"솔로몬 성전 이전까지 법궤와 성막이 있던 예배 중심지. 사무엘이 자란 곳입니다."},"베들레헴":{"sub":"떡집 · 다윗과 예수의 탄생지","ref":"미 5:2","body":"라헬이 묻힌 곳이며 룻과 보아스의 무대. 다윗의 고향이자 예수 그리스도께서 태어나신 곳입니다."},"예루살렘":{"sub":"거룩한 성 · 다윗성","ref":"삼하 5:7","body":"멜기세덱의 살렘. 다윗이 정복해 수도로 삼았고 솔로몬이 성전을 세웠습니다. 예수님의 십자가와 부활, 오순절 성령 강림의 무대입니다."},"성전산":{"sub":"솔로몬 성전 터","ref":"대하 3:1","body":"모리아 산과 동일시됩니다. 솔로몬 성전, 스룹바벨 성전, 헤롯 성전이 차례로 세워졌습니다."},"갈멜 산":{"sub":"엘리야의 대결 장소","ref":"왕상 18:20","body":"지중해 연안의 산. 엘리야가 바알 선지자 450명과 대결해 하늘에서 불이 내려온 곳입니다."},"사마리아":{"sub":"북이스라엘 수도","ref":"왕상 16:24","body":"오므리가 세운 수도. 앗수르에 함락된 후 혼혈 민족이 되어 유대인에게 멸시받았습니다. 예수님의 선한 사마리아인 비유의 배경입니다."},"니느웨":{"sub":"앗수르 수도","ref":"욘 1:2","body":"요나가 회개를 전한 큰 성. 후에 나훔의 예언대로 멸망했습니다."},"바벨론":{"sub":"유다를 멸망시킨 제국","ref":"왕하 25:1","body":"느부갓네살이 예루살렘을 함락하고 유대인을 포로로 끌고 간 곳. 다니엘과 에스겔의 사역 무대입니다."},"수산 궁":{"sub":"페르시아 왕궁","ref":"에 1:2","body":"에스더와 모르드개의 무대. 느헤미야도 이곳에서 술 관원으로 일했습니다."},"나사렛":{"sub":"예수님이 자라신 마을","ref":"눅 2:39","body":"갈릴리의 작은 마을. '나사렛에서 무슨 선한 것이 나겠느냐'는 편견의 대상이었습니다."},"갈릴리":{"sub":"예수님의 주요 사역지","ref":"마 4:15","body":"북부 지역으로 이방의 갈릴리라 불렸습니다. 예수님의 공생애 대부분이 이곳에서 이루어졌습니다."},"갈릴리 바다(디베랴 호수)":{"sub":"제자들을 부르신 곳","ref":"마 4:18","body":"담수호로 어업이 활발했습니다. 예수님이 풍랑을 잔잔케 하시고 물 위를 걸으신 곳입니다."},"가버나움":{"sub":"예수님의 사역 본거지","ref":"마 4:13","body":"갈릴리 호숫가 도시. 베드로의 집이 있었고 많은 이적이 일어났으나, 회개하지 않아 책망받았습니다."},"가나":{"sub":"첫 이적의 마을","ref":"요 2:1","body":"예수님이 물로 포도주를 만드신 혼인 잔치가 열린 곳입니다."},"베다니":{"sub":"마르다·마리아·나사로의 마을","ref":"요 11:1","body":"예루살렘 근교. 예수님이 자주 머무셨고 나사로를 살리신 곳이며, 승천하신 곳 근처입니다."},"감람 산":{"sub":"예수님의 기도처 · 승천지","ref":"눅 22:39","body":"예루살렘 동쪽 산. 겟세마네 동산이 있으며, 예수님의 종말 강화와 승천이 이곳에서 있었습니다."},"겟세마네":{"sub":"고뇌의 기도 동산","ref":"마 26:36","body":"'기름 짜는 틀'이라는 뜻. 예수님이 땀이 핏방울같이 되도록 기도하시고 체포되신 곳입니다."},"골고다(갈보리)":{"sub":"십자가 처형 장소","ref":"요 19:17","body":"'해골의 곳'. 예루살렘 성 밖에 있었으며 예수님이 십자가에 못 박히신 곳입니다."},"엠마오":{"sub":"부활하신 예수를 만난 길","ref":"눅 24:13","body":"예루살렘에서 약 11km 떨어진 마을. 두 제자가 부활하신 예수님과 동행하며 성경을 배웠습니다."},"다메섹":{"sub":"바울이 회심한 도시","ref":"행 9:3","body":"시리아의 고대 도시. 바울이 이곳으로 가는 길에 빛을 만나 회심했습니다."},"안디옥(수리아)":{"sub":"이방 선교의 기지","ref":"행 11:26","body":"'그리스도인'이라는 이름이 처음 사용된 곳. 바울의 선교 여행이 이곳에서 출발했습니다."},"에베소":{"sub":"아시아의 중심 교회","ref":"행 19:1","body":"아데미 신전이 있던 대도시. 바울이 3년간 사역했고 요한이 말년을 보낸 곳으로 전해집니다."},"고린도":{"sub":"헬라의 상업 도시","ref":"행 18:1","body":"도덕적으로 문란했던 항구 도시. 바울이 1년 6개월 사역했고 고린도전후서를 받았습니다."},"빌립보":{"sub":"유럽 최초의 교회","ref":"행 16:12","body":"마케도니아의 로마 식민 도시. 루디아의 회심과 옥중 찬송의 무대입니다."},"데살로니가":{"sub":"마케도니아 수도","ref":"행 17:1","body":"바울이 세 안식일간 전도했고, 재림에 관한 두 서신을 보낸 교회가 있던 곳입니다."},"아덴(아테네)":{"sub":"철학의 도시","ref":"행 17:16","body":"바울이 아레오바고에서 '알지 못하는 신'을 소재로 설교한 곳입니다."},"로마":{"sub":"제국의 수도","ref":"행 28:16","body":"바울이 죄수로 압송되어 2년간 가택 연금 상태로 복음을 전한 곳. 로마서의 수신지입니다."},"밧모 섬":{"sub":"요한계시록의 산실","ref":"계 1:9","body":"에게해의 유배지. 사도 요한이 이곳에서 계시를 받아 요한계시록을 기록했습니다."},"새 예루살렘":{"sub":"종말의 거룩한 성","ref":"계 21:2","body":"하늘에서 내려오는 성. 눈물과 죽음이 없는 하나님과 함께하는 영원한 처소입니다."},"비손강":{"sub":"에덴의 네 강 중 하나","ref":"창 2:11","body":"금이 있는 하윌라 땅을 둘렀다고 기록되며, 정확한 위치는 알려지지 않았습니다."},"기혼강":{"sub":"에덴의 네 강 중 하나","ref":"창 2:13","body":"구스 온 땅을 둘렀다고 기록됩니다. 예루살렘의 기혼샘과는 다른 곳으로 추정됩니다."},"놋 땅":{"sub":"가인이 유랑한 땅","ref":"창 4:16","body":"'유랑'이라는 뜻. 에덴 동쪽에 위치하며 가인이 정착해 성을 쌓은 곳입니다."},"시날 평지":{"sub":"바벨탑이 세워진 곳","ref":"창 11:2","body":"메소포타미아 남부 평야. 바벨론 문명의 발상지로 추정됩니다."},"마므레":{"sub":"아브라함의 거주지","ref":"창 13:18","body":"헤브론 근처의 상수리 수풀. 아브라함이 제단을 쌓고 세 방문자를 맞이한 곳입니다."},"그랄":{"sub":"블레셋 왕 아비멜렉의 영토","ref":"창 20:1","body":"가나안 남서부의 도시. 아브라함과 이삭이 각각 아내를 누이라 속인 사건의 배경입니다."},"브엘라해로이":{"sub":"하갈이 하나님을 만난 우물","ref":"창 16:14","body":"'나를 보시는 살아계신 자의 우물'이라는 뜻. 네게브 광야에 위치합니다."},"길르앗":{"sub":"요단 동편 산지","ref":"창 31:21","body":"야곱과 라반의 언약이 맺어진 곳. 유향과 향품 무역로가 지나는 곳으로 유명했습니다."},"에돔(세일)":{"sub":"에서의 후손이 정착한 땅","ref":"창 36:8","body":"사해 남동쪽 산악 지대. 이스라엘과 오랜 갈등 관계를 유지했습니다."},"도단":{"sub":"요셉이 팔린 곳","ref":"창 37:17","body":"세겜 북쪽의 곡창 지대. 상인들의 대상로가 지나는 곳으로 요셉이 형들에게 발견된 장소입니다."},"라암셋":{"sub":"이스라엘이 건축한 애굽 도시","ref":"출 1:11","body":"히브리 노예들이 강제 노동으로 건설한 국고성 중 하나입니다."},"미디안 광야":{"sub":"모세가 피신한 곳","ref":"출 2:15","body":"시내 반도 동쪽. 모세가 40년간 목자로 지내며 하나님의 부르심을 준비한 곳입니다."},"마라":{"sub":"쓴 물이 단물로 변한 곳","ref":"출 15:23","body":"홍해를 건넌 후 첫 정착지. 물이 써서 마시지 못했으나 하나님이 나무로 단물로 바꾸셨습니다."},"엘림":{"sub":"오아시스 정착지","ref":"출 15:27","body":"물 샘 12개와 종려나무 70그루가 있던 곳으로 광야 여정 중의 안식처였습니다."},"신 광야":{"sub":"만나가 내린 곳","ref":"출 16:1","body":"엘림과 시내산 사이의 광야. 이스라엘이 처음 만나와 메추라기를 받은 곳입니다."},"르비딤":{"sub":"반석에서 물이 난 곳","ref":"출 17:1","body":"모세가 지팡이로 반석을 쳐 물을 낸 곳이자 아말렉과의 전투가 있었던 곳입니다."},"다베라":{"sub":"불평으로 심판받은 곳","ref":"민 11:3","body":"'불사름'이라는 뜻. 백성의 원망에 여호와의 불이 진영을 살랐습니다."},"기브롯 핫다아와":{"sub":"메추라기 탐욕의 무덤","ref":"민 11:34","body":"'탐욕의 무덤'. 고기를 탐한 백성들에게 재앙이 내린 곳입니다."},"모압 평지":{"sub":"가나안 입성 전 마지막 진영","ref":"민 22:1","body":"요단강 동편, 여리고 맞은편. 모세의 마지막 설교와 죽음이 있었던 곳 근처입니다."},"아이":{"sub":"이스라엘의 두 번째 정복지","ref":"수 7:2","body":"아간의 죄로 첫 전투에 패배했으나, 죄를 처리한 후 정복에 성공했습니다."},"기브온":{"sub":"이스라엘을 속여 화친한 성","ref":"수 9:3","body":"거짓으로 먼 나라 사람인 척해 이스라엘과 조약을 맺었습니다. 여호수아의 태양이 멈춘 전투 배경입니다."},"단(지명)":{"sub":"이스라엘 최북단","ref":"삿 18:29","body":"'단에서 브엘세바까지'라는 표현의 북쪽 경계. 여로보암이 금송아지를 세운 곳이기도 합니다."},"믹마스":{"sub":"요나단의 기습 전투지","ref":"삼상 14:1","body":"사울과 요나단이 블레셋과 싸운 협곡 지역입니다."},"엔게디":{"sub":"다윗이 사울을 피한 광야","ref":"삼상 24:1","body":"사해 서편의 오아시스. 다윗이 사울을 살려준 동굴이 있는 곳입니다."},"시글락":{"sub":"다윗의 은신처","ref":"삼상 27:6","body":"블레셋 왕 아기스가 다윗에게 준 성읍으로, 다윗이 왕이 되기 전 근거지였습니다."},"길보아 산":{"sub":"사울이 전사한 산","ref":"삼상 31:1","body":"이스르엘 평야 남쪽. 사울과 요나단이 블레셋과의 전투에서 죽은 곳입니다."},"헤브론(다윗의 첫 수도)":{"sub":"다윗이 처음 왕이 된 곳","ref":"삼하 2:11","body":"유다 지파의 왕으로 7년 반 통치한 곳. 이후 예루살렘으로 수도를 옮겼습니다."},"기럇여아림":{"sub":"법궤가 20년간 머문 곳","ref":"삼상 7:1","body":"블레셋에서 돌아온 법궤가 다윗이 예루살렘으로 옮기기 전까지 있던 곳입니다."},"드고아":{"sub":"아모스의 고향","ref":"암 1:1","body":"베들레헴 남쪽의 목축 지역. 선지자 아모스가 목자로 일하던 곳입니다."},"이스르엘 평야":{"sub":"북이스라엘의 곡창 지대","ref":"왕상 21:1","body":"나봇의 포도원 사건이 있었던 곳. 므깃도와 인접해 여러 전투의 무대가 되었습니다."},"므깃도":{"sub":"고대 전략적 요충지","ref":"왕하 23:29","body":"요시야 왕이 전사한 곳. 요한계시록의 '아마겟돈'(하르 므깃도)의 어원입니다."},"돌(지명)":{"sub":"갈멜산 인근 항구","ref":"수 12:23","body":"고대 페니키아 무역로의 요충지였습니다."},"그리심산":{"sub":"축복의 산","ref":"신 27:12","body":"세겜 근처 산으로 에발산과 마주하며 축복을 선포한 곳입니다. 사마리아인의 성전이 세워진 곳이기도 합니다."},"에발산":{"sub":"저주의 산","ref":"신 27:13","body":"그리심산 맞은편 산. 율법의 저주가 선포된 곳입니다."},"두로":{"sub":"페니키아의 무역 도시","ref":"왕상 5:1","body":"솔로몬 성전 건축에 백향목을 공급했습니다. 예수님도 이 지역을 방문하셨습니다(막 7:24)."},"시돈":{"sub":"페니키아의 항구 도시","ref":"창 10:15","body":"두로와 함께 언급되는 무역 중심지. 이세벨의 고향이며 엘리야가 사르밧 과부를 만난 곳 근처입니다."},"다시스":{"sub":"요나가 도망친 방향","ref":"욘 1:3","body":"정확한 위치는 불명이나 스페인 남부로 추정되는 먼 항구 도시입니다."},"밧단아람":{"sub":"야곱이 라반과 지낸 지역","ref":"창 25:20","body":"메소포타미아 북서부. 이삭과 야곱이 아내를 구하러 간 곳입니다."},"미스바(길르앗)":{"sub":"야곱과 라반의 언약 장소","ref":"창 31:49","body":"'여호와께서 감찰하옵소서'라는 뜻의 지명이 유래한 곳입니다."},"마하나임":{"sub":"야곱이 천사들을 만난 곳","ref":"창 32:2","body":"'두 진영'이라는 뜻. 후에 다윗이 압살롬을 피해 머문 곳이기도 합니다."},"숙곳":{"sub":"야곱이 초막을 지은 곳","ref":"창 33:17","body":"얍복강 근처. '초막'이라는 뜻으로 야곱이 가축을 위해 우릿간을 지었습니다."},"수가":{"sub":"사마리아 여인을 만난 마을","ref":"요 4:5","body":"세겜 근처의 마을. 야곱의 우물이 있으며 예수님이 사마리아 여인과 대화하신 곳입니다."},"디베랴":{"sub":"갈릴리 호숫가 도시","ref":"요 6:1","body":"헤롯 안디바가 세운 도시로 갈릴리 바다가 이 이름으로도 불립니다."},"벳새다":{"sub":"베드로와 안드레의 고향","ref":"요 1:44","body":"갈릴리 북쪽 어촌. 오병이어의 기적 장소 근처로 추정됩니다."},"고라신":{"sub":"회개하지 않아 책망받은 마을","ref":"마 11:21","body":"가버나움 근처 마을. 많은 이적을 보고도 회개하지 않아 예수님께 책망받았습니다."},"막달라":{"sub":"막달라 마리아의 고향","ref":"눅 8:2","body":"갈릴리 호수 서편의 어업 마을입니다."},"가이사랴":{"sub":"로마 총독 관저 도시","ref":"행 8:40","body":"헤롯이 건설한 항구 도시. 빌립의 전도지이자 바울이 재판받고 로마로 압송된 곳입니다."},"가이사랴 빌립보":{"sub":"베드로의 신앙고백지","ref":"마 16:13","body":"헬몬산 기슭. 베드로가 '주는 그리스도시요 살아계신 하나님의 아들'이라 고백한 곳입니다."},"수리아":{"sub":"안디옥이 속한 지역","ref":"행 15:23","body":"이방 선교의 거점 안디옥이 위치한 로마 속주입니다."},"갈라디아":{"sub":"바울의 첫 선교지 중 하나","ref":"행 16:6","body":"소아시아 중부 지역. 갈라디아서의 수신 교회들이 위치했습니다."},"드로아":{"sub":"마게도냐 환상을 본 곳","ref":"행 16:8","body":"바울이 '마게도냐 사람을 도우라'는 환상을 본 항구 도시로, 유럽 선교의 전환점입니다."},"베뢰아":{"sub":"신사적인 성도들의 도시","ref":"행 17:10","body":"'날마다 성경을 상고'하는 신사적 태도로 칭찬받은 교회가 있던 곳입니다."},"밀레도":{"sub":"바울의 에베소 장로들과의 작별지","ref":"행 20:15","body":"바울이 에베소 장로들을 불러 눈물의 고별 설교를 한 곳입니다."},"그레데":{"sub":"디도가 목회한 섬","ref":"딛 1:5","body":"지중해의 큰 섬. 디도서의 배경이 되는 교회들이 있었습니다."},"몰타(멜리데)":{"sub":"바울이 조난당한 섬","ref":"행 28:1","body":"로마로 가던 중 파선하여 3개월간 머물며 복음을 전한 섬입니다."},"버가모":{"sub":"요한계시록 일곱 교회 중 하나","ref":"계 2:12","body":"'사탄의 위(권좌)가 있는 곳'으로 묘사되며 황제 숭배가 강했던 도시입니다."},"서머나":{"sub":"고난받는 교회","ref":"계 2:8","body":"환난과 궁핍 중에도 신실하라는 격려를 받은 일곱 교회 중 하나입니다."},"라오디게아":{"sub":"미지근한 교회","ref":"계 3:14","body":"부유하나 영적으로 미지근하다고 책망받은 교회입니다."},"사데":{"sub":"살았으나 죽은 교회","ref":"계 3:1","body":"명목상 살아있으나 실상 죽었다고 책망받았습니다."},"두아디라":{"sub":"루디아의 고향","ref":"계 2:18","body":"자색 옷감 산업으로 유명했으며 루디아가 이곳 출신입니다."}};
 const WORDS = {"H1254 bara":{"lang":"히브리어","w":"בָּרָא","tr":"바라","mean":"창조하다","cat":"창조·하나님","body":"무에서의 창조. 구약에서 이 동사의 주어는 오직 하나님뿐입니다. 재료를 다듬는 '아사(만들다)'와 구별됩니다.","ref":"창 1:1"},"H430 Elohim":{"lang":"히브리어","w":"אֱלֹהִים","tr":"엘로힘","mean":"하나님","cat":"창조·하나님","body":"복수형이지만 단수 동사와 함께 쓰여 위엄과 충만함을 나타냅니다. 창세기 1장에서 창조주로 등장합니다.","ref":"창 1:1"},"H3068 YHWH":{"lang":"히브리어","w":"יְהוָה","tr":"야훼","mean":"여호와","cat":"창조·하나님","body":"'스스로 있는 자'. 언약의 하나님 이름으로, 유대인들은 거룩함 때문에 '아도나이(주)'로 대신 읽습니다.","ref":"출 3:14"},"H7706 El Shaddai":{"lang":"히브리어","w":"אֵל שַׁדַּי","tr":"엘 샤다이","mean":"전능하신 하나님","cat":"창조·하나님","body":"족장 시대의 하나님 호칭. '산의 하나님' 또는 '충족하신 하나님'으로 해석됩니다.","ref":"창 17:1"},"H113 Adonai":{"lang":"히브리어","w":"אֲדֹנָי","tr":"아도나이","mean":"주, 주인","cat":"창조·하나님","body":"주권과 소유권을 나타내는 호칭. YHWH를 대신해 읽는 말이기도 합니다.","ref":"시 8:1"},"H2617 chesed":{"lang":"히브리어","w":"חֶסֶד","tr":"헤세드","mean":"인자, 언약적 사랑","cat":"사랑·은혜","body":"구약 신학의 핵심 단어. 언약 관계 안에서 신실하게 지속되는 사랑으로, 감정을 넘어선 헌신입니다.","ref":"시 136:1"},"H2580 chen":{"lang":"히브리어","w":"חֵן","tr":"헨","mean":"은혜, 호의","cat":"사랑·은혜","body":"자격 없는 자에게 베푸는 호의. '노아는 여호와께 은혜를 입었더라'에 사용됩니다.","ref":"창 6:8"},"H7355 racham":{"lang":"히브리어","w":"רָחַם","tr":"라함","mean":"긍휼히 여기다","cat":"사랑·은혜","body":"'자궁(rechem)'과 같은 어근. 어머니가 자식에게 갖는 본능적 사랑을 나타냅니다.","ref":"시 103:13"},"H157 ahav":{"lang":"히브리어","w":"אָהַב","tr":"아하브","mean":"사랑하다","cat":"사랑·은혜","body":"인간과 하나님 모두에게 사용되는 일반적 사랑. 신명기 6:5 '마음을 다하여 사랑하라'의 동사입니다.","ref":"신 6:5"},"H2403 chatta't":{"lang":"히브리어","w":"חַטָּאת","tr":"하타트","mean":"죄, 속죄제","cat":"죄·구원","body":"'과녁을 빗나가다'는 뜻. 하나님이 정하신 기준에서 벗어남을 의미하며, 동시에 속죄제를 가리키기도 합니다.","ref":"창 4:7"},"H5771 avon":{"lang":"히브리어","w":"עָוֹן","tr":"아본","mean":"불의, 죄악","cat":"죄·구원","body":"'굽다, 뒤틀리다'는 어근. 의도적으로 뒤틀린 도덕적 상태와 그 결과인 형벌을 함께 뜻합니다.","ref":"사 53:6"},"H6588 pesha":{"lang":"히브리어","w":"פֶּשַׁע","tr":"페샤","mean":"허물, 반역","cat":"죄·구원","body":"권위에 대한 의도적 반역. 세 가지 죄 용어 중 가장 강한 표현입니다.","ref":"시 51:1"},"H1350 ga'al":{"lang":"히브리어","w":"גָּאַל","tr":"가알","mean":"구속하다, 무르다","cat":"죄·구원","body":"친족이 값을 지불해 되찾는 것. '고엘(기업 무를 자)'의 어근으로 룻기와 그리스도의 구속을 설명합니다.","ref":"룻 4:4"},"H3722 kaphar":{"lang":"히브리어","w":"כָּפַר","tr":"카파르","mean":"속죄하다, 덮다","cat":"죄·구원","body":"대속죄일(욤 키푸르)의 어근. 피로 죄를 덮어 하나님과의 관계를 회복하는 것을 뜻합니다.","ref":"레 16:30"},"H3467 yasha":{"lang":"히브리어","w":"יָשַׁע","tr":"야샤","mean":"구원하다","cat":"죄·구원","body":"'예수(예슈아)'와 '여호수아'의 어근. 넓은 곳으로 이끌어 위험에서 건져냄을 뜻합니다.","ref":"출 14:13"},"H539 aman":{"lang":"히브리어","w":"אָמַן","tr":"아만","mean":"믿다, 신실하다","cat":"믿음·언약","body":"'아멘'의 어근. 굳게 서서 의지함을 뜻하며, 창세기 15:6 이신칭의의 핵심 동사입니다.","ref":"창 15:6"},"H6666 tsedaqah":{"lang":"히브리어","w":"צְדָקָה","tr":"체다카","mean":"의, 공의","cat":"믿음·언약","body":"관계 안에서 마땅히 행할 바를 행함. 법적 개념을 넘어 언약적 신실함을 포함합니다.","ref":"창 15:6"},"H1285 berit":{"lang":"히브리어","w":"בְּרִית","tr":"베리트","mean":"언약","cat":"믿음·언약","body":"'자르다'는 어근에서 유래. 짐승을 쪼개고 그 사이를 지나며 맺는 엄숙한 계약입니다.","ref":"창 15:18"},"H8451 torah":{"lang":"히브리어","w":"תּוֹרָה","tr":"토라","mean":"율법, 가르침","cat":"믿음·언약","body":"단순한 법규가 아니라 '가르침, 지침'. 모세오경 전체를 가리키기도 합니다.","ref":"시 1:2"},"H3372 yare":{"lang":"히브리어","w":"יָרֵא","tr":"야레","mean":"두려워하다, 경외하다","cat":"믿음·언약","body":"공포가 아닌 경외. '여호와를 경외하는 것이 지혜의 근본'에 사용됩니다.","ref":"잠 1:7"},"H7965 shalom":{"lang":"히브리어","w":"שָׁלוֹם","tr":"샬롬","mean":"평화, 온전함","cat":"삶·예배","body":"단순한 전쟁 없음이 아니라 전인적 온전함·건강·번영·관계의 조화를 뜻합니다.","ref":"민 6:26"},"H7307 ruach":{"lang":"히브리어","w":"רוּחַ","tr":"루아흐","mean":"영, 바람, 숨","cat":"삶·예배","body":"창세기 1:2 '하나님의 신'이 수면에 운행하심. 바람·호흡·영을 동시에 뜻합니다.","ref":"창 1:2"},"H5315 nephesh":{"lang":"히브리어","w":"נֶפֶשׁ","tr":"네페쉬","mean":"혼, 생명, 목숨","cat":"삶·예배","body":"육체와 분리된 영혼이 아니라 살아있는 전인격체를 뜻합니다. '생령'의 '령'입니다.","ref":"창 2:7"},"H3034 yadah":{"lang":"히브리어","w":"יָדָה","tr":"야다","mean":"찬양하다, 감사하다","cat":"삶·예배","body":"손을 내밀어 던지는 동작에서 유래. 감사와 고백을 동시에 뜻합니다. '유다'의 어근입니다.","ref":"시 100:4"},"H1288 barak":{"lang":"히브리어","w":"בָּרַךְ","tr":"바라크","mean":"복을 주다, 송축하다","cat":"삶·예배","body":"'무릎 꿇다'는 어근. 하나님이 사람에게 복 주시고, 사람이 하나님을 송축하는 양방향 단어입니다.","ref":"창 12:2"},"H6942 qadash":{"lang":"히브리어","w":"קָדַשׁ","tr":"카다쉬","mean":"거룩하다, 구별하다","cat":"삶·예배","body":"'잘라내다, 구별하다'는 뜻. 도덕적 순결보다 하나님을 위해 따로 구별됨이 일차적 의미입니다.","ref":"레 11:44"},"H8034 shem":{"lang":"히브리어","w":"שֵׁם","tr":"셈","mean":"이름","cat":"삶·예배","body":"단순 호칭이 아니라 인격·본질·명성 전체를 뜻합니다. '주의 이름'은 하나님 자신을 가리킵니다.","ref":"출 20:7"},"H2451 chokmah":{"lang":"히브리어","w":"חָכְמָה","tr":"호크마","mean":"지혜","cat":"지혜·말씀","body":"이론적 지식이 아니라 삶에 적용되는 실천적 기술. 잠언의 핵심 주제입니다.","ref":"잠 1:2"},"H1697 davar":{"lang":"히브리어","w":"דָּבָר","tr":"다바르","mean":"말씀, 일","cat":"지혜·말씀","body":"'말'과 '사건'을 동시에 뜻합니다. 하나님의 말씀은 곧 사건을 일으키는 능력입니다.","ref":"창 15:1"},"H2142 zakar":{"lang":"히브리어","w":"זָכַר","tr":"자카르","mean":"기억하다","cat":"지혜·말씀","body":"단순한 회상이 아니라 언약에 근거해 행동으로 옮기는 것. '하나님이 노아를 기억하셨다'입니다.","ref":"창 8:1"},"H7462 ra'ah":{"lang":"히브리어","w":"רָעָה","tr":"라아","mean":"목양하다","cat":"지혜·말씀","body":"먹이고 인도하고 지키는 총체적 돌봄. 시편 23편 '여호와는 나의 목자'의 동사입니다.","ref":"시 23:1"},"G26 agape":{"lang":"헬라어","w":"ἀγάπη","tr":"아가페","mean":"조건 없는 사랑","cat":"사랑·은혜","body":"상대의 자격과 무관하게 의지적으로 베푸는 사랑. 하나님의 사랑을 표현하는 신약의 핵심 단어입니다.","ref":"요 3:16"},"G5368 phileo":{"lang":"헬라어","w":"φιλέω","tr":"필레오","mean":"친구로 사랑하다","cat":"사랑·은혜","body":"애정과 우정의 사랑. 요한복음 21장에서 예수님의 '아가파오'와 베드로의 '필레오'가 대비됩니다.","ref":"요 21:15"},"G5485 charis":{"lang":"헬라어","w":"χάρις","tr":"카리스","mean":"은혜","cat":"사랑·은혜","body":"자격 없는 자에게 값없이 주어지는 선물. 바울 신학의 중심 개념입니다.","ref":"엡 2:8"},"G1656 eleos":{"lang":"헬라어","w":"ἔλεος","tr":"엘레오스","mean":"긍휼","cat":"사랑·은혜","body":"고통받는 자를 향한 능동적 동정. 히브리어 헤세드의 헬라어 번역어입니다.","ref":"눅 1:50"},"G4102 pistis":{"lang":"헬라어","w":"πίστις","tr":"피스티스","mean":"믿음, 신실함","cat":"믿음·언약","body":"지적 동의를 넘어 전 인격의 의탁. 동시에 '신실함'이라는 뜻도 가집니다.","ref":"히 11:1"},"G4100 pisteuo":{"lang":"헬라어","w":"πιστεύω","tr":"피스튜오","mean":"믿다","cat":"믿음·언약","body":"요한복음에서만 98회 등장. 명사보다 동사로 쓰여 믿음이 지속적 행위임을 강조합니다.","ref":"요 3:16"},"G1343 dikaiosune":{"lang":"헬라어","w":"δικαιοσύνη","tr":"디카이오쉬네","mean":"의","cat":"믿음·언약","body":"하나님 앞에서의 올바른 신분. 로마서의 핵심 주제로 믿음으로 주어지는 선물입니다.","ref":"롬 1:17"},"G1344 dikaioo":{"lang":"헬라어","w":"δικαιόω","tr":"디카이오오","mean":"의롭다 하다","cat":"믿음·언약","body":"법정 용어로 '무죄 선고하다'. 이신칭의 교리의 핵심 동사입니다.","ref":"롬 3:24"},"G629 apolutrosis":{"lang":"헬라어","w":"ἀπολύτρωσις","tr":"아폴뤼트로시스","mean":"속량, 구속","cat":"죄·구원","body":"노예를 값을 치르고 해방시킴. 그리스도의 피가 그 값입니다.","ref":"엡 1:7"},"G266 hamartia":{"lang":"헬라어","w":"ἁμαρτία","tr":"하마르티아","mean":"죄","cat":"죄·구원","body":"'과녁을 빗나감'. 히브리어 하타트와 같은 이미지로, 하나님의 영광에 이르지 못함입니다.","ref":"롬 3:23"},"G3341 metanoia":{"lang":"헬라어","w":"μετάνοια","tr":"메타노이아","mean":"회개","cat":"죄·구원","body":"'생각을 바꾸다'. 단순한 후회가 아니라 방향을 완전히 돌이키는 전인격적 변화입니다.","ref":"막 1:15"},"G4991 soteria":{"lang":"헬라어","w":"σωτηρία","tr":"소테리아","mean":"구원","cat":"죄·구원","body":"위험에서 건짐받아 온전케 됨. 과거·현재·미래의 세 시제로 설명되는 포괄적 개념입니다.","ref":"롬 1:16"},"G2643 katallage":{"lang":"헬라어","w":"καταλλαγή","tr":"카탈라게","mean":"화목, 화해","cat":"죄·구원","body":"원수 관계가 친구 관계로 바뀜. 하나님과 인간 사이의 관계 회복을 뜻합니다.","ref":"고후 5:18"},"G3056 logos":{"lang":"헬라어","w":"λόγος","tr":"로고스","mean":"말씀, 이성","cat":"지혜·말씀","body":"헬라 철학에서는 우주의 이성 원리. 요한복음은 이를 성육신하신 그리스도로 선언합니다.","ref":"요 1:1"},"G4487 rhema":{"lang":"헬라어","w":"ῥῆμα","tr":"레마","mean":"말씀, 발화된 말","cat":"지혜·말씀","body":"구체적으로 발화된 말씀. 로고스가 전체 계시라면 레마는 개별적 말씀입니다.","ref":"엡 6:17"},"G2098 euangelion":{"lang":"헬라어","w":"εὐαγγέλιον","tr":"유앙겔리온","mean":"복음","cat":"지혜·말씀","body":"'좋은 소식'. 원래 전쟁 승리 소식을 알리는 말로, 그리스도의 승리 선포입니다.","ref":"막 1:1"},"G4151 pneuma":{"lang":"헬라어","w":"πνεῦμα","tr":"프뉴마","mean":"영, 바람","cat":"삶·예배","body":"히브리어 루아흐에 대응. 성령을 가리키며, 요한복음 3장에서 바람과 중의적으로 사용됩니다.","ref":"요 3:8"},"G5590 psuche":{"lang":"헬라어","w":"ψυχή","tr":"프쉬케","mean":"혼, 목숨","cat":"삶·예배","body":"생명 그 자체. '목숨을 잃는 자가 얻으리라'에서 이 단어가 사용됩니다.","ref":"마 16:25"},"G40 hagios":{"lang":"헬라어","w":"ἅγιος","tr":"하기오스","mean":"거룩한, 성도","cat":"삶·예배","body":"구별된 상태. 복수형은 '성도들'로 모든 신자를 가리킵니다.","ref":"엡 1:1"},"G1577 ekklesia":{"lang":"헬라어","w":"ἐκκλησία","tr":"에클레시아","mean":"교회, 부름받은 무리","cat":"삶·예배","body":"'밖으로 불러냄'. 건물이 아니라 하나님이 불러 모으신 사람들의 공동체입니다.","ref":"마 16:18"},"G2842 koinonia":{"lang":"헬라어","w":"κοινωνία","tr":"코이노니아","mean":"교제, 나눔","cat":"삶·예배","body":"단순한 친목이 아니라 생명과 소유를 함께 나누는 깊은 연합입니다.","ref":"행 2:42"},"G932 basileia":{"lang":"헬라어","w":"βασιλεία","tr":"바실레이아","mean":"나라, 통치","cat":"삶·예배","body":"영토보다 '왕적 통치'를 뜻합니다. '하나님 나라'는 하나님의 다스림이 실현되는 영역입니다.","ref":"막 1:15"},"G5547 Christos":{"lang":"헬라어","w":"Χριστός","tr":"크리스토스","mean":"그리스도, 기름부음받은 자","cat":"창조·하나님","body":"히브리어 '메시아'의 헬라어 번역. 왕·제사장·선지자로 기름부음받은 자를 뜻합니다.","ref":"마 16:16"},"G2962 kurios":{"lang":"헬라어","w":"κύριος","tr":"퀴리오스","mean":"주","cat":"창조·하나님","body":"70인역에서 YHWH의 번역어로 사용됨. 예수를 '주'라 부르는 것은 신성 고백입니다.","ref":"롬 10:9"},"G3439 monogenes":{"lang":"헬라어","w":"μονογενής","tr":"모노게네스","mean":"독생자","cat":"창조·하나님","body":"'유일하게 나신'. 아버지와 본질이 같은 유일한 아들이라는 신학적 의미를 담습니다.","ref":"요 3:16"},"G3875 parakletos":{"lang":"헬라어","w":"παράκλητος","tr":"파라클레토스","mean":"보혜사","cat":"창조·하나님","body":"'곁에 부름받은 자'. 변호인·위로자·조력자를 뜻하며 성령을 가리킵니다.","ref":"요 14:16"},"G3954 parousia":{"lang":"헬라어","w":"παρουσία","tr":"파루시아","mean":"임재, 재림","cat":"종말","body":"왕의 공식 방문을 뜻하는 말. 신약에서 그리스도의 재림을 가리킵니다.","ref":"살전 4:15"},"G1680 elpis":{"lang":"헬라어","w":"ἐλπίς","tr":"엘피스","mean":"소망","cat":"종말","body":"막연한 기대가 아니라 확실한 약속에 근거한 확신입니다.","ref":"롬 5:5"},"G386 anastasis":{"lang":"헬라어","w":"ἀνάστασις","tr":"아나스타시스","mean":"부활","cat":"종말","body":"'다시 일어섬'. 기독교 신앙의 핵심으로, 고린도전서 15장이 자세히 다룹니다.","ref":"고전 15:21"},"H120 adam":{"lang":"히브리어","w":"אָדָם","tr":"아담","mean":"사람, 인류","cat":"창조·하나님","body":"'흙(adamah)'과 언어 유희. 인간이 흙에서 왔고 흙으로 돌아갈 존재임을 상기시킵니다.","ref":"창 2:7"},"H5315 nephesh (신체)":{"lang":"히브리어","w":"נֶפֶשׁ","tr":"네페쉬","mean":"목숨, 생명체","cat":"삶·예배","body":"육체를 가진 살아있는 존재 전체를 가리키며, 그리스 철학의 '영혼'과는 다른 통전적 개념입니다.","ref":"창 2:7"},"H7225 reshit":{"lang":"히브리어","w":"רֵאשִׁית","tr":"레쉬트","mean":"처음, 시작","cat":"창조·하나님","body":"잠언 1:7 '여호와를 경외하는 것이 지식의 근본(레쉬트)'에도 사용되는 단어로, 근원적 출발점을 뜻합니다.","ref":"창 1:1"},"H6635 tsevaot":{"lang":"히브리어","w":"צְבָאוֹת","tr":"체바오트","mean":"만군","cat":"창조·하나님","body":"'여호와 체바오트(만군의 여호와)'—하늘의 군대와 이스라엘 군대 모두를 다스리시는 하나님의 주권을 나타냅니다.","ref":"삼상 1:3"},"H6918 qadosh":{"lang":"히브리어","w":"קָדוֹשׁ","tr":"카도쉬","mean":"거룩한","cat":"창조·하나님","body":"이사야 6:3 '거룩하다 거룩하다 거룩하다'에 사용된 형용사. 완전히 구별되고 초월적인 존재를 뜻합니다.","ref":"사 6:3"},"H8104 shamar":{"lang":"히브리어","w":"שָׁמַר","tr":"샤마르","mean":"지키다, 보호하다","cat":"삶·예배","body":"에덴 동산을 '지키게' 하신 것(창 2:15)과 계명을 '지키는' 것 모두에 사용됩니다.","ref":"창 2:15"},"H5647 avad":{"lang":"히브리어","w":"עָבַד","tr":"아바드","mean":"경작하다, 섬기다","cat":"삶·예배","body":"동산을 '경작하다'와 하나님을 '섬기다'가 같은 단어입니다—노동과 예배가 본래 분리되지 않았음을 보여줍니다.","ref":"창 2:15"},"H1121 ben":{"lang":"히브리어","w":"בֵּן","tr":"벤","mean":"아들","cat":"믿음·언약","body":"많은 인명에 포함되는 단어(벤야민=오른손의 아들). 언약적 상속과 정체성을 표현합니다.","ref":"창 35:18"},"H5769 olam":{"lang":"히브리어","w":"עוֹלָם","tr":"올람","mean":"영원, 오랜 시간","cat":"종말","body":"과거로도 미래로도 확장되는 시간 개념. '영생하시는 하나님'에 사용됩니다.","ref":"창 21:33"},"H3117 yom":{"lang":"히브리어","w":"יוֹם","tr":"욤","mean":"날, 시대","cat":"창조·하나님","body":"창조의 '하루'뿐 아니라 '여호와의 날'처럼 특정 심판·구원의 때를 가리키기도 합니다.","ref":"창 1:5"},"H8085 shama":{"lang":"히브리어","w":"שָׁמַע","tr":"샤마","mean":"듣다, 순종하다","cat":"믿음·언약","body":"'쉐마 이스라엘(들으라 이스라엘아)'의 동사. 듣는 것과 순종하는 것이 하나로 연결됩니다.","ref":"신 6:4"},"H6666 tsedeq":{"lang":"히브리어","w":"צֶדֶק","tr":"체데크","mean":"의로움, 공정","cat":"믿음·언약","body":"멜기세덱('의의 왕')의 이름에 포함된 단어. 법적·관계적 올바름을 모두 포함합니다.","ref":"창 14:18"},"H4931 mishmeret":{"lang":"히브리어","w":"מִשְׁמֶרֶת","tr":"미쉬메레트","mean":"직무, 책무","cat":"삶·예배","body":"제사장과 레위인의 성막 직무를 가리키는 전문 용어입니다.","ref":"민 3:7"},"H5975 amad":{"lang":"히브리어","w":"עָמַד","tr":"아마드","mean":"서다, 견디다","cat":"믿음·언약","body":"시험 앞에서 '서 있음'—흔들리지 않는 신앙의 자세를 표현할 때 사용됩니다.","ref":"출 14:13"},"H1004 bayit":{"lang":"히브리어","w":"בַּיִת","tr":"바이트","mean":"집, 가문","cat":"삶·예배","body":"물리적 집뿐 아니라 왕조·가문 전체를 가리킵니다. '다윗의 집'이 대표적 용례입니다.","ref":"삼하 7:11"},"H3548 kohen":{"lang":"히브리어","w":"כֹּהֵן","tr":"코헨","mean":"제사장","cat":"삶·예배","body":"하나님과 백성 사이를 중재하는 직분. 멜기세덱이 최초로 이 칭호로 불립니다.","ref":"창 14:18"},"H3548 nabi(중복확인-실제는H5030)":{"lang":"히브리어","w":"נָבִיא","tr":"나비","mean":"선지자","cat":"지혜·말씀","body":"'부름받은 자, 대언자'. 하나님의 말씀을 대신 전하는 자를 가리킵니다.","ref":"창 20:7"},"H4428 melek":{"lang":"히브리어","w":"מֶלֶךְ","tr":"멜렉","mean":"왕","cat":"삶·예배","body":"이스라엘 왕들뿐 아니라 궁극적으로 하나님과 메시아를 가리키는 칭호로 확장됩니다.","ref":"삼상 8:5"},"H4899 mashiach":{"lang":"히브리어","w":"מָשִׁיחַ","tr":"마쉬아흐","mean":"기름부음받은 자, 메시아","cat":"종말","body":"왕·제사장·선지자에게 기름을 부어 세우는 의식에서 유래. 헬라어 '크리스토스(그리스도)'로 번역됩니다.","ref":"삼상 16:13"},"H2896 tov":{"lang":"히브리어","w":"טוֹב","tr":"토브","mean":"좋은, 선한","cat":"창조·하나님","body":"창세기 1장에서 반복되는 '보시기에 좋았더라'의 형용사. 미적·도덕적·기능적 완전함을 모두 포함합니다.","ref":"창 1:4"},"H7451 ra":{"lang":"히브리어","w":"רַע","tr":"라","mean":"악한, 나쁜","cat":"죄·구원","body":"토브(선)의 반대말. 선악을 알게 하는 나무의 '악'에 사용됩니다.","ref":"창 2:9"},"H1961 hayah":{"lang":"히브리어","w":"הָיָה","tr":"하야","mean":"있다, 되다","cat":"창조·하나님","body":"'스스로 있는 자(에흐예 아쉐르 에흐예)'에 사용되는 존재 동사로, 하나님의 자존성을 표현합니다.","ref":"출 3:14"},"G3466 mysterion":{"lang":"헬라어","w":"μυστήριον","tr":"뮈스테리온","mean":"비밀, 신비","cat":"지혜·말씀","body":"이전엔 감추어졌으나 이제 그리스도 안에서 계시된 하나님의 계획을 가리킵니다.","ref":"엡 3:4"},"G3670 homologeo":{"lang":"헬라어","w":"ὁμολογέω","tr":"호몰로게오","mean":"고백하다, 시인하다","cat":"믿음·언약","body":"'같은 말을 하다'—공적으로 신앙을 선포하는 것을 뜻합니다.","ref":"롬 10:9"},"G1411 dunamis":{"lang":"헬라어","w":"δύναμις","tr":"뒤나미스","mean":"능력, 권능","cat":"삶·예배","body":"'다이너마이트'의 어원. 복음의 초자연적 능력을 나타내는 단어입니다.","ref":"롬 1:16"},"G1849 exousia":{"lang":"헬라어","w":"ἐξουσία","tr":"엑수시아","mean":"권세, 권위","cat":"삶·예배","body":"단순한 힘이 아니라 정당하게 부여된 권한을 뜻합니다. 예수님의 가르침이 이 권세를 가졌다고 묘사됩니다.","ref":"마 7:29"},"G2222 zoe":{"lang":"헬라어","w":"ζωή","tr":"조에","mean":"생명","cat":"삶·예배","body":"생물학적 생명(비오스)과 구별되는 영원한 생명을 가리킵니다. 요한복음의 핵심 단어입니다.","ref":"요 10:10"},"G4561 sarx":{"lang":"헬라어","w":"σάρξ","tr":"사륵스","mean":"육체, 육신","cat":"죄·구원","body":"단순한 몸이 아니라 죄에 이끌리는 인간의 본성을 가리킬 때가 많습니다.","ref":"롬 8:5"},"G4983 soma":{"lang":"헬라어","w":"σῶμα","tr":"소마","mean":"몸","cat":"삶·예배","body":"교회를 '그리스도의 몸'으로 표현할 때 사용되는 단어로, 유기적 연합을 강조합니다.","ref":"고전 12:27"},"G2588 kardia":{"lang":"헬라어","w":"καρδία","tr":"카르디아","mean":"마음","cat":"삶·예배","body":"감정뿐 아니라 의지·생각의 중심을 가리키는 히브리적 전인격 개념입니다.","ref":"마 5:8"},"G4102 elpizo(다른단어)":{"lang":"헬라어","w":"ἐλπίζω","tr":"엘피조","mean":"소망하다","cat":"종말","body":"엘피스(소망)의 동사형으로, 확신에 근거한 기대를 뜻합니다.","ref":"롬 8:24"},"G5228 huper":{"lang":"헬라어","w":"ὑπέρ","tr":"휘페르","mean":"~를 위하여, 대신하여","cat":"죄·구원","body":"'그리스도께서 우리를 위하여(휘페르)' 죽으셨다는 대속 신학의 핵심 전치사입니다.","ref":"롬 5:8"},"G2398 idios":{"lang":"헬라어","w":"ἴδιος","tr":"이디오스","mean":"자기 자신의, 고유한","cat":"사랑·은혜","body":"'자기 아들을 아끼지 아니하시고'—하나님의 희생의 개인적 성격을 강조합니다.","ref":"롬 8:32"},"G3670 exomologeo(다른단어)":{"lang":"헬라어","w":"ἐξομολογέω","tr":"엑소몰로게오","mean":"자백하다","cat":"죄·구원","body":"죄를 공개적으로 인정하는 행위. 요한일서 1:9의 '자백하면'에 사용됩니다.","ref":"요일 1:9"},"G1391 doxa":{"lang":"헬라어","w":"δόξα","tr":"독사","mean":"영광","cat":"창조·하나님","body":"히브리어 카보드(무게, 존귀)에 대응하는 헬라어. 하나님의 본질적 광채와 위엄을 뜻합니다.","ref":"요 1:14"},"G4102 hamartano(다른단어)":{"lang":"헬라어","w":"ἁμαρτάνω","tr":"하마르타노","mean":"죄를 짓다","cat":"죄·구원","body":"하마르티아(죄)의 동사형. 표적을 벗어나는 행위 자체를 가리킵니다.","ref":"롬 3:23"},"G2589 karpos":{"lang":"헬라어","w":"καρπός","tr":"카르포스","mean":"열매","cat":"삶·예배","body":"'성령의 열매'(갈 5:22)—외적 행위가 아닌 내적 성품의 자연스러운 결과를 뜻합니다.","ref":"갈 5:22"},"G5485 charisma":{"lang":"헬라어","w":"χάρισμα","tr":"카리스마","mean":"은사","cat":"사랑·은혜","body":"카리스(은혜)에서 파생. 값없이 주어진 영적 선물, 곧 은사를 가리킵니다.","ref":"롬 12:6"},"G1242 diatheke":{"lang":"헬라어","w":"διαθήκη","tr":"디아테케","mean":"언약, 유언","cat":"믿음·언약","body":"히브리어 베리트의 번역어. 신구약(New/Old Testament)의 '테스타먼트'가 이 단어에서 유래합니다.","ref":"히 9:15"},"G3670 martys":{"lang":"헬라어","w":"μάρτυς","tr":"마르튀스","mean":"증인, 순교자","cat":"삶·예배","body":"본래 '증인'을 뜻하나, 신앙을 증거하다 죽은 이들을 가리키며 '순교자'라는 뜻으로 확장되었습니다.","ref":"행 1:8"},"G5011 tapeinos":{"lang":"헬라어","w":"ταπεινός","tr":"타페이노스","mean":"겸손한, 낮은","cat":"삶·예배","body":"'마음이 온유하고 겸손하니'—예수님의 성품을 묘사하는 단어입니다.","ref":"마 11:29"},"G3982 peitho":{"lang":"헬라어","w":"πείθω","tr":"페이토","mean":"설득하다, 확신하다","cat":"믿음·언약","body":"'내가 확신하노니(페페이스마이)'—로마서 8장의 견고한 확신을 나타냅니다.","ref":"롬 8:38"}};
 
-const TC={observation:"#8fbca8",interpretation:"#e8b94a",application:"#d98d8f",prayer:"#b9aeed"};
-const TL={observation:"관찰",interpretation:"해석",application:"적용",prayer:"기도"};
-const JC={observation:"#8fbca8",interpretation:"#e8b94a",application:"#d98d8f",prayer:"#b9aeed"};
+const TC={observation:"#8fbca8",interpretation:"#e8b94a",application:"#d98d8f",prayer:"#b9aeed",meditation:"#7fc3d9"};
+const TL={observation:"관찰",interpretation:"해석",application:"적용",prayer:"기도",meditation:"묵상"};
+const JC={observation:"#8fbca8",interpretation:"#e8b94a",application:"#d98d8f",prayer:"#b9aeed",meditation:"#7fc3d9"};
 let curBook="GEN",curCh=1,curJT="observation",curTags=[],calY,calM;
 let curPassageVerses=null;
 let ttsUtterance=null;
@@ -3260,13 +3256,11 @@ function renderSermonPanel(){
   const b=BBC[curBook];
   const bookName=b?b.name:curBook;
   const rows=SERMON_PASTORS.map(p=>
-    `<a class="chiplink" href="${sermonSearchLink(p,bookName,curCh)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;padding:10px 12px;background:var(--ink3);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--it);">
-      <span style="font-size:14px;">🎤</span><span style="flex:1;font-size:13px;">${p} 목사</span><span style="font-size:11px;color:var(--itd);">YouTube 검색 ↗</span>
-    </a>`
+    `<a class="chiplink" href="${sermonSearchLink(p,bookName,curCh)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:7px 12px;background:var(--ink3);border-radius:18px;text-decoration:none;color:var(--it);font-size:12.5px;opacity:1;margin:0;">🎤 ${p} 목사</a>`
   ).join("");
   ps.innerHTML=`<h4>설교 찾아보기</h4>
     <p style="font-size:11px;color:var(--itd);margin-bottom:10px;line-height:1.6;">${bookName} ${curCh}장 본문으로 설교한 영상을 유튜브에서 검색합니다. (앱이 직접 제공하는 영상이 아니라 검색 결과로 연결됩니다)</p>
-    ${rows}
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;">${rows}</div>
     <a class="chiplink" href="${sermonSearchLinkAll(bookName,curCh)}" target="_blank" rel="noopener" style="display:block;text-align:center;padding:10px;margin-top:6px;color:var(--gold-b);text-decoration:none;font-size:12.5px;">🔎 전체 설교자 통합 검색</a>`;
 }
 
@@ -3840,8 +3834,8 @@ function cancelEditJ(){
   if(cancelBtn) cancelBtn.style.display = "none";
 }
 
-/* ===== 설교 기록장 (장별 최대 5개) ===== */
-const SERMON_SLOTS = 5;
+/* ===== 설교 기록장 (장별 필요한 만큼 추가) ===== */
+const SERMON_SLOTS = 30;
 async function getSermonSlot(pk, idx){
   try{
     const r = await stor.get("sermon:"+pk+":"+idx);
@@ -3858,7 +3852,7 @@ async function renderSermonSlots(){
   const wrap=document.getElementById("sermonSlots");
   if(!wrap) return;
   const pk=chapterKey(curBook,curCh);
-  let html="";
+  let html=""; let firstEmpty=-1;
   for(let i=0;i<SERMON_SLOTS;i++){
     const d = await getSermonSlot(pk, i);
     if(d && (d.title||d.preacher||d.date||d.verse)){
@@ -3872,9 +3866,10 @@ async function renderSermonSlots(){
         </div>
       </div>`;
     }else{
-      html += `<div class="sermon-slot empty sermon-add-btn" data-idx="${i}">➕ 설교 기록 ${i+1} 추가</div>`;
+      if(firstEmpty<0) firstEmpty=i;
     }
   }
+  if(firstEmpty>=0) html += `<div class="sermon-slot empty sermon-add-btn" data-idx="${firstEmpty}">➕ 설교 기록 추가</div>`;
   wrap.innerHTML = html;
 }
 function openSermonForm(idx, existing){
@@ -5655,7 +5650,7 @@ function buildExportHtml(journal, sermons){
   journal.forEach(e=>{ (byPk[e.pk]=byPk[e.pk]||{journal:[],sermon:[]}).journal.push(e); });
   sermons.forEach(s=>{ (byPk[s.pk]=byPk[s.pk]||{journal:[],sermon:[]}).sermon.push(s); });
   const pks = Object.keys(byPk).sort((a,b)=>exportBookOrder(a)-exportBookOrder(b));
-  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도"};
+  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도",meditation:"묵상"};
   let body = "";
   if(pks.length===0){
     body = `<p style="color:#888;">아직 기록이 없습니다.</p>`;
@@ -5848,7 +5843,7 @@ async function renderStatsCard(){
   const wrap = document.getElementById("statsCard");
   if(!wrap) return;
   const journal = await allJ();
-  const typeCounts = {observation:0, interpretation:0, application:0, prayer:0};
+  const typeCounts = {observation:0, interpretation:0, application:0, prayer:0,meditation:0};
   journal.forEach(e=>{ if(typeCounts[e.type]!==undefined) typeCounts[e.type]++; });
   const totalEntries = journal.length;
 
@@ -5868,7 +5863,7 @@ async function renderStatsCard(){
   const cache = await preloadProgress().catch(()=>({}));
   const streak = computeStreak(cache);
 
-  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도"};
+  const typeLabel = {observation:"관찰", interpretation:"해석", application:"적용", prayer:"기도",meditation:"묵상"};
   const barSegs = Object.keys(typeCounts).map(t=>{
     const pct = totalEntries>0 ? Math.round((typeCounts[t]/totalEntries)*100) : 0;
     return `<div style="width:${pct}%;background:${JC[t]};"></div>`;
@@ -6475,7 +6470,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v40";
+  var V="2026-11-18 · v42";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -6495,15 +6490,21 @@ document.addEventListener("change",(e)=>{
   window.__appVer=V;
 })();
 /*VER-END*/
+
+
+
+
+
 /*MYPICK-START*/
 /* ===== 내 찬양 · 내 설교자: 66권 찬양 맨 위 / 설교 찾아보기 맨 위에 "내가 추가" 칸 ===== */
 (function(){
   var ST=(typeof stor!=="undefined")?stor:window.storage;
-  var KS="mypick:songs", KP="mypick:pastors";
-  var songs=[], pastors=[], loaded=false, openF={song:false,pas:false}, busy=false;
+  var KS="mypick:songs", KP="mypick:pastors", KB="mypick:bk";
+  var songs=[], pastors=[], BK={}, openBk=null, loaded=false, openF={song:false,pas:false}, busy=false;
   function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
   function rd(k){return ST.get(k).then(function(r){var a=r&&r.value?JSON.parse(r.value):[];return Array.isArray(a)?a:[];}).catch(function(){return [];});}
-  function load(){ if(loaded) return Promise.resolve(); return Promise.all([rd(KS),rd(KP)]).then(function(a){songs=a[0];pastors=a[1];loaded=true;}); }
+  function rdo(k){return ST.get(k).then(function(r){var a=r&&r.value?JSON.parse(r.value):{};return (a&&typeof a==="object"&&!Array.isArray(a))?a:{};}).catch(function(){return {};});}
+  function load(){ if(loaded) return Promise.resolve(); return Promise.all([rd(KS),rd(KP),rdo(KB)]).then(function(a){songs=a[0];pastors=a[1];BK=a[2];loaded=true;}); }
   function wr(k,v){ return ST.set(k,JSON.stringify(v)).catch(function(){ alert("저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요."); }); }
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
@@ -6566,6 +6567,8 @@ document.addEventListener("change",(e)=>{
     ".mp-ic{border:0;background:none;color:inherit;opacity:.7;font-size:15px;padding:6px;cursor:pointer;text-decoration:none;flex-shrink:0}"+
     ".mp-in{width:100%;box-sizing:border-box;padding:10px;margin-bottom:6px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.28);color:inherit;font-size:16px;font-family:inherit}"+
     ".mp-form{padding:4px 0 8px}.mp-act{display:flex;gap:8px;align-items:center}.mp-msg{font-size:12px;color:#e8a0a0;margin-top:6px;min-height:0}"+
+    ".mp-bkc{display:inline-flex;flex-shrink:0}.mp-bkc .mp-ic{font-size:11.5px;padding:4px 7px;margin-right:4px;border:1px solid rgba(255,255,255,.2);border-radius:6px;opacity:.9;white-space:nowrap}.mp-bk{grid-column:1/-1;padding:2px 0 8px 10px;margin:2px 0 8px 4px;border-left:2px solid rgba(201,151,42,.4)}.mp-bk .mp-row:first-child{border-top:0}.mp-star{color:var(--gold-b,var(--gold-bright,#e0b64a))}"+
+    ".mp-chips{display:flex;flex-wrap:wrap;gap:7px}.mp-chip{display:inline-flex;align-items:center;gap:2px;background:rgba(201,151,42,.12);border:1px solid rgba(201,151,42,.3);border-radius:18px;padding:3px 4px 3px 11px;font-size:12.5px;color:var(--it,var(--ink-text,#e8e4d8))}.mp-chip .mp-main{gap:6px;flex:none}.mp-chip small{font-size:10.5px;color:var(--itd,var(--ink-text-dim,#9a9588))}.mp-chip .mp-ic{padding:4px 5px;font-size:13px}"+
     ".mp-empty{font-size:12px;color:var(--itd,var(--ink-text-dim,#9a9588));padding:4px 2px 8px;line-height:1.6}";
     document.head.appendChild(s);
   }
@@ -6588,18 +6591,53 @@ document.addEventListener("change",(e)=>{
     var f=openF.pas?'<div class="mp-form"><input class="mp-in" id="mpPn" placeholder="이름 (예: 홍길동 목사)" autocomplete="off"><input class="mp-in" id="mpPc" placeholder="교회 (선택)" autocomplete="off"><input class="mp-in" id="mpPu" type="url" inputmode="url" placeholder="유튜브 채널 링크 (선택)" autocomplete="off"><div class="mp-act"><button class="mp-btn" data-mp="pas-save">저장</button><button class="mp-btn g" data-mp="pas-cancel">취소</button></div><div class="mp-msg" id="mpPm"></div></div>':"";
     var rows=pastors.map(function(p){
       var q=c?encodeURIComponent(c.n+" "+c.c+"장 설교 "+p.name):encodeURIComponent("설교 "+p.name);
-      return '<div class="mp-row"><a class="mp-main" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener"><span style="font-size:15px">🎤</span><span class="mp-t">'+E(p.name)+(p.church?'<small>'+E(p.church)+'</small>':'')+'</span><span style="font-size:11px;color:var(--itd,var(--ink-text-dim,#9a9588))">검색 ↗</span></a>'+
+      return '<span class="mp-chip"><a class="mp-main" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener"><span>⭐ '+E(p.name)+'</span>'+(p.church?'<small>'+E(p.church)+'</small>':'')+'</a>'+
         (p.url?'<a class="mp-ic" href="'+E(p.url)+'" target="_blank" rel="noopener" title="채널 열기">📺</a>':'')+
-        '<button class="mp-ic" data-mp="pas-del" data-id="'+E(p.id)+'" title="삭제">✕</button></div>';
+        '<button class="mp-ic" data-mp="pas-del" data-id="'+E(p.id)+'" title="삭제">✕</button></span>';
     }).join("");
     return '<div class="mp-box" id="mpPasBox"><div class="mp-h">⭐ 내가 좋아하는 설교자<span class="mp-n">'+pastors.length+'명</span><button class="mp-btn" data-mp="pas-toggle">＋ 설교자 추가</button></div>'+f+
-      (pastors.length?rows:(openF.pas?"":'<div class="mp-empty">선호하는 목사님을 추가하면 지금 보는 본문의 설교를 바로 검색할 수 있습니다.</div>'))+'</div>';
+      (pastors.length?'<div class="mp-chips">'+rows+'</div>':(openF.pas?"":'<div class="mp-empty">선호하는 목사님을 추가하면 지금 보는 본문의 설교를 바로 검색할 수 있습니다.</div>'))+'</div>';
   }
   function injSongs(){
     var w=document.getElementById("songListWrap")||document.getElementById("song-list-wrap-d"); if(!w) return;
     var o=w.querySelector(".mp-box"); if(o) o.remove();
     w.insertAdjacentHTML("afterbegin",songHtml());
   }
+
+  function bkName(code,r){ var e=r.querySelector(".songrow-book,.songrow-d-book"); return e?e.textContent.trim():code; }
+  function bkRow(code,it,rep){
+    return '<div class="mp-row"><div class="mp-main" data-mp="bk-play" data-code="'+E(code)+'" data-id="'+E(it.id)+'">'+
+      (it.vid?'<img class="mp-th" loading="lazy" alt="" src="https://img.youtube.com/vi/'+E(it.vid)+'/default.jpg" onerror="this.style.visibility=\'hidden\'">':'<span class="mp-th" style="display:flex;align-items:center;justify-content:center">📋</span>')+
+      '<span class="mp-t">'+E(it.title)+'</span><span style="color:#8fc4ee">▶</span></div>'+
+      '<a class="mp-ic" href="'+E(watchUrl(it))+'" target="_blank" rel="noopener" title="유튜브에서 열기">↗</a>'+
+      '<button class="mp-ic" data-mp="bk-ren" data-code="'+E(code)+'" data-id="'+E(it.id)+'" title="제목 고치기">✏</button>'+
+      '<button class="mp-ic" data-mp="bk-del" data-code="'+E(code)+'" data-id="'+E(it.id)+'" title="삭제">✕</button></div>';
+  }
+  function decorate(w){
+    w.querySelectorAll("[data-songbook],[data-songbookd]").forEach(function(r){
+      var code=r.getAttribute("data-songbook")||r.getAttribute("data-songbookd");
+      var bk=BK[code]||{}, rep=bk.rep, ex=bk.ex||[], nm=bkName(code,r);
+      var tEl=r.querySelector(".songrow-title,.songrow-d-title");
+      if(rep){
+        r.removeAttribute("data-songbook"); r.removeAttribute("data-songbookd");
+        r.setAttribute("data-mp","bk-play"); r.setAttribute("data-code",code); r.setAttribute("data-id","rep");
+        if(tEl) tEl.innerHTML='<span class="mp-star">⭐</span> '+E(rep.title);
+      }
+      var c=document.createElement("span"); c.className="mp-bkc";
+      c.innerHTML='<button class="mp-ic" data-mp="bk-rep" data-code="'+E(code)+'" title="이 책의 찬양을 내가 고른 것으로 바꾸기">바꾸기</button>'+
+        '<button class="mp-ic" data-mp="bk-add" data-code="'+E(code)+'" title="이 책에 찬양 더 추가">＋추가</button>'+
+        (rep?'<button class="mp-ic" data-mp="bk-reset" data-code="'+E(code)+'" title="기본 찬양으로 되돌리기">↩기본</button>':'');
+      var pl=r.querySelector(".songrow-play,.songrow-d-play");
+      if(pl) r.insertBefore(c,pl); else r.appendChild(c);
+      var f=(openBk&&openBk.code===code)?'<div class="mp-form"><div class="mp-empty">'+E(nm)+'에 '+(openBk.mode==="rep"?"<b>바꿀</b>":"<b>추가할</b>")+' 찬양</div><input class="mp-in" id="mpBu" type="url" inputmode="url" placeholder="유튜브 링크를 붙여 넣으세요" autocomplete="off"><input class="mp-in" id="mpBt" placeholder="제목 (비워 두면 자동으로 가져옵니다)" autocomplete="off"><div class="mp-act"><button class="mp-btn" data-mp="bk-save" data-code="'+E(code)+'">저장</button><button class="mp-btn g" data-mp="bk-cancel">취소</button></div><div class="mp-msg" id="mpBm"></div></div>':"";
+      if(ex.length||f){
+        var d=document.createElement("div"); d.className="mp-bk";
+        d.innerHTML=f+ex.map(function(it){return bkRow(code,it);}).join("");
+        r.insertAdjacentElement("afterend",d);
+      }
+    });
+  }
+  function refreshSongs(){ var fn=window.renderSongList||window.renderSongListD; if(fn) fn(); }
   function injPas(){
     var p=document.getElementById("p-serm")||document.getElementById("panel-sermon"); if(!p) return;
     var o=p.querySelector(".mp-box"); if(o) o.remove();
@@ -6610,14 +6648,38 @@ document.addEventListener("change",(e)=>{
     var o=window[name]; if(typeof o!=="function") return;
     window[name]=function(){ var r=o.apply(this,arguments); css(); if(loaded) inj(); else load().then(inj); return r; };
   }
-  wrap("renderSongList",injSongs); wrap("renderSongListD",injSongs);
+  function injAll(){ injSongs(); var w=document.getElementById("songListWrap")||document.getElementById("song-list-wrap-d"); if(w) decorate(w); }
+  wrap("renderSongList",injAll); wrap("renderSongListD",injAll);
   wrap("renderSermonPanel",injPas); wrap("renderSermonPanelD",injPas);
 
   function $(id){return document.getElementById(id);}
   function setMsg(id,t){var e=$(id); if(e) e.textContent=t||"";}
+  function bkItem(code,id){ var k=BK[code]||{}; if(id==="rep") return k.rep; return (k.ex||[]).filter(function(x){return x.id===id;})[0]; }
   document.addEventListener("click",function(e){
     var b=e.target.closest("[data-mp]"); if(!b) return;
-    var a=b.dataset.mp, id=b.dataset.id;
+    e.stopPropagation();
+    var a=b.dataset.mp, id=b.dataset.id, code=b.dataset.code;
+    if(a==="bk-rep"||a==="bk-add"){ openBk={code:code,mode:a==="bk-rep"?"rep":"add"}; refreshSongs(); var iu=$("mpBu"); if(iu) iu.focus(); return; }
+    if(a==="bk-cancel"){ openBk=null; refreshSongs(); return; }
+    if(a==="bk-play"){ var q=bkItem(code,id); if(q) play(q); return; }
+    if(a==="bk-reset"){ if(confirm("이 책의 찬양을 기본 찬양으로 되돌릴까요? (추가한 찬양은 그대로 둡니다)")){ if(BK[code]) delete BK[code].rep; wr(KB,BK); refreshSongs(); } return; }
+    if(a==="bk-del"){ var q2=bkItem(code,id); if(q2&&confirm("'"+q2.title+"'을(를) 삭제할까요?")){ BK[code].ex=(BK[code].ex||[]).filter(function(x){return x.id!==id;}); wr(KB,BK); refreshSongs(); } return; }
+    if(a==="bk-ren"){ var q3=bkItem(code,id); if(!q3) return; var n3=prompt("제목을 고치세요",q3.title); if(n3&&n3.trim()){ q3.title=n3.trim().slice(0,120); wr(KB,BK); refreshSongs(); } return; }
+    if(a==="bk-save"){
+      if(busy||!openBk) return;
+      var y2=parseYT($("mpBu").value), t2=($("mpBt").value||"").trim();
+      if(!y2){ setMsg("mpBm","유튜브 링크가 아닙니다. 유튜브 앱에서 [공유]→[링크 복사]로 복사한 주소를 붙여 넣어 주세요."); return; }
+      var bk=BK[code]||(BK[code]={}); 
+      if(openBk.mode==="add" && (bk.ex||[]).some(function(x){return x.vid===y2.vid&&x.list===y2.list;})){ setMsg("mpBm","이미 추가된 찬양입니다."); return; }
+      busy=true; b.disabled=true; setMsg("mpBm","제목을 확인하는 중…");
+      var mode=openBk.mode;
+      (t2?Promise.resolve(t2):fetchTitle(y2)).then(function(ti){
+        busy=false; var o={id:mode==="rep"?"rep":uid(),vid:y2.vid,list:y2.list,title:(ti||"내 찬양").slice(0,120)};
+        if(mode==="rep") bk.rep=o; else (bk.ex=bk.ex||[]).push(o);
+        wr(KB,BK); openBk=null; refreshSongs();
+      });
+      return;
+    }
     if(a==="song-toggle"){ openF.song=!openF.song; injSongs(); var i=$("mpSu"); if(i) i.focus(); return; }
     if(a==="song-cancel"){ openF.song=false; injSongs(); return; }
     if(a==="song-play"){ var it=songs.filter(function(x){return x.id===id;})[0]; if(it) play(it); return; }
@@ -6648,10 +6710,163 @@ document.addEventListener("change",(e)=>{
       pastors.unshift({id:uid(),name:n.slice(0,40),church:ch.slice(0,40),url:url.slice(0,300),t:Date.now()});
       wr(KP,pastors); openF.pas=false; injPas(); return;
     }
-  });
+  },true);
   load();
 })();
 /*MYPICK-END*/
+
+/*JSLOT-START*/
+/* ===== 항목별 기록 칸: 관찰·해석·적용·기도·묵상 / 음성(기도·묵상·설교·기타)
+   항목 버튼을 누르면 이 본문의 그 항목 내용이 그 자리에 그대로 나타나고, 저장하면 그 자리에 보관됩니다. ===== */
+(function(){
+  var isD=(typeof currentPassageKey!=="undefined");
+  var ST=isD?window.storage:stor;
+  var P=isD?"journal:":"j:", PKF=isD?"passageKey":"pk";
+  var TA=isD?"journal-text":"jtext", SB=isD?"save-journal-btn":"savebtn", CB=isD?"journal-cancel-btn":"jcancelbtn", FL=isD?"saved-flash":"flash";
+  var TABSEL=isD?".journal-tabs .jtab[data-type]":".jtabs .jtab[data-jt]";
+  var VTSEL=isD?"#voiceTypeTabsD [data-vt]":"#voiceTypeTabs [data-vt]";
+  var VSLOT=isD?"voiceSlotD":"voiceSlot", VDEL=isD?"data-voicedeld":"data-voicedel";
+  var PH={observation:isD?"본문에서 무엇을 발견했나요? (사실, 반복되는 단어, 인물의 행동 등)":"본문에서 무엇을 발견했나요?",
+    interpretation:isD?"이 본문은 원어·배경 지식과 함께 볼 때 어떤 의미인가요?":"이 본문은 무엇을 의미하나요?",
+    application:isD?"오늘 나의 삶에 어떻게 적용할 수 있을까요?":"내 삶에 어떻게 적용할까요?",
+    prayer:isD?"본문을 통해 드리고 싶은 기도를 적어보세요.":"이 본문으로 어떻게 기도하시겠어요?",
+    meditation:"오늘 말씀을 묵상하며 마음에 남은 것을 적어보세요."};
+  var VL={prayer:"기도",meditation:"묵상",sermon:"설교",other:"기타"};
+  function pk(){ return isD?currentPassageKey:chapterKey(curBook,curCh); }
+  function gT(){ return isD?currentJournalType:curJT; }
+  function sT(t){ if(isD) currentJournalType=t; else curJT=t; }
+  function gTags(){ return isD?currentTags:curTags; }
+  function sTags(a){ if(isD) currentTags=a; else curTags=a; }
+  function vT(){ return isD?voiceTypeD:voiceType; }
+  function $(id){return document.getElementById(id);}
+  function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function today(){ return todayStr(); }
+
+  var loaded={pk:null,type:null,text:"",keys:[]}, queue=Promise.resolve(), tok=0;
+
+  async function entriesFor(p,t){
+    var out=[];
+    try{
+      var l=await ST.list(P);
+      for(var i=0;i<(l.keys||[]).length;i++){
+        var k=l.keys[i];
+        try{ var v=await ST.get(k); if(!v) continue; var o=JSON.parse(v.value); if(o[PKF]===p && o.type===t){ o._key=k; out.push(o); } }catch(e){}
+      }
+    }catch(e){}
+    return out.sort(function(a,b){return (a.ts||0)-(b.ts||0);});
+  }
+  function setMsg(t){ var m=$("jslotMsg"); if(m) m.textContent=t||""; }
+  function ensureMsg(){
+    if($("jslotMsg")) return; var sb=$(SB); if(!sb||!sb.parentNode) return;
+    var d=document.createElement("div"); d.id="jslotMsg"; d.style.cssText="font-size:11.5px;color:var(--itd,var(--ink-text-dim,#9a9588));margin:4px 0 0;line-height:1.5;";
+    sb.parentNode.parentNode.insertBefore(d,sb.parentNode.nextSibling);
+  }
+  function tabLabel(){ var a=document.querySelector(TABSEL+".active"); return a?a.textContent.trim():""; }
+
+  /* 이 본문·이 항목의 저장된 내용을 칸에 불러오기 */
+  async function loadSlot(){
+    var my=++tok, p=pk(), t=gT(), ta=$(TA); if(!ta) return;
+    var es=await entriesFor(p,t); if(my!==tok) return;
+    var text="", tags=[];
+    if(es.length===1){ text=es[0].text||""; }
+    else if(es.length>1){ text=es.map(function(e){return "["+(e.date||"")+"] "+(e.text||"");}).join("\n\n"); }
+    es.forEach(function(e){ (e.tags||[]).forEach(function(x){ if(tags.indexOf(x)<0) tags.push(x); }); });
+    ta.value=text; ta.placeholder=PH[t]||ta.placeholder; sTags(tags); try{renderTagList();}catch(e){}
+    loaded={pk:p,type:t,text:text,keys:es.map(function(e){return e._key;})};
+    ensureMsg();
+    setMsg(es.length>1?("이 항목에 따로 남긴 기록 "+es.length+"개를 날짜와 함께 한 칸으로 모았습니다. 저장하면 이 칸 하나로 보관됩니다."):(es.length===1?"":""));
+    var sb=$(SB); if(sb) sb.textContent=isD?"기록 저장":"저장";
+    var cb=$(CB); if(cb) cb.style.display="none";
+  }
+  function dirty(){ var ta=$(TA); return !!(ta && loaded.pk && ta.value.trim()!==(loaded.text||"").trim()); }
+
+  /* 저장: 이 본문·이 항목은 한 칸. 예전에 따로 저장된 기록이 여러 개면 한 칸으로 합쳐 보관 */
+  async function saveSlot(p,t,text,tags,keepOld){
+    text=(text||"").trim();
+    var es=await entriesFor(p,t), res=null;
+    if(keepOld && es.length){ text=es.map(function(e){return es.length>1?"["+(e.date||"")+"] "+(e.text||""):(e.text||"");}).join("\n\n")+"\n\n"+text; }
+    if(!text){
+      if(es.length){ for(var i=0;i<es.length;i++){ try{await ST.delete(es[i]._key);}catch(e){} } }
+      return {empty:true};
+    }
+    var key=es.length?es[es.length-1]._key:(P+p+":"+today()+":"+t+":"+Date.now());
+    var o={}; o[PKF]=p; o.date=today(); o.type=t; o.text=text; o.tags=(tags||[]).slice(); o.ts=Date.now();
+    res=await ST.set(key,JSON.stringify(o));
+    for(var j=0;j<es.length;j++){ if(es[j]._key!==key){ try{await ST.delete(es[j]._key);}catch(e){} } }
+    return res||{};
+  }
+  async function doSave(){
+    var ta=$(TA); if(!ta) return;
+    var p=loaded.pk||pk(), t=loaded.type||gT(), text=ta.value.trim();
+    if(!text){
+      if(loaded.keys.length && !confirm("이 칸을 비우고 저장하면 지금까지 남긴 "+tabLabel()+" 기록이 삭제됩니다. 계속할까요?")) return;
+    }
+    var fresh=(loaded.pk===p&&loaded.type===t);
+    var r=await saveSlot(p,t,text,gTags(),!fresh);
+    await loadSlot();
+    var fl=$(FL);
+    if(r && r.persisted===false){
+      alert("⚠️ 저장은 됐지만, 이 브라우저에서는 영구 저장이 되지 않아 앱을 새로고침하면 이 기록이 사라질 수 있습니다.\n비공개(시크릿) 모드가 아닌 일반 브라우저 창에서 열어주세요.");
+      try{ (isD?warnIfStorageBrokenD:warnIfStorageBroken)(); }catch(e){}
+    } else if(fl){ fl.classList.add("show"); setTimeout(function(){fl.classList.remove("show");},1600); }
+  }
+  /* 쓰던 내용이 있는데 항목·장을 옮기면 자동으로 저장해 잃어버리지 않게 */
+  async function autosave(){
+    if(!dirty()) return;
+    var ta=$(TA), text=ta.value.trim(); if(!text) return;
+    await saveSlot(loaded.pk,loaded.type,text,gTags(),false);
+    loaded.text=ta.value;
+  }
+  function sync(){ queue=queue.then(async function(){
+      if(loaded.pk && (loaded.pk!==pk()||loaded.type!==gT())) await autosave();
+      if(loaded.pk!==pk()||loaded.type!==gT()) await loadSlot();
+    }).catch(function(){}); return queue; }
+
+  /* ---- 음성: 선택한 항목(기도·묵상·설교·기타)의 녹음을 그 아래에 ---- */
+  async function renderVoice(){
+    var box=$(VSLOT); if(!box) return;
+    var all=isD?await allVoiceEntriesD():await allVoiceEntries();
+    var p=pk(), t=vT();
+    var mine=all.filter(function(e){return e.pk===p && e.type===t;});
+    var lb=VL[t]||t;
+    box.innerHTML='<div style="font-size:12.5px;font-weight:700;margin:12px 0 6px;color:var(--gold-b,var(--gold-bright,#e0b64a));">🎙️ '+E(lb)+' 녹음 '+mine.length+'개</div>'+
+      (mine.length?mine.map(function(e){
+        return '<div class="vslot-item"><div class="vslot-meta"><span>📅 '+E(e.date||"")+((e.range&&e.range!=="전체")?' · '+E(e.range):'')+'</span><span '+VDEL+'="'+E(e._key)+'" style="cursor:pointer;opacity:.7;">🗑 삭제</span></div><audio controls preload="none" src="'+e.data+'" style="width:100%;"></audio></div>';
+      }).join(""):'<div style="font-size:12px;color:var(--itd,var(--ink-text-dim,#9a9588));">아직 이 본문의 '+E(lb)+' 녹음이 없습니다. 위의 [● 녹음 시작]을 눌러 남겨 보세요.</div>');
+  }
+  function css(){
+    if($("jslotCss")) return; var s=document.createElement("style"); s.id="jslotCss";
+    s.textContent=".vslot-item{background:rgba(255,255,255,.05);border:1px solid rgba(201,151,42,.2);border-radius:10px;padding:8px 10px;margin-bottom:8px}.vslot-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--itd,var(--ink-text-dim,#9a9588));margin-bottom:6px}";
+    if(isD) s.textContent+='.jtab[data-type="meditation"].active{background:rgba(80,160,190,.18);color:#7fc3d9;border-color:rgba(80,160,190,.45)}#voiceTypeTabsD .jtab.active{background:rgba(201,151,42,.16);color:var(--gold-bright,#e0b64a);border-color:rgba(201,151,42,.4)}';
+    document.head.appendChild(s);
+  }
+
+  /* ---- 기존 함수 대체(장이 바뀌거나 저장·삭제될 때 이쪽이 불림) ---- */
+  function refresh(){ css(); sync(); renderVoice(); }
+  if(isD){ window.renderJournalLog=refresh; } else { window.renderElog=refresh; }
+
+  /* ---- 클릭: 항목 버튼 / 저장 (원래 동작보다 먼저 가로채서 대체) ---- */
+  document.addEventListener("click",function(e){
+    var tab=e.target.closest(TABSEL);
+    if(tab){
+      e.stopPropagation();
+      var nt=isD?tab.dataset.type:tab.dataset.jt;
+      var grp=tab.parentNode; grp.querySelectorAll(".jtab").forEach(function(x){x.classList.remove("active");}); tab.classList.add("active");
+      queue=queue.then(async function(){ await autosave(); sT(nt); loaded.pk=null; await loadSlot(); }).catch(function(){});
+      return;
+    }
+    var sb=e.target.closest("#"+SB);
+    if(sb){ e.stopPropagation(); queue=queue.then(doSave).catch(function(){}); return; }
+  },true);
+  document.addEventListener("click",function(e){
+    if(e.target.closest(VTSEL)) setTimeout(renderVoice,0);
+  });
+  document.addEventListener("visibilitychange",function(){ if(document.hidden) autosave(); });
+  window.addEventListener("pagehide",function(){ autosave(); });
+  window.addEventListener("load",function(){ setTimeout(refresh,900); });
+  setTimeout(refresh,1500);
+})();
+/*JSLOT-END*/
 
 /*CHURCH-START*/
 /* ===== ⛪ 교회·성도 관리: 성도 명단 · 기관/셀 편성 · 출석 · 돌봄(심방·기도·생일) — 모든 자료는 이 기기에만 저장 ===== */
@@ -8501,7 +8716,7 @@ document.addEventListener("change",(e)=>{
   function bookOk(code){ return !EXP.book || EXP.book===code; }
   function bookOrder(code){ return BOOKS.findIndex(function(b){return b.code===code;}); }
   function chLabel(pk){ var p=pk.split("."); return bookName(p[0])+" "+p[1]+"장"; }
-  var TYPE_KO={observation:"관찰",interpretation:"해석",application:"적용",prayer:"기도","관찰":"관찰","해석":"해석","적용":"적용","기도":"기도"};
+  var TYPE_KO={observation:"관찰",interpretation:"해석",application:"적용",prayer:"기도",meditation:"묵상","묵상":"묵상","관찰":"관찰","해석":"해석","적용":"적용","기도":"기도"};
   function buildDoc(data,fmt){
     var lines=[], html=[]; var inc=EXP.inc;
     var title="등불 묵상 기록", period=(EXP.from||EXP.to)?((EXP.from||"처음")+" ~ "+(EXP.to||"오늘")):"전체 기간";
