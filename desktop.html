@@ -531,6 +531,8 @@ a.btn{color:#1a1408 !important;}
 .fschip.active,.fschip-d.active{color:#f7da8a;}
 a.chiplink{color:#8fc4ee;}
 body.light-mode a.chiplink{color:#1c4a73;}
+body.light-mode a.chiplink[style*="#263044"]{background:#f6ecd2 !important;color:#3a2a10 !important;border:1px solid rgba(160,115,20,.55) !important;}
+body.light-mode a.chiplink[style*="#e8b94a"]{color:#7a4b00 !important;}
 body.light-mode .ttsratebtn.active,body.light-mode .ttsratebtn-d.active{color:#1c4a73;}
 body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
 .vplay,.vnote-toggle,.vplay-d,.vnote-toggle-d{color:#54492f;}
@@ -6897,7 +6899,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v73";
+  var V="2026-11-18 · v74";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
