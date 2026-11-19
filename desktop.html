@@ -6884,7 +6884,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v67";
+  var V="2026-11-18 · v68";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -8182,7 +8182,7 @@ window.loadApiKey().then(async function(){
       ".ux-grid button.ux-tile .ux-tx b{font-size:12.5px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}"+
       ".ux-grid button.ux-tile .ux-tx small{display:none}.ux-grid button.ux-tile .ux-ch{display:none !important}"+
       "#uxTop #cardBtn,#uxPas #bulBtn,#uxPas #olBtn,#uxJr #summBtn,#uxJr #bndBtn,#uxTop #hlBtn button,.ux-grid button{margin:0 !important}"+
-      "@media (min-width:900px){.ux-grid{max-width:none;gap:8px}#uxTop{grid-template-columns:repeat(3,1fr)}#uxJr{grid-template-columns:repeat(2,1fr)}#uxPas{grid-template-columns:repeat(2,1fr)}#uxJr>:first-child{grid-column:auto}.ux-grid button.ux-tile{padding:6px 12px !important}.ux-grid button.ux-tile .ux-tx b{font-size:13.5px !important}.ux-grid button.ux-tile .ux-ic{width:28px !important;height:28px !important;font-size:14px !important}}"+
+      "@media (min-width:900px){.ux-grid{max-width:none;gap:8px}#uxTop{grid-template-columns:repeat(4,1fr)}#uxJr{grid-template-columns:repeat(2,1fr)}#uxPas{grid-template-columns:repeat(2,1fr)}#uxJr>:first-child{grid-column:auto}.ux-grid button.ux-tile{padding:6px 12px !important}.ux-grid button.ux-tile .ux-tx b{font-size:13.5px !important}.ux-grid button.ux-tile .ux-ic{width:28px !important;height:28px !important;font-size:14px !important}}"+
       ".px-fs{border:1px solid var(--px-line);background:linear-gradient(180deg,rgba(201,151,42,.24),rgba(201,151,42,.07));color:var(--px-tx);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}.px-fs:hover{box-shadow:0 4px 12px rgba(120,80,10,.25)}"+
       
       ".px-fsd{padding:0 !important}.px-fsd .sm-card,.px-fsd .pl-card,.px-fsd .p2-card,.px-fsd .cd,.px-fsd .px-card{max-width:none !important;width:100% !important;min-height:100vh;border-radius:0 !important;margin:0 !important;box-sizing:border-box}"+
@@ -8202,7 +8202,7 @@ window.loadApiKey().then(async function(){
   function mk(id,first){ var w=document.createElement("div"); w.id=id; w.className="ux-grid"; return w; }
   function group(){
     var c=$("cardBtn"),h=$("hlBtn");
-    if(c&&h&&!$("uxTop")&&c.parentNode){ var w0=mk("uxTop"); c.parentNode.insertBefore(w0,c); w0.appendChild(c); w0.appendChild(h); }
+    if(c&&h&&!$("uxTop")&&c.parentNode){ var w0=mk("uxTop"); c.parentNode.insertBefore(w0,c); w0.appendChild(c); w0.appendChild(h); var en0=$("engBtn"); if(en0) w0.appendChild(en0); }
     var s=$("summBtn"),n=$("bndBtn");
     if(s&&n&&!$("uxJr")&&s.parentNode){ var j=mk("uxJr"); s.parentNode.insertBefore(j,s); j.appendChild(s); j.appendChild(n); }
     var o=$("olBtn"),u=$("bulBtn"),sb=document.querySelector(isD?".sermonbox-d":".sermonbox");
@@ -8371,6 +8371,270 @@ window.loadApiKey().then(async function(){
   [500,1500,3000,5000,9000].forEach(function(ms){ setTimeout(ensure,ms); });
 })();
 /*PLAN3-END*/
+/*ENG-START*/
+/* ===== 영어 성경 공부: 대조 읽기 · 단어장 · 빈칸/순서 · 반복 듣기 · 구조 표시 · 용어 사전 ===== */
+(function(){
+  var isD=(typeof currentPassageKey!=="undefined");
+  var ST=isD?window.storage:stor;
+  var KV="plan:vocab", KM="plan:engmark";
+  function $(id){return document.getElementById(id);}
+  function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function bname(c){ try{ return isD?BOOK_BY_CODE[c].name:BBC[c].name; }catch(e){ return c; } }
+  function cur(){ return isD?{b:currentBook,c:currentChapter}:{b:curBook,c:curCh}; }
+  function pk(){ var c=cur(); return c.b+"."+c.c; }
+  var V={}, M={}, loaded=false;
+  function ldk(k){ return ST.get(k).then(function(v){ try{ return v&&v.value?JSON.parse(v.value)||{}:{}; }catch(e){ return {}; } }).catch(function(){ return {}; }); }
+  function load(){ return Promise.all([ldk(KV),ldk(KM)]).then(function(r){ V=r[0]; M=r[1]; loaded=true; }); }
+  function svV(){ try{ ST.set(KV,JSON.stringify(V)); }catch(e){} }
+  function svM(){ try{ ST.set(KM,JSON.stringify(M)); }catch(e){} }
+  var S={tab:"cmp",hideEn:false,hideKr:false,sel:0,edit:null,vq:"",rv:null,qm:"blank",lv:"3",qa:1,qb:1,ord:null,rate:"0.85",reps:"2",shadow:true,la:1,lb:1,mv:1,code:"S",tcat:"bible",tq:""};
+  var VS=[], curPK="", poll=null;
+  function verses(){
+    var m={}, g=function(sel,vk,tk,fld){ document.querySelectorAll(sel).forEach(function(r){ var n=+r.getAttribute(vk); var t=r.querySelector(tk); if(!t||!n) return; m[n]=m[n]||{n:n}; m[n][fld]=t.textContent.replace(/[🔊📖▶🔍]/g,"").replace(/\s+/g," ").trim(); }); };
+    if(isD){ g(".v-en-row[data-v]","data-v",".v-en","en"); g(".v-kr-row[data-v]","data-v",".v-kr","kr"); }
+    else { g(".ven-row[data-vn]","data-vn",".ven","en"); g(".vkr-row[data-vn]","data-vn",".vkr","kr"); }
+    return Object.keys(m).map(Number).sort(function(a,b){return a-b;}).map(function(n){ return m[n]; });
+  }
+  function vget(n){ for(var i=0;i<VS.length;i++) if(VS[i].n===n) return VS[i]; return null; }
+  function toks(t){ return (t||"").match(/[A-Za-z’'\-]+|[^A-Za-z’'\-]+/g)||[]; }
+  function isW(t){ return /[A-Za-z]/.test(t); }
+  function nk(w){ return w.toLowerCase().replace(/^['’\-]+|['’\-]+$/g,""); }
+  function ref(n){ var c=cur(); return bname(c.b)+" "+c.c+":"+n; }
+
+  /* ---------- 용어 ---------- */
+  var T_BIBLE=[["grace","은혜","받을 자격 없는 자에게 베푸시는 하나님의 호의"],["mercy","긍휼·자비","고통 중에 있는 자를 불쌍히 여기심"],["lovingkindness","인자(헤세드)","언약에 신실하신 변함없는 사랑"],["covenant","언약","하나님이 백성과 맺으신 약속의 관계"],["salvation","구원","죄와 사망에서 건져 내심"],["redemption","구속","값을 치르고 되찾아 오심"],["atonement","속죄","죄를 덮어 하나님과 화해시킴"],["righteousness","의","하나님 앞에서의 옳음·바른 관계"],["justification","칭의","의롭다고 선언해 주심"],["sanctification","성화","거룩하게 변해 가는 과정"],["glory","영광","하나님의 위엄과 임재의 빛"],["faith","믿음","하나님을 신뢰함"],["hope","소망","하나님의 약속을 기대함"],["love","사랑","(아가페) 값없이 주는 사랑"],["repentance","회개","마음과 삶의 방향을 돌이킴"],["forgiveness","용서","죄를 사하여 주심"],["sin","죄","하나님의 뜻에서 빗나감"],["transgression","허물","선을 넘어 어긴 죄"],["iniquity","죄악","뒤틀린 악함"],["holy","거룩한","구별되고 순전한"],["blessing","복","하나님이 베푸시는 좋은 것"],["curse","저주","복의 반대, 심판 아래 있음"],["gospel","복음","기쁜 소식, 예수 그리스도의 소식"],["kingdom","나라","하나님의 통치"],["Messiah","메시아","기름 부음 받은 자(히브리어)"],["Christ","그리스도","기름 부음 받은 자(헬라어)"],["Lord","주","(YHWH 또는 Kyrios)"],["Savior","구주","구원하시는 분"],["Spirit","영·성령","하나님의 영"],["resurrection","부활","죽은 자 가운데서 살아남"],["cross","십자가","그리스도의 죽으심"],["sacrifice","제사·희생","하나님께 드리는 제물"],["offering","제물·헌물","예물로 드림"],["temple","성전","하나님이 계신 집"],["tabernacle","성막","광야의 이동식 성소"],["priest","제사장","하나님과 백성 사이를 중재"],["prophet","선지자","하나님의 말씀을 대언하는 자"],["apostle","사도","보냄을 받은 자"],["disciple","제자","따라 배우는 자"],["church","교회","(에클레시아) 부름받은 무리"],["congregation","회중","모인 공동체"],["Sabbath","안식일","쉬며 하나님께 구별된 날"],["Passover","유월절","출애굽의 구원을 기념하는 절기"],["wilderness","광야","출애굽 후 40년 방황한 땅"],["exile","포로·유배","바벨론으로 끌려간 시기"],["remnant","남은 자","심판 후 보존된 신실한 백성"],["shepherd","목자","양을 돌보는 이"],["wisdom","지혜","하나님을 경외하며 사는 법"],["judgment","심판","하나님의 공의로운 판결"],["wrath","진노","죄에 대한 하나님의 분노"],["peace","평강","(샬롬) 온전함과 화평"],["eternal life","영생","하나님과 누리는 끝없는 생명"],["heaven","하늘·천국","하나님이 계신 곳"],["angel","천사","하나님의 사자"],["Satan","사탄","대적자, 고발자"],["temptation","시험·유혹","믿음을 시험하거나 죄로 이끎"],["baptism","세례","물로 씻는 예식"],["prayer","기도","하나님께 아룀"],["worship","예배","하나님께 합당한 경배를 드림"],["praise","찬양","하나님의 행하심을 높임"],["Law","율법","하나님이 주신 가르침·계명"],["commandment","계명","명령하신 말씀"],["testimony","증거","증언·증거의 말씀"]];
+  var T_THEO=[["exegesis","석의","본문에서 뜻을 끌어냄"],["eisegesis","자의적 해석","본문에 내 생각을 집어넣음"],["exposition","강해","본문의 뜻을 풀어 설명"],["hermeneutics","해석학","성경을 해석하는 원리"],["homiletics","설교학","설교의 이론과 방법"],["pericope","단락","설교·연구의 본문 단위"],["context","문맥","앞뒤 흐름"],["canon","정경","성경으로 인정된 책들"],["inspiration","영감","성령의 감동으로 기록됨"],["inerrancy","무오","원본에 오류가 없음"],["infallibility","무류","믿음과 삶에서 틀림이 없음"],["revelation","계시","하나님이 자신을 나타내심"],["illumination","조명","성령이 깨닫게 하심"],["apologetics","변증학","신앙을 논리로 변호"],["eschatology","종말론","마지막 일에 관한 교리"],["soteriology","구원론","구원에 관한 교리"],["Christology","기독론","그리스도에 관한 교리"],["pneumatology","성령론","성령에 관한 교리"],["ecclesiology","교회론","교회에 관한 교리"],["theology proper","신론","하나님에 관한 교리"],["anthropology","인간론","인간에 관한 교리"],["hamartiology","죄론","죄에 관한 교리"],["bibliology","성경론","성경에 관한 교리"],["Trinity","삼위일체","한 하나님, 세 위격"],["incarnation","성육신","말씀이 육신이 되심"],["providence","섭리","하나님의 만물 통치와 돌보심"],["predestination","예정","미리 정하심"],["election","선택","택하심"],["free will","자유의지","선택하는 의지"],["original sin","원죄","아담에게서 이어진 죄"],["imputation","전가","(의·죄를) 돌려 계산함"],["regeneration","중생","거듭남"],["adoption","양자 됨","하나님의 자녀로 삼으심"],["perseverance","성도의 견인","끝까지 지키심"],["glorification","영화","완성된 영광에 이름"],["typology","모형론","구약 사건이 신약을 예표"],["allegory","풍유(알레고리)","상징으로 풀이"],["parable","비유","이야기로 가르친 교훈"],["epistle","서신","편지 형식의 책"],["apocalyptic","묵시문학","환상과 상징으로 쓴 종말 문학"],["wisdom literature","지혜문학","욥기·잠언·전도서 등"],["Septuagint","칠십인역(LXX)","구약의 헬라어 번역"],["Vulgate","불가타","라틴어 성경"],["manuscript","사본","손으로 베낀 성경 필사본"],["textual criticism","본문비평","원문에 가까운 본문을 찾는 학문"],["Synoptic Gospels","공관복음","마태·마가·누가"],["Pentateuch","모세오경","창세기~신명기"],["Torah","토라","율법·모세오경"],["Reformation","종교개혁","16세기 교회 개혁"],["creed","신조","믿음의 요약 고백"],["confession","신앙고백서","교회의 공식 신앙 진술"],["sacrament","성례","세례·성찬"],["liturgy","예전","예배의 순서와 형식"],["doxology","송영","영광을 돌리는 찬송"],["benediction","축도","복을 선언하는 마무리"],["invocation","기원","예배를 여는 부름"],["homily","강론","짧은 설교"],["application","적용","본문을 삶에 연결"],["illustration","예화","이해를 돕는 사례"],["main point","대지","설교의 큰 요점"],["big idea","중심 명제","설교 전체를 묶는 한 문장"]];
+
+  /* ---------- 스타일 ---------- */
+  function css(){
+    if($("egCss")) return; var s=document.createElement("style"); s.id="egCss";
+    s.textContent=
+      ".eg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.eg-tab{border:1px solid var(--px-line,rgba(201,151,42,.5));background:transparent;color:inherit;border-radius:999px;padding:7px 11px;font-size:13px;cursor:pointer;font-family:inherit}.eg-tab.on{background:rgba(201,151,42,.42);font-weight:700}"+
+      ".eg-b{border:1px solid rgba(201,151,42,.5);background:rgba(201,151,42,.15);color:inherit;border-radius:9px;padding:8px 12px;font-size:13px;cursor:pointer;font-family:inherit}.eg-b.on{background:rgba(201,151,42,.5);font-weight:700}.eg-b.pri{background:linear-gradient(180deg,#d9a83a,#a8741a);color:#fff;border-color:transparent;font-weight:700}"+
+      ".eg-v{display:flex;gap:8px;padding:9px 8px;border-bottom:1px solid rgba(127,127,127,.2);border-radius:8px;cursor:pointer}.eg-v.sel{background:rgba(201,151,42,.2)}.eg-n{min-width:24px;font-weight:700;color:#d9a83a}"+
+      ".eg-t{flex:1;min-width:0}.eg-en{font-size:16.5px;line-height:1.7}.eg-kr{font-size:14px;line-height:1.55;opacity:.85;margin-top:3px}.eg-hid{filter:blur(7px)}"+
+      ".eg-w{cursor:pointer;border-radius:4px;padding:0 1px}.eg-w:hover{background:rgba(201,151,42,.3)}.eg-w.sv{border-bottom:2px solid #d9a83a}"+
+      ".eg-ed{position:sticky;top:0;z-index:3;background:var(--px-bg1,#fffaf0);border:1px solid rgba(201,151,42,.6);border-radius:12px;padding:10px;margin:8px 0;box-shadow:0 6px 18px rgba(0,0,0,.25)}"+
+      ".eg-vi{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid rgba(127,127,127,.2)}.eg-vi b{min-width:84px;font-size:15px}.eg-vi input{flex:1;min-width:110px}.eg-vi .px-dim{width:100%}"+
+      ".eg-card{text-align:center;border:1px solid rgba(201,151,42,.5);border-radius:14px;padding:22px 12px;margin:10px 0}.eg-card .big{font-size:26px;font-weight:700;margin-bottom:8px}.eg-card .ctx{font-size:14px;opacity:.8;line-height:1.6;margin-top:10px}"+
+      ".eg-q{font-size:17px;line-height:2.2;margin:10px 2px}.eg-q input.bl{width:5em;text-align:center;padding:2px 4px !important;font-size:16px;border-radius:6px !important}.eg-q input.ok{outline:2px solid #5fbf7f;background:rgba(95,191,127,.2) !important}.eg-q input.ng{outline:2px solid #e06a6a;background:rgba(224,106,106,.2) !important}"+
+      ".eg-chip{border:1px solid rgba(201,151,42,.6);background:rgba(201,151,42,.15);color:inherit;border-radius:10px;padding:7px 11px;margin:3px;font-size:15px;cursor:pointer;font-family:inherit}.eg-ans{min-height:48px;border:2px dashed rgba(201,151,42,.5);border-radius:12px;padding:6px;margin:8px 0}"+
+      ".eg-sw{display:inline-block;padding:1px 3px;border-radius:5px;margin:1px 0;cursor:pointer}.eg-leg{display:inline-flex;align-items:center;gap:4px}.eg-leg i{display:inline-block;width:14px;height:14px;border-radius:4px}"+
+      ".eg-ti{padding:8px 0;border-bottom:1px solid rgba(127,127,127,.2);display:flex;gap:8px;align-items:flex-start}.eg-ti>div{flex:1}.eg-ti b{font-size:15px}";
+    document.head.appendChild(s);
+  }
+  var COLS={S:["#8ec5ff","주어(S)"],V:["#f5a9c0","동사(V)"],O:["#8fd18f","목적어(O)"],C:["#c9a7ff","보어(C)"],M:["#f4d35e","수식·전치구"]};
+
+  /* ---------- 공통 조각 ---------- */
+  function btn(a,t,x,cls){ return '<button class="eg-b'+(cls?' '+cls:'')+'" data-en="'+a+'"'+(x||"")+'>'+t+'</button>'; }
+  function rng(a,b,ka,kb){
+    var o=function(sel){ return VS.map(function(v){ return '<option value="'+v.n+'"'+(v.n===sel?" selected":"")+'>'+v.n+'절</option>'; }).join(""); };
+    return '<select data-ch="'+ka+'">'+o(a)+'</select> ~ <select data-ch="'+kb+'">'+o(b)+'</select>';
+  }
+  function sel(k,cur_,arr){ return '<select data-ch="'+k+'">'+arr.map(function(x){ return '<option value="'+x[0]+'"'+(String(cur_)===x[0]?" selected":"")+'>'+x[1]+'</option>'; }).join("")+'</select>'; }
+  function wordsHtml(v){ return toks(v.en).map(function(t){ if(!isW(t)) return E(t); var k=nk(t); return '<span class="eg-w'+(V[k]?" sv":"")+'" data-en="w" data-n="'+v.n+'" data-w="'+E(t)+'">'+E(t)+'</span>'; }).join(""); }
+  function speakWord(w){ try{ if(!window.speechSynthesis) return; var u=new SpeechSynthesisUtterance(w); u.lang="en-US"; u.rate=.8; speechSynthesis.speak(u); }catch(e){} }
+  function normA(s){ return String(s).toLowerCase().replace(/[^a-z’'\-]/g,"").replace(/’/g,"'"); }
+
+  /* ---------- 탭: 대조 ---------- */
+  function tCmp(){
+    var h='<div class="px-row"><label class="px-chk"><input type="checkbox" data-ch="hEn"'+(S.hideEn?" checked":"")+'> 영어 가리기</label><label class="px-chk"><input type="checkbox" data-ch="hKr"'+(S.hideKr?" checked":"")+'> 한글 가리기</label></div>'+
+      '<div class="px-dim">영어 단어를 누르면 단어장에 저장합니다. 절을 누르면 그 절의 영어·한글이 함께 강조됩니다(가려진 쪽도 열립니다). 문장 단위 정밀 대응은 아니며 절 단위로 짝을 맞춥니다.</div>';
+    if(S.edit) h+=editor();
+    h+=VS.map(function(v){ var on=S.sel===v.n;
+      return '<div class="eg-v'+(on?" sel":"")+'" data-en="sel" data-n="'+v.n+'"><span class="eg-n">'+v.n+'</span><div class="eg-t"><div class="eg-en'+(S.hideEn&&!on?" eg-hid":"")+'">'+wordsHtml(v)+'</div><div class="eg-kr'+(S.hideKr&&!on?" eg-hid":"")+'">'+E(v.kr||"")+'</div></div></div>'; }).join("");
+    return h;
+  }
+  function editor(){
+    var e=S.edit, k=nk(e.w), ex=V[k], v=vget(e.n)||{};
+    return '<div class="eg-ed"><div class="px-row"><b style="font-size:17px">'+E(e.w)+'</b>'+btn("say","🔊 발음",' data-w="'+E(e.w)+'"')+'<span class="px-dim">'+E(ref(e.n))+'</span></div>'+
+      '<input id="egMean" style="width:100%;box-sizing:border-box;padding:9px;margin-top:8px" placeholder="뜻을 입력하세요 (예: 은혜)" value="'+E(ex?ex.mean:"")+'">'+
+      '<label class="px-chk" style="margin-top:6px"><input type="checkbox" id="egKr" '+((ex?!!ex.kr:true)?"checked":"")+'> 이 절의 개역한글도 함께 저장</label>'+
+      '<div class="px-row" style="margin-top:8px">'+btn("wsave","💾 저장","","pri")+btn("wcancel","취소")+(ex?btn("wdel","🗑 삭제",' data-k="'+E(k)+'"'):"")+'</div></div>';
+  }
+  /* ---------- 탭: 단어장 ---------- */
+  var DAY=86400000, INT=[0,1,3,7,14];
+  function dueList(){ var n=Date.now(); return Object.keys(V).filter(function(k){ return (V[k].due||0)<=n; }); }
+  function tVoc(){
+    if(S.rv) return review();
+    var tot=Object.keys(V).length, due=dueList().length;
+    return '<div class="px-row"><b>📒 내 단어장 '+tot+'개</b><span class="px-dim">· 오늘 복습할 단어 '+due+'개</span></div>'+
+      '<div class="px-row" style="margin:8px 0">'+btn("rvstart","🃏 카드 복습 시작","","pri")+btn("vcopy","📋 목록 복사")+'</div>'+
+      '<div class="px-row"><input id="egNw" placeholder="영어 단어" style="flex:1;min-width:110px;padding:8px"><input id="egNm" placeholder="뜻" style="flex:1;min-width:110px;padding:8px">'+btn("vadd","＋ 추가")+'</div>'+
+      '<input id="egVq" placeholder="🔎 단어·뜻 검색" value="'+E(S.vq)+'" style="width:100%;box-sizing:border-box;padding:8px;margin:10px 0 4px"><div id="egVl">'+vList()+'</div>';
+  }
+  function vList(){
+    var q=S.vq.trim().toLowerCase(), ks=Object.keys(V).sort(function(a,b){ return (V[b].ts||0)-(V[a].ts||0); }).filter(function(k){ return !q||k.indexOf(q)>=0||(V[k].mean||"").toLowerCase().indexOf(q)>=0; });
+    if(!ks.length) return '<div class="px-dim" style="padding:12px 0">저장된 단어가 없습니다. 「대조」 탭에서 영어 단어를 눌러 보세요.</div>';
+    return ks.map(function(k){ var o=V[k]; return '<div class="eg-vi"><b>'+E(o.w||k)+'</b><input data-en="mi" data-k="'+E(k)+'" value="'+E(o.mean||"")+'" placeholder="뜻"><button class="eg-b" data-en="vdel" data-k="'+E(k)+'">✕</button><div class="px-dim">'+E(o.ref||"")+' · 복습 단계 '+(o.box||0)+'/4</div></div>'; }).join("");
+  }
+  function review(){
+    var r=S.rv; if(r.i>=r.q.length) return '<div class="eg-card"><div class="big">🎉 복습 끝</div>알아요 '+r.ok+' · 몰라요 '+r.ng+'</div><div class="px-row" style="justify-content:center">'+btn("rvend","단어장으로")+'</div>';
+    var k=r.q[r.i], o=V[k]; if(!o){ r.i++; return review(); }
+    var ctx=o.en?o.en.replace(new RegExp("("+o.w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"),"<b>$1</b>"):"";
+    return '<div class="px-dim">'+(r.i+1)+' / '+r.q.length+'</div><div class="eg-card"><div class="big">'+E(o.w)+'</div>'+btn("say","🔊 발음",' data-w="'+E(o.w)+'"')+
+      (r.show?'<div style="font-size:20px;margin-top:12px">'+E(o.mean||"(뜻 없음)")+'</div>'+(o.kr?'<div class="ctx">'+E(o.kr)+'</div>':""):"")+
+      (ctx?'<div class="ctx">'+(r.show?ctx:ctx.replace(/<b>.*?<\/b>/g,"____"))+'</div>':"")+'</div>'+
+      '<div class="px-row" style="justify-content:center">'+(r.show?btn("rvok","✅ 알아요",'',"pri")+btn("rvng","❌ 몰라요"):btn("rvshow","뜻 보기","","pri"))+btn("rvend","그만")+'</div>';
+  }
+  /* ---------- 탭: 빈칸·순서 ---------- */
+  function tQz(){
+    var h='<div class="px-row">'+btn("qm1","✏️ 빈칸 채우기",' data-m="blank"',S.qm==="blank"?"on":"")+btn("qm1","🧩 순서 맞추기",' data-m="order"',S.qm==="order"?"on":"")+'</div>';
+    if(!VS.length) return h+'<p class="px-dim">본문이 아직 표시되지 않았습니다.</p>';
+    if(S.qm==="blank"){
+      h+='<div class="px-row" style="margin:8px 0">'+rng(S.qa,S.qb,"qa","qb")+sel("lv",S.lv,[["5","쉬움(5단어마다)"],["3","보통(3단어마다)"],["2","어려움(2단어마다)"],["long","긴 단어만"]])+'</div>';
+      var wi=0, any=0, body=VS.filter(function(v){ return v.en&&v.n>=S.qa&&v.n<=S.qb; }).map(function(v){
+        return '<span class="eg-n" style="font-size:13px">'+v.n+'</span> '+toks(v.en).map(function(t){
+          if(!isW(t)) return E(t); wi++; var L=t.replace(/[^A-Za-z]/g,"").length, hide=S.lv==="long"?L>=7:(wi%(+S.lv)===0&&L>=3);
+          if(!hide) return E(t); any++; return '<input class="bl" data-a="'+E(normA(t))+'" style="width:'+Math.max(3,L*0.75+1.5)+'em" autocomplete="off" autocapitalize="off" spellcheck="false">'; }).join("")+" "; }).join("");
+      return h+'<div class="eg-q">'+body+'</div><div class="px-row">'+btn("qchk","채점","","pri")+btn("qshow","정답 보기")+btn("qre","지우기")+'<span id="egQs" class="px-dim"></span></div>';
+    }
+    if(!S.ord||S.ord.n!==S.qv) mkOrd(S.qv);
+    var vs='<select data-ch="qv">'+VS.filter(function(v){ return v.en; }).map(function(v){ return '<option value="'+v.n+'"'+(v.n===S.qv?" selected":"")+'>'+v.n+'절</option>'; }).join("")+'</select>';
+    var o=S.ord;
+    return h+'<div class="px-row" style="margin:8px 0">'+vs+btn("ore","🔀 다시 섞기")+'</div><div class="px-dim">조각을 순서대로 눌러 문장을 완성하세요. 아래 칸의 조각을 누르면 되돌아갑니다.</div>'+
+      '<div class="eg-ans">'+o.ans.map(function(i,p){ return '<button class="eg-chip" data-en="ca" data-p="'+p+'">'+E(o.ch[i])+'</button>'; }).join("")+'</div>'+
+      '<div>'+o.pool.map(function(i){ return '<button class="eg-chip" data-en="cp" data-i="'+i+'">'+E(o.ch[i])+'</button>'; }).join("")+'</div>'+
+      '<div class="px-row" style="margin-top:8px">'+btn("ochk","확인","","pri")+btn("oshow","정답 보기")+'<span id="egQs" class="px-dim"></span></div>';
+  }
+  function mkOrd(n){
+    var v=vget(n)||VS.filter(function(x){return x.en;})[0]; if(!v){ S.ord={n:0,ch:[],pool:[],ans:[]}; return; }
+    var w=v.en.split(/\s+/).filter(Boolean), sz=w.length<=5?1:Math.ceil(w.length/6), ch=[];
+    for(var i=0;i<w.length;i+=sz) ch.push(w.slice(i,i+sz).join(" "));
+    var pool=ch.map(function(_,i){return i;}), tries=0;
+    do{ for(var j=pool.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)); var t=pool[j]; pool[j]=pool[r]; pool[r]=t; } tries++; }while(pool.length>1&&tries<8&&pool.every(function(x,i){return x===i;}));
+    S.ord={n:v.n,ch:ch,pool:pool,ans:[]};
+  }
+  /* ---------- 탭: 반복 듣기 ---------- */
+  var LS={run:false,id:0};
+  function tLs(){
+    if(!VS.length) return '<p class="px-dim">본문이 아직 표시되지 않았습니다.</p>';
+    return '<div class="px-row">'+rng(S.la,S.lb,"la","lb")+'</div><div class="px-row" style="margin:8px 0">'+sel("rate",S.rate,[["0.6","아주 느리게 0.6x"],["0.75","느리게 0.75x"],["0.85","조금 느리게 0.85x"],["1","보통 1x"]])+sel("reps",S.reps,[["1","1회"],["2","2회 반복"],["3","3회 반복"],["5","5회 반복"],["0","계속 반복"]])+
+      '<label class="px-chk"><input type="checkbox" data-ch="shadow"'+(S.shadow?" checked":"")+'> 따라 읽기 쉼</label></div><div class="px-row">'+btn("lstart","▶ 시작","","pri")+btn("lstop","■ 정지")+'</div>'+
+      '<div id="egLs" class="eg-card" style="font-size:16px;line-height:1.7">시작을 누르면 선택한 절을 영어로 읽어 줍니다.</div>'+
+      '<div class="px-dim">‘따라 읽기 쉼’을 켜면 한 절을 들려준 뒤 같은 길이만큼 쉬어서, 그 사이에 소리 내어 따라 읽을 수 있습니다. 내 목소리를 녹음해 비교하는 기능은 아직 없습니다. 읽어 주는 음성은 기기에 설치된 영어 음성을 사용합니다.</div>';
+  }
+  function say(text,rate,cb){
+    var u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=rate; var vs=speechSynthesis.getVoices();
+    var v=vs.filter(function(x){return /^en[-_]US/i.test(x.lang);})[0]||vs.filter(function(x){return /^en/i.test(x.lang);})[0]; if(v) u.voice=v;
+    var t0=Date.now(), done=false, fin=function(){ if(done) return; done=true; cb(Date.now()-t0); }; u.onend=fin; u.onerror=fin; speechSynthesis.speak(u);
+    setTimeout(function(){ if(!done&&!speechSynthesis.speaking&&!speechSynthesis.pending) fin(); },4000);
+  }
+  function lsStatus(h){ var el=$("egLs"); if(el) el.innerHTML=h; }
+  function lsStart(){
+    if(!window.speechSynthesis){ alert("이 브라우저는 음성 읽기를 지원하지 않습니다."); return; }
+    lsStop(true); var id=++LS.id; LS.run=true; try{ speechSynthesis.cancel(); }catch(e){}
+    var list=VS.filter(function(v){ return v.en&&v.n>=S.la&&v.n<=S.lb; }), reps=+S.reps, rate=+S.rate, rep=0, i=0;
+    if(!list.length){ lsStatus("읽을 영어 본문이 없습니다."); LS.run=false; return; }
+    (function step(){
+      if(id!==LS.id||!LS.run) return;
+      if(i>=list.length){ rep++; i=0; if(reps>0&&rep>=reps){ LS.run=false; lsStatus("✅ 끝났습니다."); return; } }
+      var v=list[i]; lsStatus('<div class="px-dim">'+v.n+'절 · '+(rep+1)+(reps>0?"/"+reps:"")+'회째</div>'+E(v.en));
+      say(v.en,rate,function(ms){
+        if(id!==LS.id||!LS.run) return; i++;
+        if(S.shadow){ lsStatus('<div class="px-dim">'+v.n+'절 · 이제 따라 읽어 보세요</div>'+E(v.en)); setTimeout(step,Math.max(1500,ms*1.15)); } else setTimeout(step,450);
+      });
+    })();
+  }
+  function lsStop(quiet){ LS.run=false; LS.id++; try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} if(!quiet) lsStatus("■ 정지했습니다."); }
+  /* ---------- 탭: 구조 ---------- */
+  function tMk(){
+    if(!VS.length) return '<p class="px-dim">본문이 아직 표시되지 않았습니다.</p>';
+    var ens=VS.filter(function(v){return v.en;}); if(!vget(S.mv)||!vget(S.mv).en) S.mv=ens[0]?ens[0].n:1;
+    var v=vget(S.mv), key=pk()+"."+v.n, mk=M[key]||{};
+    var pal=Object.keys(COLS).map(function(c){ return '<button class="eg-b'+(S.code===c?" on":"")+'" data-en="code" data-c="'+c+'" style="border-left:8px solid '+COLS[c][0]+'">'+COLS[c][1]+'</button>'; }).join("");
+    var words=toks(v.en).map(function(t,i){ if(!isW(t)) return E(t); var c=mk[i]; return '<span class="eg-sw" data-en="mw" data-i="'+i+'"'+(c?' style="background:'+COLS[c][0]+'88"':"")+'>'+E(t)+'</span>'; }).join("");
+    return '<div class="px-row">'+btn("mprev","‹")+'<select data-ch="mv">'+ens.map(function(x){ return '<option value="'+x.n+'"'+(x.n===S.mv?" selected":"")+'>'+x.n+'절</option>'; }).join("")+'</select>'+btn("mnext","›")+'</div>'+
+      '<div class="px-dim" style="margin:8px 0 4px">① 아래에서 표시할 종류를 고르고 ② 영어 단어를 누르세요. 같은 종류를 다시 누르면 지워집니다. (기본 어순: 주어 → 동사 → 목적어)</div><div class="px-row">'+pal+'</div>'+
+      '<div class="eg-card" style="text-align:left;font-size:19px;line-height:2.1">'+words+'</div><div class="eg-kr">'+E(v.kr||"")+'</div><div class="px-row" style="margin-top:8px">'+btn("mclr","이 절 표시 모두 지우기")+'</div>';
+  }
+  /* ---------- 탭: 용어 ---------- */
+  function tTm(){
+    var L=S.tcat==="bible"?T_BIBLE:T_THEO, q=S.tq.trim().toLowerCase();
+    return '<div class="px-row">'+btn("tcat","📖 성경 용어",' data-c="bible"',S.tcat==="bible"?"on":"")+btn("tcat","🎓 설교·신학 용어",' data-c="theo"',S.tcat==="theo"?"on":"")+'</div><input id="egTq" placeholder="🔎 영어 또는 한글 검색" value="'+E(S.tq)+'" style="width:100%;box-sizing:border-box;padding:8px;margin:10px 0 4px"><div id="egTl">'+tList()+'</div>';
+  }
+  function tList(){
+    var L=S.tcat==="bible"?T_BIBLE:T_THEO, q=S.tq.trim().toLowerCase();
+    return L.map(function(t,i){ return [t,i]; }).filter(function(p){ var t=p[0]; return !q||t[0].toLowerCase().indexOf(q)>=0||t[1].indexOf(q)>=0||t[2].indexOf(q)>=0; }).map(function(p){ var t=p[0]; var has=V[nk(t[0])];
+      return '<div class="eg-ti"><div><b>'+E(t[0])+'</b> · '+E(t[1])+'<div class="px-dim">'+E(t[2])+'</div></div><button class="eg-b" data-en="tadd" data-i="'+p[1]+'">'+(has?"✔ 저장됨":"＋ 단어장")+'</button></div>'; }).join("")||'<div class="px-dim" style="padding:12px 0">검색 결과가 없습니다.</div>';
+  }
+  /* ---------- 창 ---------- */
+  var TABS=[["cmp","📖 대조"],["voc","📒 단어장"],["qz","✏️ 빈칸·순서"],["ls","🎧 반복듣기"],["mk","🎨 구조"],["tm","📚 용어"]];
+  function draw(){
+    var o=$("engOv"); if(!o) return; if(S.tab!=="ls") lsStop(true);
+    var b={cmp:tCmp,voc:tVoc,qz:tQz,ls:tLs,mk:tMk,tm:tTm}[S.tab]();
+    o.querySelector(".eg-tabs").innerHTML=TABS.map(function(t){ return '<button class="eg-tab'+(S.tab===t[0]?" on":"")+'" data-en="tab" data-t="'+t[0]+'">'+t[1]+'</button>'; }).join("");
+    o.querySelector("#engBody").innerHTML=b; var t=o.querySelector("#engT"); if(t) t.textContent=bname(cur().b)+" "+cur().c+"장";
+  }
+  function syncRange(){ var last=VS.length?VS[VS.length-1].n:1, first=VS.length?VS[0].n:1; ["qa","la"].forEach(function(k){ if(!vget(S[k])) S[k]=first; }); ["qb","lb"].forEach(function(k){ if(!vget(S[k])||S[k]<S[k==="qb"?"qa":"la"]) S[k]=Math.min(last,S[k==="qb"?"qa":"la"]+2); }); if(!vget(S.qv)) S.qv=first; if(!vget(S.mv)) S.mv=first; }
+  async function open(){
+    css(); await load(); VS=verses(); curPK=pk(); syncRange(); S.edit=null; S.rv=null; S.ord=null;
+    var o=$("engOv"); if(o) o.remove(); o=document.createElement("div"); o.id="engOv"; o.className="px-ov";
+    o.innerHTML='<div class="px-card"><div class="px-h"><b>🔤 영어 성경 공부 · <span id="engT"></span></b><button class="px-b" data-en="close">닫기</button></div><div class="eg-tabs"></div><div id="engBody"></div></div>';
+    document.body.appendChild(o); draw();
+    clearInterval(poll); poll=setInterval(function(){ if(!$("engOv")){ clearInterval(poll); lsStop(true); return; } if(pk()!==curPK&&verses().length){ curPK=pk(); VS=verses(); S.edit=null; S.ord=null; S.sel=0; syncRange(); if(S.tab!=="ls") draw(); } },1200);
+  }
+  function close(){ var o=$("engOv"); if(o) o.remove(); lsStop(true); clearInterval(poll); document.body.style.paddingBottom=document.querySelector(".px-float")||$("olOv")?document.body.style.paddingBottom:""; }
+  function copyText(t,b,lab){ var ok=function(){ if(b){ b.textContent="✅ 복사됨"; setTimeout(function(){ b.textContent=lab; },2000); } }; if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok,function(){ prompt("아래 내용을 복사하세요",t); }); else prompt("아래 내용을 복사하세요",t); }
+  function addWord(w,mean,refS,en,kr){ var k=nk(w); if(!k) return false; var ex=V[k]; V[k]={w:ex?ex.w:w,mean:mean!=null?mean:(ex?ex.mean:""),ref:refS||(ex&&ex.ref)||"",en:en||(ex&&ex.en)||"",kr:kr!=null?kr:(ex&&ex.kr)||"",ts:ex?ex.ts:Date.now(),box:ex?ex.box:0,due:ex?ex.due:0}; svV(); return true; }
+
+  document.addEventListener("click",function(e){
+    var x=e.target.closest&&e.target.closest("#engOv [data-en]"); if(!x) return; var a=x.dataset.en, r;
+    if(a==="close") close();
+    else if(a==="tab"){ S.tab=x.dataset.t; S.edit=null; draw(); }
+    else if(a==="sel"){ var n=+x.dataset.n; S.sel=S.sel===n?0:n; draw(); }
+    else if(a==="w"){ e.stopPropagation(); S.edit={w:x.dataset.w,n:+x.dataset.n}; draw(); setTimeout(function(){ var i=$("egMean"); if(i) i.focus(); },50); }
+    else if(a==="say") speakWord(x.dataset.w);
+    else if(a==="wsave"){ var v=vget(S.edit.n)||{}; addWord(S.edit.w,($("egMean").value||"").trim(),ref(S.edit.n),v.en,$("egKr").checked?v.kr:""); S.edit=null; draw(); }
+    else if(a==="wcancel"){ S.edit=null; draw(); }
+    else if(a==="wdel"||a==="vdel"){ delete V[x.dataset.k]; svV(); S.edit=null; if(a==="vdel"){ var l=$("egVl"); if(l) l.innerHTML=vList(); else draw(); } else draw(); }
+    else if(a==="vadd"){ var w=($("egNw").value||"").trim(), m=($("egNm").value||"").trim(); if(!w){ alert("영어 단어를 입력해 주세요."); return; } addWord(w,m,"직접 입력"); draw(); }
+    else if(a==="vcopy"){ copyText(Object.keys(V).map(function(k){ return (V[k].w||k)+"\t"+(V[k].mean||""); }).join("\n"),x,"📋 목록 복사"); }
+    else if(a==="rvstart"){ var q=dueList(); if(!q.length){ q=Object.keys(V); } if(!q.length){ alert("저장된 단어가 없습니다."); return; } S.rv={q:q.sort(function(){return Math.random()-.5;}),i:0,show:false,ok:0,ng:0}; draw(); }
+    else if(a==="rvshow"){ S.rv.show=true; draw(); }
+    else if(a==="rvok"||a==="rvng"){ r=S.rv; var o=V[r.q[r.i]]; if(o){ if(a==="rvok"){ o.box=Math.min(4,(o.box||0)+1); o.due=Date.now()+INT[o.box]*DAY; r.ok++; } else { o.box=0; o.due=Date.now(); r.ng++; } svV(); } r.i++; r.show=false; draw(); }
+    else if(a==="rvend"){ S.rv=null; draw(); }
+    else if(a==="qm1"){ S.qm=x.dataset.m; draw(); }
+    else if(a==="qchk"){ var ok=0,all=0; document.querySelectorAll("#engOv .eg-q input.bl").forEach(function(i){ all++; var g=normA(i.value)===i.dataset.a; if(g) ok++; i.classList.toggle("ok",g); i.classList.toggle("ng",!g&&!!i.value.trim()); }); $("egQs").textContent=ok+" / "+all+" 정답"+(ok===all&&all?" 🎉":""); }
+    else if(a==="qshow"){ document.querySelectorAll("#engOv .eg-q input.bl").forEach(function(i){ i.value=i.dataset.a; i.classList.add("ok"); i.classList.remove("ng"); }); }
+    else if(a==="qre"){ document.querySelectorAll("#engOv .eg-q input.bl").forEach(function(i){ i.value=""; i.classList.remove("ok","ng"); }); $("egQs").textContent=""; }
+    else if(a==="cp"){ S.ord.ans.push(+x.dataset.i); S.ord.pool=S.ord.pool.filter(function(i){return i!==+x.dataset.i;}); draw(); }
+    else if(a==="ca"){ var p=+x.dataset.p, i=S.ord.ans[p]; S.ord.ans.splice(p,1); S.ord.pool.push(i); draw(); }
+    else if(a==="ore"){ S.ord=null; draw(); }
+    else if(a==="ochk"){ var o2=S.ord, good=o2.ans.map(function(i){return o2.ch[i];}).join(" ")===o2.ch.join(" "); $("egQs").textContent=o2.pool.length?"조각을 모두 놓아 주세요.":(good?"🎉 정답입니다!":"순서가 달라요. 다시 해 보세요."); }
+    else if(a==="oshow"){ S.ord.ans=S.ord.ch.map(function(_,i){return i;}); S.ord.pool=[]; draw(); }
+    else if(a==="lstart") lsStart(); else if(a==="lstop") lsStop();
+    else if(a==="code"){ S.code=x.dataset.c; draw(); }
+    else if(a==="mw"){ var key=pk()+"."+S.mv, mk=M[key]=M[key]||{}, i2=x.dataset.i; if(mk[i2]===S.code) delete mk[i2]; else mk[i2]=S.code; if(!Object.keys(mk).length) delete M[key]; svM(); draw(); }
+    else if(a==="mclr"){ delete M[pk()+"."+S.mv]; svM(); draw(); }
+    else if(a==="mprev"||a==="mnext"){ var ens=VS.filter(function(v){return v.en;}), ix=ens.findIndex(function(v){return v.n===S.mv;}); ix+=a==="mnext"?1:-1; if(ens[ix]){ S.mv=ens[ix].n; draw(); } }
+    else if(a==="tcat"){ S.tcat=x.dataset.c; draw(); }
+    else if(a==="tadd"){ var t=(S.tcat==="bible"?T_BIBLE:T_THEO)[+x.dataset.i]; addWord(t[0],t[1]+" — "+t[2],"용어 사전"); x.textContent="✔ 저장됨"; }
+  });
+  document.addEventListener("change",function(e){
+    var x=e.target.closest&&e.target.closest("#engOv [data-ch]"); if(x){ var k=x.dataset.ch, v=x.type==="checkbox"?x.checked:x.value;
+      if(k==="hEn") S.hideEn=v; else if(k==="hKr") S.hideKr=v; else if(k==="shadow") S.shadow=v;
+      else if(["qa","qb","la","lb","qv","mv"].indexOf(k)>=0) S[k]=+v; else S[k]=v;
+      if(k==="qa"&&S.qb<S.qa) S.qb=S.qa; if(k==="la"&&S.lb<S.la) S.lb=S.la; if(k==="qb"&&S.qb<S.qa) S.qa=S.qb; if(k==="lb"&&S.lb<S.la) S.la=S.lb;
+      if(k==="qv") S.ord=null; draw(); return; }
+    var m=e.target.closest&&e.target.closest("#engOv [data-en=mi]"); if(m){ var k2=m.dataset.k; if(V[k2]){ V[k2].mean=m.value; svV(); } }
+  });
+  document.addEventListener("input",function(e){
+    if(e.target.id==="egVq"){ S.vq=e.target.value; var l=$("egVl"); if(l) l.innerHTML=vList(); }
+    else if(e.target.id==="egTq"){ S.tq=e.target.value; var l2=$("egTl"); if(l2) l2.innerHTML=tList(); }
+  });
+  /* ---------- 진입 버튼 ---------- */
+  function ensure(){
+    if($("engBtn")) return; var a=$("uxTop")||($("cardBtn")&&$("cardBtn").parentNode); if(!a) return;
+    var b=document.createElement("button"); b.id="engBtn"; b.type="button"; b.setAttribute("data-ux","1"); b.className="ux-tile";
+    b.innerHTML='<span class="ux-ic">🔤</span><span class="ux-tx"><b>영어 성경 공부</b><small>단어장 · 빈칸 · 반복 듣기 · 용어 사전</small></span><span class="ux-ch">›</span>';
+    b.addEventListener("click",open); if($("uxTop")) a.appendChild(b); else a.insertBefore(b,$("cardBtn").nextSibling);
+  }
+  var o1=window.renderPassage; if(typeof o1==="function") window.renderPassage=function(){ var r=o1.apply(this,arguments); setTimeout(ensure,500); return r; };
+  [800,1800,3500,6000,10000].forEach(function(ms){ setTimeout(ensure,ms); });
+  window.__engOpen=open;
+})();
+/*ENG-END*/
 /*CHURCH-START*/
 /* ===== ⛪ 교회·성도 관리: 성도 명단 · 기관/셀 편성 · 출석 · 돌봄(심방·기도·생일) — 모든 자료는 이 기기에만 저장 ===== */
 (function(){
