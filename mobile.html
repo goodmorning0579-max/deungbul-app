@@ -5976,10 +5976,15 @@ function setupInstallGuide(){
   // beforeinstallprompt가 지원되지 않는 브라우저(iOS Safari 등)를 위한 안내
   setTimeout(()=>{
     if(!deferredInstallPrompt && guideCard && guideText){
-      if(isIOS){
+      var ua = navigator.userAgent, inApp = /KAKAOTALK|NAVER\(inapp|; wv\)|FBAN|FBAV|Instagram|Line\//i.test(ua);
+      if(inApp){
+        guideText.innerHTML = "⚠️ <b>지금은 카카오톡 등 앱 안의 브라우저로 열려 있어 설치 버튼이 나오지 않습니다.</b><br>" + (isIOS
+          ? "화면 아래(또는 위)의 메뉴에서 <b>'Safari로 열기'</b>를 누른 뒤 다시 설정 화면을 열어주세요."
+          : "오른쪽 아래 <b>⋮ → '다른 브라우저로 열기'</b>를 누르거나, 아래 버튼으로 크롬을 열어주세요.<br><a href='intent://" + location.host + location.pathname + "#Intent;scheme=https;package=com.android.chrome;end' style='display:inline-block;margin-top:10px;padding:10px 16px;border-radius:10px;background:#c9972b;color:#fff;font-weight:700;text-decoration:none;'>🌐 크롬으로 열기</a>");
+      } else if(isIOS){
         guideText.textContent = "Safari 하단(또는 상단)의 공유 버튼(⬆️)을 탭한 후 '홈 화면에 추가'를 선택하세요.";
       } else {
-        guideText.textContent = "브라우저 주소창 오른쪽의 설치 아이콘을 클릭하거나, 메뉴에서 '앱 설치' / '홈 화면에 추가'를 선택하세요.";
+        guideText.innerHTML = "크롬 오른쪽 위 <b>⋮ 메뉴 → '앱 설치'</b>(또는 '홈 화면에 추가')를 선택하세요.<br><span style='font-size:.9em;opacity:.8'>이미 설치한 적이 있으면 설치 버튼이 나오지 않을 수 있습니다. 홈 화면의 등불 아이콘을 확인해 보세요.</span>";
       }
       guideCard.style.display = "block";
     }
@@ -6481,7 +6486,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v74";
+  var V="2026-11-18 · v75";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
