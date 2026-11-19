@@ -6900,7 +6900,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v81";
+  var V="2026-11-18 · v87";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -7503,6 +7503,41 @@ window.loadApiKey().then(async function(){
     night:{n:"밤하늘",bg:["#1d2b53","#0a1024"],fg:"#eef1ff",ac:"#ffd27a",glow:"rgba(255,220,120,.28)"},
     forest:{n:"숲",bg:["#27493a","#0f2219"],fg:"#f0f6ea",ac:"#e8c872",glow:"rgba(240,210,120,.25)"}
   };
+  var GF="https://fonts.googleapis.com/css2?family=";
+  var FONTS={
+    myeong:{n:"명조 (기본)",stack:"'Noto Serif KR','Nanum Myeongjo','Batang','AppleMyungjo','Malgun Gothic',serif",s:1},
+    gothic:{n:"고딕 (깔끔)",stack:"'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic','Roboto',sans-serif",s:1},
+    nmj:{n:"나눔명조 · 내려받기",fam:"Nanum Myeongjo",url:GF+"Nanum+Myeongjo:wght@400;700&display=swap",stack:"'Nanum Myeongjo','Noto Serif KR',serif",s:1},
+    gowun:{n:"고운바탕 · 내려받기",fam:"Gowun Batang",url:GF+"Gowun+Batang:wght@400;700&display=swap",stack:"'Gowun Batang','Noto Serif KR',serif",s:1.04},
+    pen:{n:"나눔손글씨 펜 · 내려받기",fam:"Nanum Pen Script",url:GF+"Nanum+Pen+Script&display=swap",stack:"'Nanum Pen Script','Noto Serif KR',cursive",w:400,s:1.22},
+    brush:{n:"나눔 붓글씨 · 내려받기",fam:"Nanum Brush Script",url:GF+"Nanum+Brush+Script&display=swap",stack:"'Nanum Brush Script','Noto Serif KR',cursive",w:400,s:1.2},
+    black:{n:"블랙한산스 (굵은 제목체) · 내려받기",fam:"Black Han Sans",url:GF+"Black+Han+Sans&display=swap",stack:"'Black Han Sans','Noto Sans KR',sans-serif",w:400,s:.92}
+  };
+  var BT=0;
+  function loadFont(o,txt,cb,msg){
+    var f=FONTS[o.fontKey]; if(!f||!f.url||f.ok){ if(msg) msg.textContent=""; return cb(); }
+    if(msg) msg.textContent="글꼴을 불러오는 중… (처음 한 번, 인터넷 필요)";
+    var done=false; function fin(ok){ if(done) return; done=true; if(ok) f.ok=true; if(msg) msg.textContent=ok?"":"글꼴을 불러오지 못해 기본 글꼴로 표시합니다. 인터넷 연결을 확인해 주세요."; cb(); }
+    var tm=setTimeout(function(){ fin(false); },12000);
+    function go(){
+      try{
+        Promise.all([document.fonts.load((f.w||700)+" 40px \""+f.fam+"\"",txt),document.fonts.load((f.w||400)+" 40px \""+f.fam+"\"",txt)]).then(function(r){ clearTimeout(tm); fin(!!((r[0]&&r[0].length)||(r[1]&&r[1].length))); },function(){ clearTimeout(tm); fin(false); });
+      }catch(e){ clearTimeout(tm); fin(false); }
+    }
+    var lk=document.getElementById("cdFontLink_"+o.fontKey);
+    if(lk&&lk.getAttribute("data-ok")==="1") return go();
+    if(lk) lk.remove();
+    lk=document.createElement("link"); lk.id="cdFontLink_"+o.fontKey; lk.rel="stylesheet"; lk.href=f.url;
+    lk.onload=function(){ lk.setAttribute("data-ok","1"); go(); };
+    lk.onerror=function(){ clearTimeout(tm); fin(false); lk.remove(); };
+    document.head.appendChild(lk);
+  }
+  var SIZES={
+    p45:{n:"세로 4:5 (인스타 피드 · 기본)",W:1080,H:1350,top:330,bres:370,s:""},
+    sq:{n:"정사각 1:1 (카톡·인스타)",W:1080,H:1080,top:270,bres:350,s:"정사각"},
+    st:{n:"세로 9:16 (스토리·상태 메시지)",W:1080,H:1920,top:430,bres:400,s:"스토리"},
+    wide:{n:"가로 16:9 (PPT·영상·교회 화면)",W:1920,H:1080,top:270,bres:350,bw:1300,s:"가로"}
+  };
   var last=null;
   function $(id){return document.getElementById(id);}
   function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -7523,26 +7558,68 @@ window.loadApiKey().then(async function(){
   var QR="111111101010010011010101001111111,100000101111010010100011101000001,101110100111000101011000101011101,101110101010101110000011001011101,101110100100011001001100101011101,100000100010110001110100001000001,111111101010101010101010101111111,000000001010100001101010000000000,101101110101001011011100001001011,101100001001001010010011001101101,001001100111001001001011011111011,011011010111011100110010110101000,001001110011000000100000110111010,110011010011000010101000100101010,001000110011100110011110101100100,011100000101010010011101011010100,010101111100110100010111011011100,000010001001110111000111111011001,111000111001110101001110010110110,110110001000111000010010111010001,110111100000001100110101000001111,101110011000000101110001011101001,001011100001100011101111011111111,010010010000111010110011101101001,100110111001010111000011111110000,000000001101010111010001100011000,111111101110001000010011101010000,100000101001000100011111100011100,101110100111101001010111111110111,101110101011110001101101100100101,101110101111010000000101001101100,100000100101001111101011111110001,111111101110100111110101000010100".split(",");
   var APPURL="https://goodmorning0579-max.github.io/deungbul-app/";
   var ICON=new Image(); ICON.src="data:image/jpeg;base64,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"; ICON.onload=function(){ try{ var c=document.getElementById("cdCv"); if(c&&last) {} }catch(e){} };
+  /* 저장해 둔 배경 사진(이 기기 안 IndexedDB)과 자주 쓰는 문구(localStorage) */
+  var PRESETS=["오늘의 말씀","주일 예배","새벽기도","오늘의 묵상"];
+  function idb(cb){ try{ var r=indexedDB.open("dbCardBg",1); r.onupgradeneeded=function(){ r.result.createObjectStore("bg",{keyPath:"id"}); }; r.onsuccess=function(){ cb(r.result); }; r.onerror=function(){ cb(null); }; }catch(e){ cb(null); } }
+  function bgAll(cb){ idb(function(db){ if(!db) return cb([]); try{ var q=db.transaction("bg","readonly").objectStore("bg").getAll(); q.onsuccess=function(){ cb((q.result||[]).sort(function(a,b){ return b.id-a.id; })); }; q.onerror=function(){ cb([]); }; }catch(e){ cb([]); } }); }
+  function bgPut(rec,cb){ idb(function(db){ if(!db) return cb(false); try{ var t=db.transaction("bg","readwrite"); t.objectStore("bg").put(rec); t.oncomplete=function(){ cb(true); }; t.onerror=function(){ cb(false); }; }catch(e){ cb(false); } }); }
+  function bgDel(id,cb){ idb(function(db){ if(!db) return cb(); try{ var t=db.transaction("bg","readwrite"); t.objectStore("bg").delete(id); t.oncomplete=cb; t.onerror=cb; }catch(e){ cb(); } }); }
+  function phGet(){ try{ var a=JSON.parse(localStorage.getItem("dbCardPhrases")||"[]"); return Array.isArray(a)?a.filter(function(x){ return typeof x==="string"; }).slice(0,12):[]; }catch(e){ return []; } }
+  function phSet(a){ try{ localStorage.setItem("dbCardPhrases",JSON.stringify(a.slice(0,12))); }catch(e){} }
+  /* 사진 효과: 모두 캔버스 안에서 처리(서버 전송 없음) */
+  function mk(w,h){ var c=document.createElement("canvas"); c.width=Math.max(2,Math.round(w)); c.height=Math.max(2,Math.round(h)); return c; }
+  function coverTo(im){ var c=mk(W,H), x=c.getContext("2d"), iw=im.naturalWidth||im.width, ih=im.naturalHeight||im.height, sc=Math.max(W/iw,H/ih); x.fillStyle="#111"; x.fillRect(0,0,W,H); x.imageSmoothingQuality="high"; x.drawImage(im,(W-iw*sc)/2,(H-ih*sc)/2,iw*sc,ih*sc); return c; }
+  function blurOf(src,k){ var a=mk(W/k,H/k), ax=a.getContext("2d"); ax.imageSmoothingQuality="high"; ax.drawImage(src,0,0,a.width,a.height); var b=mk(W/(k*2.2),H/(k*2.2)), bx=b.getContext("2d"); bx.imageSmoothingQuality="high"; bx.drawImage(a,0,0,b.width,b.height); ax.clearRect(0,0,a.width,a.height); ax.drawImage(b,0,0,a.width,a.height); var o=mk(W,H), ox=o.getContext("2d"); ox.imageSmoothingQuality="high"; ox.drawImage(a,0,0,W,H); return o; }
+  function pix(c,fn){ var x=c.getContext("2d"), d=x.getImageData(0,0,c.width,c.height), p=d.data, seed=12345; for(var i=0;i<p.length;i+=4){ seed=(seed*1103515245+12345)&0x7fffffff; var out=fn(p[i],p[i+1],p[i+2],((seed>>8)&255)/255-.5); p[i]=out[0]; p[i+1]=out[1]; p[i+2]=out[2]; } x.putImageData(d,0,0); }
+  function cl(v){ return v<0?0:v>255?255:v; }
+  function vig(ctx,a){ var g=ctx.createRadialGradient(W/2,H*.46,H*.28,W/2,H/2,H*.78); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,"+a+")"); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
+  function photoFx(ctx,im,fx){
+    var base=coverTo(im);
+    if(fx==="blur"){ base=blurOf(base,10); }
+    else if(fx==="gray"){ pix(base,function(r,g,b){ var y=.299*r+.587*g+.114*b; y=cl((y-128)*1.1+128); return [y,y,y]; }); }
+    else if(fx==="vintage"){ pix(base,function(r,g,b,n){ var R=.393*r+.769*g+.189*b, G=.349*r+.686*g+.168*b, B=.272*r+.534*g+.131*b; var k=n*14; return [cl(R+k),cl(G+k),cl(B*.92+k)]; }); }
+    else if(fx==="lux"){ pix(base,function(r,g,b,n){ var k=n*16; return [cl((r-128)*1.12+128+8+k),cl((g-128)*1.1+128+2+k),cl((b-128)*1.08+128-8+k)]; }); }
+    ctx.drawImage(base,0,0);
+    if(fx==="lux"){ ctx.save(); ctx.globalCompositeOperation="screen"; var gl=ctx.createRadialGradient(W*.78,H*.12,10,W*.78,H*.12,H*.55); gl.addColorStop(0,"rgba(255,205,120,.38)"); gl.addColorStop(1,"rgba(255,205,120,0)"); ctx.fillStyle=gl; ctx.fillRect(0,0,W,H); ctx.restore(); }
+    return base;
+  }
   function draw(cv,o){
-    var th=THEMES[o.theme]||THEMES.lamp, ctx=cv.getContext("2d"); cv.width=W; cv.height=H;
-    var g=ctx.createRadialGradient(W*.6,H*.35,60,W*.5,H*.5,H*.85); g.addColorStop(0,th.bg[0]); g.addColorStop(1,th.bg[1]); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    var SZ=SIZES[o.size]||SIZES.p45; W=SZ.W; H=SZ.H;
+    var th=THEMES[o.theme]||THEMES.lamp, ctx=cv.getContext("2d"), photoBase=null;
+    if(o.bgImg){ th={fg:"#fff8e6",ac:"#f2c660",glow:"rgba(255,200,90,.3)",bg:["#000","#000"]}; }
+    else if(o.bgCol){ var cr=parseInt(o.bgCol.slice(1,3),16),cg=parseInt(o.bgCol.slice(3,5),16),cb=parseInt(o.bgCol.slice(5,7),16); var lu=(0.299*cr+0.587*cg+0.114*cb)/255;
+      function sh(k){ return "rgb("+Math.round(cr*k)+","+Math.round(cg*k)+","+Math.round(cb*k)+")"; }
+      th=lu<0.58?{fg:"#f6f1e4",ac:"#ffd27a",glow:"rgba(255,220,120,.25)",bg:[sh(1.12>1?1.12:1),sh(.55)]}:{fg:"#2b2210",ac:"#8a5a0a",glow:"rgba(220,160,40,.22)",bg:[sh(1),sh(.82)]}; } cv.width=W; cv.height=H;
+    if(o.bgImg){
+      var im=o.bgImg, iw=im.naturalWidth||im.width, ih=im.naturalHeight||im.height, sc=Math.max(W/iw,H/ih), dw=iw*sc, dh=ih*sc;
+      var fxb=photoFx(ctx,im,o.fx||"none"); photoBase=fxb;
+      var dm=Math.max(0,Math.min(.85,o.dim==null?.5:o.dim)); ctx.fillStyle="rgba(0,0,0,"+dm+")"; ctx.fillRect(0,0,W,H);
+      if(o.fx==="lux"||o.fx==="gray"||o.fx==="vintage") vig(ctx,.55);
+      ctx.shadowColor="rgba(0,0,0,.6)"; ctx.shadowBlur=10;
+    } else { var g=ctx.createRadialGradient(W*.6,H*.35,60,W*.5,H*.5,H*.85); g.addColorStop(0,th.bg[0]); g.addColorStop(1,th.bg[1]); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
     ctx.strokeStyle=th.ac; ctx.globalAlpha=.55; ctx.lineWidth=3; ctx.strokeRect(46,46,W-92,H-92); ctx.globalAlpha=.25; ctx.strokeRect(62,62,W-124,H-124); ctx.globalAlpha=1;
-    var boxX=110, boxW=W-220, top=330, bot=H-370, boxH=bot-top;
-    var font="'Noto Serif KR','Nanum Myeongjo','Batang','Malgun Gothic',serif";
+    if(o.bgImg&&o.fx==="glass"){
+      var bl=blurOf(photoBase||coverTo(o.bgImg),14), px=boxX-40, py=SZ.top-30, pw=boxW+80, ph=H-236-py;
+      ctx.save(); ctx.shadowBlur=0; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(px,py,pw,ph,36); else ctx.rect(px,py,pw,ph); ctx.clip();
+      ctx.drawImage(bl,0,0); ctx.fillStyle="rgba(10,8,5,.42)"; ctx.fillRect(px,py,pw,ph); ctx.restore();
+      ctx.save(); ctx.shadowBlur=0; ctx.strokeStyle="rgba(242,198,96,.7)"; ctx.lineWidth=2; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(px,py,pw,ph,36); else ctx.rect(px,py,pw,ph); ctx.stroke(); ctx.restore();
+    }
+    var hasPh=!!o.phrase, phTop=hasPh&&o.phPos!=="bottom", phBot=hasPh&&o.phPos==="bottom"; var boxW=SZ.bw||(W-220), boxX=(W-boxW)/2, top=SZ.top+(phTop?86:0), bot=H-SZ.bres-(phBot?70:0), boxH=bot-top;
+    var fo=FONTS[o.fontKey]||FONTS.myeong, font=fo.stack; function FW(w){ return fo.w||w; }
     var paras=[]; o.verses.forEach(function(v){
       if(o.lang!=="en"&&v.kr) paras.push({n:v.n,t:v.kr,en:false});
       if(o.lang!=="kr"&&v.en) paras.push({n:o.lang==="en"?v.n:"",t:v.en,en:true});
     });
-    var size=64, lines, lh;
+    var size=Math.round(64*fo.s), lines, lh;
     for(;size>=26;size-=2){
-      ctx.font="600 "+size+"px "+font; lh=size*1.62; lines=[];
-      paras.forEach(function(p,pi){ var f=p.en&&o.lang==="both"; ctx.font=(f?"500 "+Math.round(size*.78)+"px ":"600 "+size+"px ")+font; var pre=p.n!==""?p.n+" ":""; var ls=wrap(ctx,pre+p.t,boxW,p.en); ls.forEach(function(l,i){ lines.push({t:l,p:p,first:i===0,pre:pre,sm:f}); }); lines.push({gap:true,sm:f}); });
+      ctx.font=FW(600)+" "+size+"px "+font; lh=size*1.62; lines=[];
+      paras.forEach(function(p,pi){ var f=p.en&&o.lang==="both"; ctx.font=(f?FW(500)+" "+Math.round(size*.78)+"px ":FW(600)+" "+size+"px ")+font; var pre=p.n!==""?p.n+" ":""; var ls=wrap(ctx,pre+p.t,boxW,p.en); ls.forEach(function(l,i){ lines.push({t:l,p:p,first:i===0,pre:pre,sm:f}); }); lines.push({gap:true,sm:f}); });
       var tot=lines.reduce(function(a,l){ return a+(l.gap?lh*.35:(l.sm?lh*.8:lh)); },0);
       if(tot<=boxH) break;
     }
     var y=top+Math.max(0,(boxH-lines.reduce(function(a,l){ return a+(l.gap?lh*.35:(l.sm?lh*.8:lh)); },0))/2);
     /* 등불 아이콘: 위 테두리와 첫 구절 사이 정중앙, 크게 */
-    var ty=y, S0=Math.max(110,Math.min(150,ty-62-70)), ix=W/2-S0/2, iy=62+(ty-62-S0)/2;
+    var yStart=y, ty=y-(phTop?86:0), S0=Math.max(110,Math.min(150,ty-62-70)), ix=W/2-S0/2, iy=62+(ty-62-S0)/2;
     var gl=ctx.createRadialGradient(W/2,iy+S0/2,10,W/2,iy+S0/2,S0*1.5); gl.addColorStop(0,th.glow); gl.addColorStop(1,"rgba(0,0,0,0)"); ctx.fillStyle=gl; ctx.fillRect(0,62,W,ty-62);
     var rr=Math.round(S0*.23);
     ctx.save(); ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(ix,iy,S0,S0,rr); else ctx.rect(ix,iy,S0,S0); ctx.clip();
@@ -7552,14 +7629,22 @@ window.loadApiKey().then(async function(){
     ctx.textBaseline="top"; ctx.textAlign="left";
     lines.forEach(function(l){
       if(l.gap){ y+=lh*.35; return; }
-      ctx.font=(l.sm?"500 "+Math.round(size*.78)+"px ":"600 "+size+"px ")+font;
+      ctx.font=(l.sm?FW(500)+" "+Math.round(size*.78)+"px ":FW(600)+" "+size+"px ")+font;
       var h=l.sm?lh*.8:lh, x=boxX;
       if(l.first&&l.pre){ ctx.fillStyle=th.ac; ctx.fillText(l.pre.trim(),x,y); x+=ctx.measureText(l.pre).width; ctx.fillStyle=l.sm?th.fg:th.fg; ctx.globalAlpha=l.sm?.82:1; ctx.fillText(l.t.slice(l.pre.length),x,y); ctx.globalAlpha=1; }
       else { ctx.fillStyle=th.fg; ctx.globalAlpha=l.sm?.82:1; ctx.fillText(l.t,x,y); ctx.globalAlpha=1; }
       y+=h;
     });
-    ctx.textAlign="center"; ctx.textBaseline="top"; ctx.fillStyle=th.ac; ctx.font="700 44px "+font; ctx.fillText(o.ref,W/2,H-330);
-    ctx.fillStyle=th.fg; ctx.globalAlpha=.55; ctx.font="500 28px "+font; ctx.fillText("등불 · 말씀과 함께 걷는 길",W/2,H-276); ctx.globalAlpha=1;
+    ctx.textAlign="center"; ctx.textBaseline="top";
+    if(hasPh){
+      var pf=36, ptxt=o.phrase; ctx.fillStyle=th.ac; do{ ctx.font=FW(700)+" "+pf+"px "+font; pf-=2; }while(ctx.measureText(ptxt).width>boxW-120&&pf>=22);
+      var py2=phTop?(top-80):(bot+22), pw2=ctx.measureText(ptxt).width;
+      ctx.fillText(ptxt,W/2,py2);
+      ctx.globalAlpha=.45; ctx.fillRect(W/2-pw2/2-80,py2+pf/2+14,60,2); ctx.fillRect(W/2+pw2/2+20,py2+pf/2+14,60,2); ctx.globalAlpha=1;
+    }
+    ctx.fillStyle=th.ac; ctx.font=FW(700)+" 44px "+font; ctx.fillText(o.ref,W/2,H-330);
+    ctx.fillStyle=th.fg; ctx.globalAlpha=.55; ctx.font=FW(500)+" 28px "+font; ctx.fillText("등불 · 말씀과 함께 걷는 길",W/2,H-276); ctx.globalAlpha=1;
+    ctx.shadowBlur=0; ctx.shadowColor="transparent";
     /* QR 코드 (앱 주소) */
     var N=QR.length, ms=3, qs=N*ms, pad=8, qb=qs+pad*2, qx=110, qy=H-84-qb;
     ctx.fillStyle="#fffaf0"; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(qx,qy,qb,qb,8); else ctx.rect(qx,qy,qb,qb); ctx.fill();
@@ -7573,6 +7658,7 @@ window.loadApiKey().then(async function(){
     "#cardOv{position:fixed;inset:0;z-index:2147482100;background:rgba(0,0,0,.6);overflow-y:auto;display:flex;justify-content:center;padding:12px}"+
     "#cardOv .cd{width:100%;max-width:520px;margin:auto 0;background:#1b2130;color:#ece7d8;border-radius:14px;padding:14px}body.light-mode #cardOv .cd{background:#fffaf0;color:#2b2210}"+
     "#cardOv h3{margin:0 0 10px;font-size:16px}#cardOv .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;font-size:13px}"+
+    "#cardOv .bt.sm{padding:5px 10px;font-size:12px;border-radius:14px}#cardOv input[type=text],#cardOv input:not([type]){padding:8px;border-radius:8px;border:1px solid rgba(201,151,42,.4);background:rgba(0,0,0,.15);color:inherit;font-size:14px;font-family:inherit}body.light-mode #cardOv input[type=text],body.light-mode #cardOv input:not([type]){background:rgba(255,255,255,.7)}"+
     "#cardOv select{padding:8px;border-radius:8px;border:1px solid rgba(201,151,42,.4);background:rgba(0,0,0,.15);color:inherit;font-size:14px;font-family:inherit}"+
     "#cardOv canvas{width:100%;border-radius:10px;display:block;margin:8px 0}"+
     "#cardOv .th{width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer}#cardOv .th.on{border-color:#e6b34a}"+
@@ -7585,8 +7671,33 @@ window.loadApiKey().then(async function(){
     var vs=ov._vs, a=+$("cdA").value, b=+$("cdB").value; if(b<a){ b=a; $("cdB").value=a; }
     var sel=vs.filter(function(v){ return v.n>=a&&v.n<=b; });
     var bc=bookCh(), ref=bc.b+" "+bc.c+":"+(a===b?a:a+"–"+b);
-    last={verses:sel,lang:$("cdL").value,theme:ov._th||"lamp",ref:ref};
-    draw($("cdCv"),last); cacheBlob();
+    last={verses:sel,lang:$("cdL").value,theme:ov._th||"lamp",ref:ref,bgImg:(ov._mode==="photo"?ov._img:null),bgCol:(ov._mode==="color"?ov._col:null),dim:(+($("cdDim")?$("cdDim").value:50))/100,fx:($("cdFx")?$("cdFx").value:"none"),size:($("cdSize")?$("cdSize").value:"p45"),phrase:($("cdPh")?$("cdPh").value.trim().slice(0,40):""),phPos:($("cdPhPos")?$("cdPhPos").value:"top")};
+    last.fontKey=($("cdFont")?$("cdFont").value:"myeong"); try{ localStorage.setItem("dbCardFont",last.fontKey); }catch(e){}
+    var tk=++BT, txt=sel.map(function(v){ return (v.kr||"")+(v.en||""); }).join("")+ref+(last.phrase||"")+"등불말씀과함께걷는길0123456789";
+    loadFont(last,txt,function(){ if(tk!==BT) return; draw($("cdCv"),last); cacheBlob(); },$("cdFontMsg"));
+  }
+  function renderPh(){
+    var box=$("cdPhChips"); if(!box) return; var sv=phGet(), h="";
+    PRESETS.forEach(function(t){ h+='<button class="bt sm" data-cd="phchip" data-t="'+E(t)+'">'+E(t)+'</button>'; });
+    sv.forEach(function(t,i){ h+='<span class="bt sm" style="display:inline-flex;gap:6px;align-items:center"><span data-cd="phchip" data-t="'+E(t)+'">'+E(t)+'</span><span data-cd="delph" data-i="'+i+'" title="삭제" style="opacity:.7">✕</span></span>'; });
+    h+='<button class="bt sm" data-cd="saveph">💾 문구 저장</button>'; box.innerHTML=h;
+  }
+  function renderSaved(){
+    var box=$("cdSaved"); if(!box) return;
+    bgAll(function(list){ box=$("cdSaved"); if(!box) return; if(!list.length){ box.style.display="none"; box.innerHTML=""; return; }
+      box.style.display="flex"; box.innerHTML='<span style="flex-basis:100%;font-size:12px;opacity:.8">저장한 배경 사진 (누르면 적용)</span>'+list.map(function(r){ return '<span style="position:relative;display:inline-block"><img data-cd="usebg" data-id="'+r.id+'" src="'+r.thumb+'" alt="저장한 배경" style="width:48px;height:60px;object-fit:cover;border-radius:7px;border:1px solid rgba(201,151,42,.5);cursor:pointer"><span data-cd="delbg" data-id="'+r.id+'" title="삭제" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#7a1d1d;color:#fff;font-size:11px;line-height:18px;text-align:center;cursor:pointer">✕</span></span>'; }).join(""); });
+  }
+  function useImg(src){ var o=$("cardOv"); if(!o) return; var im=new Image(); im.onload=function(){ o._img=im; o._mode="photo"; o.querySelectorAll(".th").forEach(function(t){ t.classList.remove("on"); }); $("cdDimRow").style.display=""; build(); }; im.onerror=function(){ alert("저장된 사진을 열 수 없습니다."); }; im.src=src; }
+  function saveBg(btn){
+    var o=$("cardOv"); if(!o||!o._img){ alert("먼저 [📷 내 사진 배경]으로 사진을 골라 주세요."); return; }
+    var c=mk(864,1080), x=c.getContext("2d"), im=o._img, iw=im.naturalWidth||im.width, ih=im.naturalHeight||im.height, sc=Math.max(864/iw,1080/ih);
+    x.imageSmoothingQuality="high"; x.drawImage(im,(864-iw*sc)/2,(1080-ih*sc)/2,iw*sc,ih*sc);
+    var t=mk(96,120), tx=t.getContext("2d"); tx.drawImage(c,0,0,96,120);
+    bgAll(function(list){
+      if(list.length>=12){ alert("저장한 사진은 12장까지입니다. 안 쓰는 사진의 ✕를 눌러 지운 뒤 저장해 주세요."); return; }
+      var rec={id:Date.now(),thumb:t.toDataURL("image/jpeg",.7),data:c.toDataURL("image/jpeg",.88)};
+      bgPut(rec,function(ok){ var old=btn.textContent; btn.textContent=ok?"✅ 저장했습니다":"저장하지 못했습니다(저장 공간/브라우저 설정 확인)"; setTimeout(function(){ btn.textContent=old; },2200); if(ok) renderSaved(); });
+    });
   }
   function openCard(){
     var vs=verses(); if(!vs.length){ alert("본문이 아직 표시되지 않았습니다. 본문이 나온 뒤에 눌러 주세요."); return; }
@@ -7595,13 +7706,30 @@ window.loadApiKey().then(async function(){
     var def=Math.min(vs.length,2);
     o.innerHTML='<div class="cd"><div class="px-h" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><h3 style="flex:1;margin:0">🖼 말씀 카드 만들기</h3><button class="bt" data-cd="close">✕ 닫기</button></div><div class="row"><select id="cdA">'+opts(vs,vs[0].n)+'</select> ~ <select id="cdB">'+opts(vs,vs[def-1].n)+'</select><select id="cdL"><option value="kr">한글</option><option value="en">영어</option><option value="both">한글+영어</option></select></div>'+
       '<div class="row">배경 '+Object.keys(THEMES).map(function(k){ return '<span class="th'+(k==="lamp"?" on":"")+'" data-cd="th" data-k="'+k+'" title="'+THEMES[k].n+'" style="background:linear-gradient(135deg,'+THEMES[k].bg[0]+','+THEMES[k].bg[1]+')"></span>'; }).join("")+'</div>'+
+      '<div class="row"><button class="bt" data-cd="pick">📷 내 사진 배경</button><input type="file" id="cdFile" accept="image/*" style="display:none"><label style="display:inline-flex;align-items:center;gap:6px">🎨 단색 <input type="color" id="cdCol" value="#1d2b53" style="width:42px;height:32px;padding:0;border:none;background:none;cursor:pointer"></label></div>'+
+      '<div class="row" id="cdSaved" style="display:none;gap:6px"></div>'+
+      '<div class="row" id="cdDimRow" style="display:none">사진 어둡기 <input type="range" id="cdDim" min="0" max="85" value="50" style="flex:1;min-width:120px"><span style="flex-basis:100%;display:flex;gap:8px;align-items:center">✨ 효과 <select id="cdFx" style="flex:1"><option value="none">없음</option><option value="lux">고급 (필름 톤·빛번짐·비네트)</option><option value="glass">유리 패널 (글자 뒤 흐림창)</option><option value="blur">흐리게 (배경 블러)</option><option value="gray">흑백 (고전적)</option><option value="vintage">빈티지 (세피아)</option></select></span><span style="flex-basis:100%"><button class="bt" data-cd="savebg">💾 이 사진 저장 (다음에 또 쓰기)</button></span></div>'+
+      '<div class="row">📐 크기 <select id="cdSize" style="flex:1">'+Object.keys(SIZES).map(function(k){ return '<option value="'+k+'">'+SIZES[k].n+'</option>'; }).join("")+'</select></div>'+
+      '<div class="row">🔤 글꼴 <select id="cdFont" style="flex:1">'+Object.keys(FONTS).map(function(k){ return '<option value="'+k+'">'+FONTS[k].n+'</option>'; }).join("")+'</select></div><div id="cdFontMsg" style="font-size:12px;opacity:.85;margin:-4px 0 6px"></div>'+
+      '<div class="row">✍️ 문구 <input id="cdPh" maxlength="40" placeholder="카드에 넣을 문구 (선택)" style="flex:1;min-width:130px"><select id="cdPhPos"><option value="top">구절 위</option><option value="bottom">구절 아래</option></select></div><div class="row" id="cdPhChips" style="gap:6px"></div>'+
       '<canvas id="cdCv"></canvas><div style="text-align:center;font-size:13px;margin:-2px 0 6px"><a href="'+APPURL+'" target="_blank" rel="noopener" style="color:#e6b34a">🔗 등불 앱 열기 · '+APPURL.replace('https://','')+'</a></div><div class="row"><button class="bt pri" data-cd="share">📤 공유 / 저장</button><button class="bt" data-cd="copy">📋 그림 복사</button><button class="bt" data-cd="dl">📥 그림 파일 저장</button><button class="bt" data-cd="close">닫기</button></div><div style="font-size:11.5px;opacity:.65;line-height:1.5">본문은 앱에 표시된 그대로 담깁니다. 구절은 한 번에 너무 많이 고르면 글자가 작아집니다.</div></div>';
     document.body.appendChild(o);
     ["cdA","cdB","cdL"].forEach(function(id){ $(id).addEventListener("change",build); });
+    $("cdDim").addEventListener("input",build); $("cdPh").addEventListener("input",build); try{ var sf=localStorage.getItem("dbCardFont"); if(sf&&FONTS[sf]) $("cdFont").value=sf; }catch(e){} $("cdFont").addEventListener("change",build); try{ var sz=localStorage.getItem("dbCardSize"); if(sz&&SIZES[sz]) $("cdSize").value=sz; }catch(e){} $("cdSize").addEventListener("change",function(){ try{ localStorage.setItem("dbCardSize",this.value); }catch(e){} build(); }); $("cdPhPos").addEventListener("change",build);
+    renderPh(); renderSaved(); $("cdFx").addEventListener("change",build);
+    $("cdCol").addEventListener("input",function(){ o._col=this.value; o._mode="color"; o.querySelectorAll(".th").forEach(function(t){ t.classList.remove("on"); }); $("cdDimRow").style.display="none"; build(); });
+    $("cdFile").addEventListener("change",function(){
+      var f=this.files&&this.files[0]; if(!f) return;
+      if(!/^image\//.test(f.type)){ alert("그림 파일(사진)을 골라 주세요."); return; }
+      var u=URL.createObjectURL(f), im=new Image();
+      im.onload=function(){ o._img=im; o._mode="photo"; o.querySelectorAll(".th").forEach(function(t){ t.classList.remove("on"); }); $("cdDimRow").style.display=""; build(); };
+      im.onerror=function(){ alert("이 사진을 열 수 없습니다. 다른 사진을 골라 주세요."); URL.revokeObjectURL(u); };
+      im.src=u; this.value="";
+    });
     build();
   }
   function blob(cb){ $("cdCv").toBlob(cb,"image/png"); }
-  function fname(){ return "등불_말씀카드_"+(last?last.ref.replace(/[:\s–]/g,"_"):"card")+".png"; }
+  function fname(){ return "등불_말씀카드_"+(last?last.ref.replace(/[:\s–]/g,"_"):"card")+(last&&SIZES[last.size]&&SIZES[last.size].s?"_"+SIZES[last.size].s:"")+".png"; }
   function dl(){ blob(function(b){ var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=fname(); document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); URL.revokeObjectURL(a.href); },1500); }); }
   var CB=null;
   function cacheBlob(){ CB=null; var c=$("cdCv"); if(c) c.toBlob(function(b){ CB=b; },"image/png"); }
@@ -7625,7 +7753,14 @@ window.loadApiKey().then(async function(){
     var x=e.target.closest("[data-cd]"); if(!x) return; var a=x.dataset.cd;
     if(a==="open") openCard();
     else if(a==="close"){ var o=$("cardOv"); if(o) o.remove(); }
-    else if(a==="th"){ var o2=$("cardOv"); o2._th=x.dataset.k; o2.querySelectorAll(".th").forEach(function(t){ t.classList.toggle("on",t===x); }); build(); }
+    else if(a==="usebg"){ var idv=+x.dataset.id; bgAll(function(l){ var r=l.filter(function(z){ return z.id===idv; })[0]; if(r) useImg(r.data); }); }
+    else if(a==="delbg"){ if(confirm("이 저장 사진을 지울까요?")) bgDel(+x.dataset.id,renderSaved); }
+    else if(a==="savebg") saveBg(x);
+    else if(a==="phchip"){ var pi=$("cdPh"); if(pi){ pi.value=x.dataset.t; build(); } }
+    else if(a==="saveph"){ var pv=($("cdPh")?$("cdPh").value.trim():""); if(!pv){ alert("저장할 문구를 먼저 입력해 주세요."); } else { var sv=phGet().filter(function(t){ return t!==pv; }); sv.unshift(pv); phSet(sv); renderPh(); } }
+    else if(a==="delph"){ var sv2=phGet(); sv2.splice(+x.dataset.i,1); phSet(sv2); renderPh(); }
+    else if(a==="pick"){ var fi=$("cdFile"); if(fi) fi.click(); }
+    else if(a==="th"){ var o2=$("cardOv"); o2._th=x.dataset.k; o2._mode="theme"; var dr=$("cdDimRow"); if(dr) dr.style.display="none"; o2.querySelectorAll(".th").forEach(function(t){ t.classList.toggle("on",t===x); }); build(); }
     else if(a==="copy") copyImg(x); else if(a==="dl") dl(); else if(a==="share") share();
   });
   function ensure(){

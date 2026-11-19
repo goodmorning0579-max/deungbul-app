@@ -1,7 +1,7 @@
 // 등불 서비스 워커 — PWA 설치 지원 + 기본 오프라인 캐싱
 // CACHE_NAME을 배포할 때마다 바꿔서(v1, v2...), 브라우저가 새 서비스 워커를 확실히 감지하고
 // 이전 버전의 캐시된 파일(예전 desktop.html/mobile.html)을 정리하도록 강제함
-const CACHE_NAME = "deungbul-v81";
+const CACHE_NAME = "deungbul-v87";
 // 본문 페이지(mobile.html, desktop.html)는 각각 약 16MB라서 설치할 때 둘 다 내려받지 않고,
 // 사용자가 실제로 연 페이지만 아래 fetch 처리에서 처음 열 때 자동으로 저장합니다(모바일 데이터 절약).
 const PRECACHE_URLS = [
