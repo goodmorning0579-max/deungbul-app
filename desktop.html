@@ -6900,12 +6900,49 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v79";
+  var V="2026-11-18 · v81";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
     var ic=document.createElement("div"); ic.id="appIconChk"; ic.style.cssText="margin-top:6px;";
     d.appendChild(ic); host.appendChild(d);
+    /* 새 버전 확인 카드 */
+    try{
+      if(!document.getElementById("updChkCard")){
+        var isM=!!document.getElementById("v-set");
+        var cur=parseInt((V.match(/v(\d+)/)||[])[1]||"0",10);
+        var c=document.createElement("div"); c.id="updChkCard"; c.className=isM?"setcard":"cal-card";
+        c.style.cssText="border-color:rgba(201,151,42,.35);"+(isM?"":"margin-bottom:20px;");
+        c.innerHTML='<h3 style="'+(isM?'':'color:#e8b94a;font-size:16px;margin-bottom:10px;')+'">🔄 새 버전 확인</h3>'
+          +'<p style="'+(isM?'margin-bottom:10px;':'font-size:13px;color:#c9c4b3;margin-bottom:12px;')+'">지금 쓰는 앱이 최신판인지 확인하고, 새 버전이 있으면 바로 업데이트합니다. (내 기록·설정은 지워지지 않습니다.)</p>'
+          +'<button class="btn'+(isM?'':' primary')+'" id="updChkBtn" style="'+(isM?'width:100%;':'')+'">🔄 새 버전 확인하기</button>'
+          +'<div id="updChkMsg" style="font-size:'+(isM?'12':'13')+'px;margin-top:10px;line-height:1.6;"></div>';
+        var anchor=document.getElementById("appVerTag"); host.insertBefore(c,anchor);
+        var btn=c.querySelector("#updChkBtn"), msg=c.querySelector("#updChkMsg"), mode="check";
+        function say(t){ msg.textContent=t; }
+        function applyUpdate(){
+          btn.disabled=true; say("업데이트 중입니다… 잠시만 기다려 주세요.");
+          var p=Promise.resolve();
+          try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration) p=navigator.serviceWorker.getRegistration().then(function(r){ return r?r.update().catch(function(){}):0; }); }catch(e){}
+          p.then(function(){ return window.caches?caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }):0; })
+           .catch(function(){})
+           .then(function(){ var u=location.pathname+"?u="+Date.now()+location.hash; location.replace(u); });
+        }
+        btn.addEventListener("click",function(){
+          if(mode==="apply"){ applyUpdate(); return; }
+          if(!/^https?:/.test(location.protocol)||!window.fetch){ say("이 방식으로 연 파일에서는 확인할 수 없습니다. 인터넷 주소(https)로 연 앱에서 눌러 주세요."); return; }
+          btn.disabled=true; say("확인 중…");
+          fetch("sw.js?_="+Date.now(),{cache:"no-store"}).then(function(r){ return r.ok?r.text():Promise.reject(); }).then(function(tx){
+            var m=tx.match(/deungbul-v(\d+)/); var latest=m?parseInt(m[1],10):0;
+            btn.disabled=false;
+            if(latest>cur){ mode="apply"; btn.textContent="⬇️ 지금 업데이트 (v"+latest+")"; say("새 버전 v"+latest+"이(가) 있습니다. 현재 v"+cur+". 아래 버튼을 눌러 업데이트하세요."); msg.style.color="#e8b94a"; }
+            else if(latest>0){ say("✅ 최신 버전입니다. (v"+cur+")"); msg.style.color=""; }
+            else { say("버전 정보를 읽지 못했습니다. 잠시 후 다시 시도해 주세요."); }
+          }).catch(function(){ btn.disabled=false; say("인터넷에 연결되어 있지 않거나 서버에 접속할 수 없습니다. 연결을 확인하고 다시 눌러 주세요."); });
+        });
+      }
+    }catch(e){}
+
     /* 설치·바로가기 아이콘 파일이 서버에 최신으로 올라가 있는지 점검 */
     try{
       if(/^https?:/.test(location.protocol)&&window.fetch){
@@ -8249,6 +8286,7 @@ window.loadApiKey().then(async function(){
     function L(sel,rule){ return sel.split(",").map(function(x){ return x+rule; }).join(",")+""; }
     s.textContent=
       ":root{--px-bg1:#222a3f;--px-bg2:#141927;--px-tx:#ece7d8;--px-gold:#f1d27a;--px-line:rgba(201,151,42,.5);--px-in:rgba(255,255,255,.06)}"+
+      "body.light-mode #bsGo{color:#3a2a10 !important;background:rgba(212,175,55,.5) !important}body.light-mode #cardOv .cd a{color:#7a5200 !important}body.light-mode .eg-n{color:#7a5200 !important}body.light-mode #ttsFloatLabel,body.light-mode #ttsFloatLabelD{color:#f2e6c4 !important}"+
       "body.light-mode{--px-bg1:#fffbf1;--px-bg2:#f3e6c8;--px-tx:#2b2210;--px-gold:#7a5200;--px-line:rgba(160,115,20,.5);--px-in:rgba(255,255,255,.75)}"+
       OVS+"{background:radial-gradient(ellipse at 50% 25%,rgba(40,30,12,.5),rgba(4,3,2,.8)) !important;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}"+
       ".px-ov{position:fixed;inset:0;z-index:2147482200;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:14px}"+
@@ -8284,6 +8322,8 @@ window.loadApiKey().then(async function(){
       ".px-float,.plov.px-float,.p2ov.px-float,#summOv.px-float,.px-ov.px-float{position:fixed !important;inset:auto;background:transparent !important;padding:0 !important;display:block !important;overflow:hidden !important;z-index:2147481500 !important;border:1px solid rgba(201,151,42,.65);box-shadow:0 10px 36px rgba(0,0,0,.45);border-radius:14px}"+
       ".px-float .sm-card,.px-float .pl-card,.px-float .p2-card,.px-float .px-card,.px-float .cd{width:100% !important;max-width:none !important;height:100%;margin:0 !important;border-radius:0 !important;overflow-y:auto;box-sizing:border-box}"+
       ".px-float .sm-h,.px-float .pl-h,.px-float .p2-h,.px-float .px-h{position:sticky;top:0;z-index:2}"+
+      ".px-float .sm-card,.px-float .pl-card,.px-float .p2-card,.px-float .px-card,.px-float .cd{padding-top:0 !important}"+
+      ".px-float .sm-h,.px-float .pl-h,.px-float .p2-h,.px-float .px-h{background:var(--px-bg1) !important;padding:12px 0 10px !important;margin:0 0 6px !important;border-bottom:1px solid var(--px-line)}"+
       "@media (min-width:700px){.px-float,.plov.px-float,.p2ov.px-float,#summOv.px-float,.px-ov.px-float{width:480px;height:72vh;min-width:300px;min-height:160px;resize:both}.px-float .sm-h,.px-float .pl-h,.px-float .p2-h,.px-float .px-h{cursor:move;touch-action:none}}"+
       "@media (max-width:699px){.px-float,.plov.px-float,.p2ov.px-float,#summOv.px-float,.px-ov.px-float{left:0 !important;right:0 !important;bottom:0 !important;top:auto !important;height:46vh;border-radius:16px 16px 0 0}}"+
       "#cardOv.px-fsd canvas{width:auto !important;height:auto !important;max-height:74vh;max-width:100%;margin:8px auto !important}";
