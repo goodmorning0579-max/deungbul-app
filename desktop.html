@@ -6900,7 +6900,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v78";
+  var V="2026-11-18 · v79";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -9846,8 +9846,8 @@ window.loadApiKey().then(async function(){
 (function(){
   "use strict";
   var GUARD = false;
-  var OV_SEL = ".chx-modal,.chx-ov,.lrn-overlay,.ilf-overlay,.tools-sheet-overlay,.tools-sheet-overlay-d,.dict-popup,.dict-popup-d,#voiceOverlay,#cal-event-modal,#toolsFabMenu,#toolsFabMenuD";
-  var CLOSE_SEL = "[data-vs-close],.ilf-close,.lrn-close,[class*='close'],[id*='Close'],[id*='close'],#cal-ev-cancel-btn";
+  var OV_SEL = ".chx-modal,.chx-ov,.lrn-overlay,.ilf-overlay,.tools-sheet-overlay,.tools-sheet-overlay-d,.dict-popup,.dict-popup-d,#voiceOverlay,#cal-event-modal,#toolsFabMenu,#toolsFabMenuD,.p2ov:not(.px-float),.px-ov:not(.px-float),.plov:not(.px-float),.chx-ov,#summOv:not(.px-float),#cardOv:not(.px-float),#planOv:not(.px-float)";
+  var CLOSE_SEL = "[data-p2='close'],[data-p3='close'],[data-en='close'],[data-cd='close'],[data-summ='close'],[data-pl='close'],[data-chx='close'],[data-vs-close],.ilf-close,.lrn-close,[class*='close'],[id*='Close'],[id*='close'],#cal-ev-cancel-btn";
   var restoring = false, ignore = 0, ovDepth = 0, armedUntil = 0, curView = "read", booted = false;
 
   function bookCh(){
