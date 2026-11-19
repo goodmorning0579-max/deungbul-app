@@ -6487,7 +6487,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v76";
+  var V="2026-11-18 · v77";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -9440,11 +9440,21 @@ document.addEventListener("change",(e)=>{
     "body.hdr-away #hdrShow{display:block;}";
   document.head.appendChild(css);
   var app=null, acc=0, last=0, btn=null;
-  function show(){ document.body.classList.remove("hdr-away"); acc=0; }
-  function hide(){ if(on()) document.body.classList.add("hdr-away"); acc=0; }
+  var lock=0;
+  function away(){ return document.body.classList.contains("hdr-away"); }
+  function show(){ if(away()){ document.body.classList.remove("hdr-away"); lock=Date.now()+600; } acc=0; }
+  function hide(){
+    if(!on()||away()){ acc=0; return; }
+    /* 막대를 숨기면 화면 높이가 줄어 스크롤 위치가 밀립니다. 남은 스크롤이 부족한 짧은 화면에서는 숨기지 않아야 막대가 켜졌다 꺼졌다 반복하지 않습니다. */
+    var top=document.querySelector(".top"), hh=top?top.offsetHeight:0;
+    var room=app.scrollHeight-app.clientHeight-hh;
+    if(room<220){ acc=0; return; }
+    document.body.classList.add("hdr-away"); lock=Date.now()+600; acc=0;
+  }
   function onScroll(){
     var y=app.scrollTop, d=y-last; last=y;
     if(!on()){ show(); return; }
+    if(Date.now()<lock){ acc=0; return; }   /* 막대가 움직이는 동안 생기는 스크롤 변화는 무시 */
     if(y<60){ show(); return; }
     acc=(d*acc<0)?d:acc+d;
     if(acc>28&&y>110) hide(); else if(acc<-28) show();
