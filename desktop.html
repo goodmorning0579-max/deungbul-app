@@ -4633,8 +4633,10 @@ async function tryRenderLiveText(chapterId){
     if(chip) chip.textContent = window._lastEnOk ? ("🟢 "+(window._enBibleName||"영어")+" + 개역한글") : "📘 내장 본문 (개역한글 + "+(window.__LOCAL_EN||"WEB")+")";
     return vv;
   }catch(e){
-    if(chip) chip.textContent = "샘플 모드";
     console.warn("API:", e.message);
+    try{ var _lc = window.localBibleChapter && window.localBibleChapter(bookCode, chapter);
+      if(_lc && _lc.length){ if(chip) chip.textContent = "📘 내장 본문 (개역한글 + WEB)"; window._lastEnOk=false; return _lc.map(function(v){ return {n:v.n, en:v.en||"", kr:v.kr||""}; }); } }catch(e2){}
+    if(chip) chip.textContent = "샘플 모드";
     return null;  // null 반환 → 샘플 본문으로 폴백
   }
 }
@@ -4940,7 +4942,7 @@ async function tryRenderLiveText(chapterId){
 (function(){
   const _origFetchBothVersionsD = window.fetchBothVersions;
   window.fetchBothVersions = async function(bookCode, chapter){
-    if(window.__EN_PREF!=="NIV") return _origFetchBothVersions(bookCode, chapter);
+    if(window.__EN_PREF!=="NIV") return _origFetchBothVersionsD(bookCode, chapter);
     const cacheKey = "bibletext:NIV:"+bookCode+"."+chapter;
     try{
       const cached = await window.storage.get(cacheKey);
@@ -6895,7 +6897,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v71";
+  var V="2026-11-18 · v72";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
