@@ -198,6 +198,7 @@ select:hover, .btn:hover{border-color:var(--gold);}
 .tts-float-d{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:997;display:flex;align-items:center;gap:12px;background:rgba(15,12,8,.94);border:1px solid rgba(201,151,42,.4);border-radius:26px;padding:10px 12px 10px 20px;box-shadow:0 6px 22px rgba(0,0,0,.55);backdrop-filter:blur(6px);}
 .tts-float-d #ttsFloatLabelD{font-size:13px;color:var(--gold-bright);white-space:nowrap;}
 .tts-float-d button{background:rgba(201,151,42,.2);border:1px solid rgba(201,151,42,.4);border-radius:50%;width:38px;height:38px;color:var(--ink-text);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.tts-float-d button{color:#f2e6c4 !important;}
 .tts-float-d button:hover{background:rgba(201,151,42,.35);}
 .reminder-banner-d-btns{display:flex;gap:10px;}
 .reminder-banner-d-btns button{background:rgba(217,141,143,.25);border:1px solid rgba(217,141,143,.5);border-radius:16px;padding:6px 16px;color:var(--ink-text);font-size:12.5px;cursor:pointer;}
@@ -6899,7 +6900,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v75";
+  var V="2026-11-18 · v76";
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
