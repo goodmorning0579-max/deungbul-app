@@ -4094,6 +4094,8 @@ function highlightVerse(vn){
         const elRect = first.getBoundingClientRect();
         // elRect.top은 뷰포트 기준이므로, scroller 기준 상대 위치로 변환한 뒤
         // 현재 scrollTop에 더해서 목표 스크롤 위치를 구한다.
+        const inZone = elRect.top >= scRect.top + scRect.height*0.18 && elRect.bottom <= scRect.bottom - scRect.height*0.30;
+        if(inZone) return; /* 이미 잘 보이는 위치면 스크롤하지 않음 */
         const delta = (elRect.top - scRect.top) - (scRect.height/2) + (elRect.height/2);
         const targetTop = scroller.scrollTop + delta;
         scroller.scrollTo({top: Math.max(0, targetTop), behavior: "smooth"});
@@ -4120,6 +4122,12 @@ function __ttsClean(lang, v){
   t = t.replace(/^\s*\{([^}]*)\}\s*/, function(_,title){ return title.trim().replace(/[.。]?$/,".")+" "; });  // 시편 표제: 중괄호 없이 읽고 잠시 쉼
   t = t.replace(/^\s*\(없음\)\s*/, "");                                                           // 일부 사본에 없는 절 표시
   return t.trim();
+}
+let ttsFailStreak=0, ttsNoVoice={en:false,ko:false}; /* 음성 엔진이 즉시 오류를 내면 연쇄로 절을 넘기며 화면이 흔들리는 것을 막는 장치 */
+function ttsGiveUp(){
+  ttsFailStreak=0; ttsNoVoice.en=false; ttsNoVoice.ko=false;
+  try{ stopTTS(); }catch(e){}
+  alert("소리가 재생되지 않습니다.\n\n① 휴대폰 '미디어 볼륨'이 0이 아닌지, 무음·방해금지 모드가 아닌지 확인해 주세요.\n② 설정 > 접근성 > 텍스트 음성 변환(TTS)에서 한국어·영어 음성이 설치되어 있는지 확인해 주세요.\n③ 크롬을 완전히 종료했다가 다시 열어 보세요.");
 }
 async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   if(myPlaybackId !== ttsPlaybackId) return; // 그 사이 정지되었으면 중단
@@ -4155,25 +4163,28 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   utter.rate = ttsRate;
   utter.volume = 1;
   const chosenURI = selectedVoiceURI[lang];
-  if(chosenURI){
+  if(chosenURI && !ttsNoVoice[lang]){
     const vv = availableVoices.find(x=>x.voiceURI===chosenURI);
     if(vv) utter.voice = vv;
   }
-  let started = false;
-  utter.onstart = ()=>{ started = true; };
+  let started = false, handled = false; const usedVoice = !!utter.voice, t0 = Date.now();
+  function failNow(){
+    if(handled || myPlaybackId !== ttsPlaybackId || ttsUserPaused) return;
+    handled = true; ttsFailStreak++;
+    if(usedVoice && !ttsNoVoice[lang]){ ttsNoVoice[lang] = true; setTimeout(()=>speakVerseQueue(lang, idx, myPlaybackId, 0), 300); return; }
+    if(ttsFailStreak >= 2){ ttsGiveUp(); return; }
+    setTimeout(()=>speakVerseQueue(lang, idx+1, myPlaybackId, 0), 400);
+  }
+  utter.onstart = ()=>{ started = true; ttsFailStreak = 0; };
   utter.onend = ()=>{
-    // iOS Safari는 cancel()을 호출해도 onerror가 아니라 그냥 onend를 그대로 호출해버리는
-    // 경우가 있다. 그러면 일시정지를 눌렀는데도 다음 절로 곧장 넘어가 버리므로,
-    // playbackId 비교만으로는 부족하고 "사용자가 방금 일시정지를 눌렀는지" 자체를 직접 확인해야 한다.
-    if(ttsUserPaused) return;
-    speakVerseQueue(lang, idx+1, myPlaybackId, 0);
+    if(ttsUserPaused || handled) return;
+    if(!started && Date.now()-t0 < 250){ failNow(); return; } // 소리 없이 바로 끝난 경우
+    handled = true; speakVerseQueue(lang, idx+1, myPlaybackId, 0);
   };
   utter.onerror = (ev)=>{
-    // "interrupted"/"canceled"는 정지·일시정지 버튼을 눌러 cancel()을 호출했을 때
-    // 정상적으로 발생하는 에러이므로(브라우저마다 다른 문자열을 씀) 재시도하지 않는다.
     if(ttsUserPaused) return;
     if(ev && (ev.error === "interrupted" || ev.error === "canceled" || ev.error === "cancelled")) return;
-    speakVerseQueue(lang, idx+1, myPlaybackId, 0);
+    failNow();
   };
   ttsUtterance = utter;
   window.speechSynthesis.speak(utter);
@@ -4181,16 +4192,11 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   // 일정 시간 안에 실제로 재생이 시작되지 않으면 같은 절을 다시 시도함(최대 3회).
   const rc = retryCount||0;
   setTimeout(()=>{
-    if(myPlaybackId !== ttsPlaybackId) return;
+    if(handled || myPlaybackId !== ttsPlaybackId) return;
     if(!started && !window.speechSynthesis.speaking){
-      if(rc < 3){
-        speakVerseQueue(lang, idx, myPlaybackId, rc+1);
-      }else{
-        // 3번 재시도해도 시작되지 않으면 이 기기/브라우저에서 음성 재생이 막혀 있는 것으로 판단
-        clearTTSHighlight();
-        setTTSButtonState(null);
-        alert("이 기기·브라우저에서는 음성 재생이 지원되지 않는 것 같습니다.\n크롬 브라우저를 사용해보시거나, 기기 설정 > 접근성 > 텍스트 음성 변환 엔진이 설치되어 있는지 확인해주세요.");
-      }
+      handled = true;
+      if(rc < 3){ speakVerseQueue(lang, idx, myPlaybackId, rc+1); }
+      else{ ttsGiveUp(); }
     }
   }, 700);
 }
@@ -4235,6 +4241,7 @@ function startTTS(lang, startIdx){
   clearTTSHighlight();
   setTTSButtonState(lang);
   ttsRepeatLeft = ttsRepeatTotal;
+  ttsFailStreak = 0;
   ttsPlaybackId++;
   const myId = ttsPlaybackId;
   requestTTSWakeLock(); // 재생 중에는 화면이 자동으로 꺼지지 않도록 유지
@@ -6487,7 +6494,24 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v87";
+  var V="2026-11-18 · v91";
+  /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
+  var GFU="https://fonts.googleapis.com/css2?family=";
+  var BF={
+    myeong:{n:"명조 (기본)",s:"'Noto Serif KR','Noto Serif CJK KR','Nanum Myeongjo','Batang','AppleMyungjo','Malgun Gothic',serif"},
+    gothic:{n:"고딕",s:"Pretendard,-apple-system,'Noto Sans KR','Malgun Gothic',sans-serif"},
+    nmj:{n:"나눔명조 · 내려받기",s:"'Nanum Myeongjo','Noto Serif KR','Noto Serif CJK KR',serif",u:GFU+"Nanum+Myeongjo:wght@400;700&display=swap"},
+    gowun:{n:"고운바탕 · 내려받기",s:"'Gowun Batang','Noto Serif KR','Noto Serif CJK KR',serif",u:GFU+"Gowun+Batang:wght@400;700&display=swap"}
+  };
+  function bfKey(){ try{ var k=localStorage.getItem("dbBibleFont"); return BF[k]?k:"myeong"; }catch(e){ return "myeong"; } }
+  function bfApply(k){
+    var f=BF[k]||BF.myeong, st=document.getElementById("bfStyle");
+    if(!st){ st=document.createElement("style"); st.id="bfStyle"; document.head.appendChild(st); }
+    var es=(k==="myeong")?"'Source Serif 4','Noto Serif KR','Noto Serif CJK KR',serif":f.s;
+    st.textContent=".verse{font-family:"+f.s+"}.verse .v-kr,.verse .vkr{font-family:"+f.s+"}.verse .v-en,.verse .ven{font-family:"+es+"}";
+    if(f.u&&!document.getElementById("bfLink_"+k)){ var l=document.createElement("link"); l.id="bfLink_"+k; l.rel="stylesheet"; l.href=f.u; document.head.appendChild(l); }
+  }
+  bfApply(bfKey());
   function add(){
     var host=document.getElementById("v-set")||document.getElementById("view-settings"); if(!host||document.getElementById("appVerTag")) return;
     var d=document.createElement("div"); d.id="appVerTag"; d.style.cssText="text-align:center;font-size:12px;opacity:.65;margin:18px 0 28px;"; d.textContent="등불 앱 버전 "+V+" (음성 목록에 🌐/📱 표시가 보이면 최신판입니다)";
@@ -6522,7 +6546,7 @@ document.addEventListener("change",(e)=>{
           fetch("sw.js?_="+Date.now(),{cache:"no-store"}).then(function(r){ return r.ok?r.text():Promise.reject(); }).then(function(tx){
             var m=tx.match(/deungbul-v(\d+)/); var latest=m?parseInt(m[1],10):0;
             btn.disabled=false;
-            if(latest>cur){ mode="apply"; btn.textContent="⬇️ 지금 업데이트 (v"+latest+")"; say("새 버전 v"+latest+"이(가) 있습니다. 현재 v"+cur+". 아래 버튼을 눌러 업데이트하세요."); msg.style.color="#e8b94a"; }
+            if(latest>cur){ mode="apply"; btn.textContent="⬇️ 지금 업데이트 (v"+latest+")"; say("새 버전 v"+latest+"이(가) 있습니다. 현재 v"+cur+". 아래 버튼을 눌러 업데이트하세요."); msg.style.color=document.body.classList.contains("light-mode")?"#7a5200":"#e8b94a"; msg.style.fontWeight="600"; }
             else if(latest>0){ say("✅ 최신 버전입니다. (v"+cur+")"); msg.style.color=""; }
             else { say("버전 정보를 읽지 못했습니다. 잠시 후 다시 시도해 주세요."); }
           }).catch(function(){ btn.disabled=false; say("인터넷에 연결되어 있지 않거나 서버에 접속할 수 없습니다. 연결을 확인하고 다시 눌러 주세요."); });
@@ -6537,6 +6561,22 @@ document.addEventListener("change",(e)=>{
           if(tx.indexOf("deungbul-192.png")<0){ ic.textContent="⚠ 서버의 설치 설정(manifest.json)이 옛 버전입니다. 바로가기 아이콘이 옛 그림으로 나오는 원인입니다. manifest.json과 아이콘 파일들을 함께 올려 주세요."; ic.style.opacity="1"; ic.style.color="#e8a060"; return; }
           return fetch("deungbul-192.png",{cache:"no-store"}).then(function(r){ ic.textContent=r.ok?"✅ 설치 아이콘 파일: 최신 (바로가기를 새로 만들면 새 그림이 적용됩니다)":"⚠ 서버에 deungbul-192.png 등 아이콘 파일이 없습니다. 아이콘 파일들을 올려 주세요."; if(!r.ok){ ic.style.opacity="1"; ic.style.color="#e8a060"; } });
         }).catch(function(){});
+      }
+    }catch(e){}
+
+    /* 성경 본문 글꼴 선택 카드 */
+    try{
+      if(!document.getElementById("bfCard")){
+        var isM2=!!document.getElementById("v-set");
+        var bc=document.createElement("div"); bc.id="bfCard"; bc.className=isM2?"setcard":"cal-card"; bc.style.cssText=isM2?"":"margin-bottom:20px;";
+        bc.innerHTML='<h3 style="'+(isM2?'':'color:#e8b94a;font-size:16px;margin-bottom:10px;')+'">🔤 성경 본문 글꼴</h3>'
+          +'<p style="'+(isM2?'margin-bottom:10px;':'font-size:13px;color:#c9c4b3;margin-bottom:12px;')+'">본문을 읽는 글씨체를 고릅니다. 기본은 명조체입니다.</p>'
+          +'<select id="bfSel" style="width:100%;padding:10px;border-radius:8px;font-size:15px">'+Object.keys(BF).map(function(k){ return '<option value="'+k+'">'+BF[k].n+'</option>'; }).join("")+'</select>'
+          +'<div id="bfPrev" style="margin-top:12px;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,151,42,.35);font-size:'+(isM2?'17':'18')+'px;line-height:1.7">태초에 하나님이 천지를 창조하시니라<br><span style="font-size:13px;opacity:.8">In the beginning God created the heavens and the earth.</span></div>'
+          +'<div style="font-size:12px;opacity:.75;margin-top:8px;line-height:1.5">※ “내려받기” 글꼴은 처음 한 번 인터넷에서 불러옵니다(구글 폰트). 기기에 명조체가 없어도 이 글꼴을 고르면 명조로 보입니다.</div>';
+        var anc2=document.getElementById("appVerTag"); host.insertBefore(bc,anc2);
+        var bs=bc.querySelector("#bfSel"), bp=bc.querySelector("#bfPrev"); bs.value=bfKey(); bp.style.fontFamily=BF[bs.value].s;
+        bs.addEventListener("change",function(){ try{ localStorage.setItem("dbBibleFont",bs.value); }catch(e){} bfApply(bs.value); bp.style.fontFamily=BF[bs.value].s; });
       }
     }catch(e){}
   }
