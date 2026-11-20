@@ -4164,12 +4164,13 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   utter.volume = 1;
   const __mode = ttsMode[lang]||0, __want = lang==="en" ? "en" : "ko";
   if(__mode===0){ const chosenURI = selectedVoiceURI[lang]; if(chosenURI){ const vv = availableVoices.find(x=>x.voiceURI===chosenURI); if(vv) utter.voice = vv; } }
+  else if(__mode===3){ utter.lang=""; utter.rate=1; }
   else if(__mode===1){ const cand = (availableVoices||[]).filter(x=>(x.lang||"").toLowerCase().replace("_","-").indexOf(__want)===0); const vv = cand.find(x=>x.localService)||cand[0]; if(vv) utter.voice = vv; }
   let started = false, handled = false; const usedVoice = !!utter.voice, t0 = Date.now();
   function failNow(){
     if(handled || myPlaybackId !== ttsPlaybackId || ttsUserPaused) return;
     handled = true; ttsFailStreak++;
-    if(__mode<2){ ttsMode[lang]=__mode+1; setTimeout(()=>speakVerseQueue(lang, idx, myPlaybackId, 0), 300); return; }
+    if(__mode<3){ ttsMode[lang]=__mode+1; setTimeout(()=>speakVerseQueue(lang, idx, myPlaybackId, 0), 300); return; }
     if(ttsFailStreak >= 2){ ttsGiveUp(); return; }
     setTimeout(()=>speakVerseQueue(lang, idx+1, myPlaybackId, 0), 400);
   }
@@ -6487,7 +6488,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v92";
+  var V="2026-11-18 · v93";
   /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
   var GFU="https://fonts.googleapis.com/css2?family=";
   var BF={
@@ -6570,6 +6571,48 @@ document.addEventListener("change",(e)=>{
         var anc2=document.getElementById("appVerTag"); host.insertBefore(bc,anc2);
         var bs=bc.querySelector("#bfSel"), bp=bc.querySelector("#bfPrev"); bs.value=bfKey(); bp.style.fontFamily=BF[bs.value].s;
         bs.addEventListener("change",function(){ try{ localStorage.setItem("dbBibleFont",bs.value); }catch(e){} bfApply(bs.value); bp.style.fontFamily=BF[bs.value].s; });
+      }
+    }catch(e){}
+
+    /* 음성 진단 카드 */
+    try{
+      if(!document.getElementById("ttsDiagCard") && ("speechSynthesis" in window)){
+        var isM3=!!document.getElementById("v-set");
+        var dc=document.createElement("div"); dc.id="ttsDiagCard"; dc.className=isM3?"setcard":"cal-card"; dc.style.cssText=isM3?"":"margin-bottom:20px;";
+        dc.innerHTML='<h3 style="'+(isM3?'':'color:#e8b94a;font-size:16px;margin-bottom:10px;')+'">🔊 소리 진단</h3>'
+          +'<p style="'+(isM3?'margin-bottom:10px;':'font-size:13px;color:#c9c4b3;margin-bottom:12px;')+'">읽기 소리가 나지 않을 때 눌러 보세요. 여러 방식으로 짧게 읽어 보고 결과를 보여 줍니다. (소리가 나면 ✅)</p>'
+          +'<button id="ttsDiagGo" style="width:100%;padding:12px;border-radius:10px;font-size:15px;font-weight:700;border:1px solid rgba(201,151,42,.6);background:transparent;color:inherit">▶ 진단 시작</button>'
+          +'<pre id="ttsDiagOut" style="white-space:pre-wrap;font-size:12px;line-height:1.55;margin-top:10px;user-select:text"></pre>';
+        var anc3=document.getElementById("appVerTag"); host.insertBefore(dc,anc3);
+        var go=dc.querySelector("#ttsDiagGo"), out=dc.querySelector("#ttsDiagOut");
+        function log(t){ out.textContent+=t+"\n"; }
+        function trial(label, mk){
+          return new Promise(function(res){
+            var u; try{ u=mk(); }catch(e){ log("⚠️ "+label+": "+e.message); return res(); }
+            var st=false, done=false;
+            function fin(r){ if(done) return; done=true; clearTimeout(tm); log(r+" "+label); try{ speechSynthesis.cancel(); }catch(e){} setTimeout(res,500); }
+            u.onstart=function(){ st=true; };
+            u.onend=function(){ fin(st?"✅":"❌(소리 없이 끝남)"); };
+            u.onerror=function(ev){ fin("❌("+((ev&&ev.error)||"error")+")"); };
+            var tm=setTimeout(function(){ fin(st?"✅":"❌(응답 없음)"); },5000);
+            try{ speechSynthesis.speak(u); }catch(e){ fin("❌("+e.message+")"); }
+          });
+        }
+        go.addEventListener("click",function(){
+          out.textContent=""; go.disabled=true;
+          var vs=speechSynthesis.getVoices()||[];
+          var ko=vs.filter(function(v){return /^ko/i.test((v.lang||"").replace("_","-"));});
+          var en=vs.filter(function(v){return /^en/i.test((v.lang||"").replace("_","-"));});
+          log("음성 "+vs.length+"개 (한국어 "+ko.length+" · 영어 "+en.length+") · paused="+speechSynthesis.paused);
+          try{ speechSynthesis.cancel(); speechSynthesis.resume(); }catch(e){}
+          var seq=Promise.resolve();
+          seq=seq.then(function(){ return trial("옵션 없이 영어", function(){ return new SpeechSynthesisUtterance("Hello"); }); });
+          seq=seq.then(function(){ return trial("언어만 한국어", function(){ var u=new SpeechSynthesisUtterance("하나님이 세상을 사랑하사"); u.lang="ko-KR"; return u; }); });
+          seq=seq.then(function(){ return trial("언어만 영어", function(){ var u=new SpeechSynthesisUtterance("God so loved the world"); u.lang="en-US"; return u; }); });
+          ko.slice(0,4).forEach(function(v){ seq=seq.then(function(){ return trial("한국어 음성: "+v.name+(v.localService?" (내장)":" (온라인)"), function(){ var u=new SpeechSynthesisUtterance("하나님이 세상을 사랑하사"); u.voice=v; u.lang=v.lang; return u; }); }); });
+          en.slice(0,3).forEach(function(v){ seq=seq.then(function(){ return trial("영어 음성: "+v.name+(v.localService?" (내장)":" (온라인)"), function(){ var u=new SpeechSynthesisUtterance("God so loved the world"); u.voice=v; u.lang=v.lang; return u; }); }); });
+          seq.then(function(){ log("\n— 끝. 이 화면을 캡처해서 보내 주세요."); go.disabled=false; });
+        });
       }
     }catch(e){}
   }
