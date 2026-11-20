@@ -3588,10 +3588,10 @@ function populateVoiceSelectD(lang){
   curTTSDropdownLangD=lang;
   const voices=voicesForLangD(lang);
   if(!voices.length){ sel.style.display="none"; sel.innerHTML=""; return; }
-  sel.innerHTML = voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${__voiceTag(v)}${i===0?" ⭐추천":""}</option>`).join("");
+  sel.innerHTML = '<option value="__auto__">📱 기기 기본 음성 (시스템 설정을 따름)</option>' + voices.map((v,i)=>`<option value="${v.voiceURI}">${v.name}${__voiceTag(v)}${i===0?" ⭐추천":""}</option>`).join("");
   const saved = selectedVoiceURID[lang] || __voiceSaved(lang);
-  if(saved && voices.some(v=>v.voiceURI===saved)){ sel.value=saved; selectedVoiceURID[lang]=saved; }
-  else selectedVoiceURID[lang]=sel.value;
+  if(saved && (saved==="__auto__" || voices.some(v=>v.voiceURI===saved))){ sel.value=saved; selectedVoiceURID[lang]=saved; }
+  else { sel.value=voices[0].voiceURI; selectedVoiceURID[lang]=voices[0].voiceURI; }
   sel.style.display="";
 }
 let ttsPlaybackIdD = 0;
@@ -3694,7 +3694,7 @@ async function speakVerseQueueD(lang, idx, myPlaybackId){
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = ttsRateD;
   const __mode = ttsMode[lang]||0, __want = lang==="en" ? "en" : "ko";
-  if(__mode===0){ const chosenURI = selectedVoiceURID[lang]; if(chosenURI){ const vv = availableVoicesD.find(x=>x.voiceURI===chosenURI); if(vv) utter.voice = vv; } }
+  if(__mode===0){ const chosenURI = selectedVoiceURID[lang]; if(chosenURI && chosenURI!=="__auto__"){ const vv = availableVoicesD.find(x=>x.voiceURI===chosenURI); if(vv) utter.voice = vv; } }
   else if(__mode===3){ utter.lang=""; utter.rate=1; }
   else if(__mode===1){ const cand = (availableVoicesD||[]).filter(x=>(x.lang||"").toLowerCase().replace("_","-").indexOf(__want)===0); const vv = cand.find(x=>x.localService)||cand[0]; if(vv) utter.voice = vv; }
   // 사용자가 일시정지를 눌러서 speechSynthesis.cancel()로 끊은 경우, 브라우저가
@@ -3883,7 +3883,7 @@ function setTTSButtonStateD(lang){
 }
 document.addEventListener("change", (e)=>{
   if(e.target.id==="ttsVoiceSelD"){
-    selectedVoiceURID[curTTSDropdownLangD]=e.target.value;
+    selectedVoiceURID[curTTSDropdownLangD]=e.target.value; __voiceSave(curTTSDropdownLangD,e.target.value);
     const playingLang = document.getElementById("ttsEnD").classList.contains("playing") ? "en"
                         : document.getElementById("ttsKrD").classList.contains("playing") ? "kr" : null;
     if(playingLang){ selectedVoiceURID[playingLang]=e.target.value; startTTSD(playingLang); }
@@ -6925,7 +6925,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v93";
+  var V="2026-11-18 · v94";
   /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
   var GFU="https://fonts.googleapis.com/css2?family=";
   var BF={
