@@ -4123,11 +4123,11 @@ function __ttsClean(lang, v){
   t = t.replace(/^\s*\(없음\)\s*/, "");                                                           // 일부 사본에 없는 절 표시
   return t.trim();
 }
-let ttsFailStreak=0, ttsNoVoice={en:false,ko:false}; /* 음성 엔진이 즉시 오류를 내면 연쇄로 절을 넘기며 화면이 흔들리는 것을 막는 장치 */
+let ttsFailStreak=0, ttsNoVoice={en:false,ko:false}, ttsMode={}, ttsLastErr=""; /* 음성 엔진이 즉시 오류를 내면 연쇄로 절을 넘기며 화면이 흔들리는 것을 막는 장치 */
 function ttsGiveUp(){
-  ttsFailStreak=0; ttsNoVoice.en=false; ttsNoVoice.ko=false;
+  var __code=(ttsLastErr||"응답 없음")+" · 음성 "+(availableVoices||[]).length+"개"; ttsFailStreak=0; ttsNoVoice.en=false; ttsNoVoice.ko=false; ttsMode={}; ttsLastErr="";
   try{ stopTTS(); }catch(e){}
-  alert("소리가 재생되지 않습니다.\n\n① 휴대폰 '미디어 볼륨'이 0이 아닌지, 무음·방해금지 모드가 아닌지 확인해 주세요.\n② 설정 > 접근성 > 텍스트 음성 변환(TTS)에서 한국어·영어 음성이 설치되어 있는지 확인해 주세요.\n③ 크롬을 완전히 종료했다가 다시 열어 보세요.");
+  alert("소리가 재생되지 않습니다.\n\n① 휴대폰 '미디어 볼륨'이 0이 아닌지, 무음·방해금지 모드가 아닌지 확인해 주세요.\n② 설정 > 접근성 > 텍스트 음성 변환(TTS)에서 한국어·영어 음성이 설치되어 있는지 확인해 주세요.\n③ 크롬을 완전히 종료했다가 다시 열어 보세요.\n\n(오류 코드: "+__code+")");
 }
 async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   if(myPlaybackId !== ttsPlaybackId) return; // 그 사이 정지되었으면 중단
@@ -4162,43 +4162,36 @@ async function speakVerseQueue(lang, idx, myPlaybackId, retryCount){
   utter.lang = lang==="en" ? "en-US" : "ko-KR";
   utter.rate = ttsRate;
   utter.volume = 1;
-  const chosenURI = selectedVoiceURI[lang];
-  if(chosenURI && !ttsNoVoice[lang]){
-    const vv = availableVoices.find(x=>x.voiceURI===chosenURI);
-    if(vv) utter.voice = vv;
-  }
+  const __mode = ttsMode[lang]||0, __want = lang==="en" ? "en" : "ko";
+  if(__mode===0){ const chosenURI = selectedVoiceURI[lang]; if(chosenURI){ const vv = availableVoices.find(x=>x.voiceURI===chosenURI); if(vv) utter.voice = vv; } }
+  else if(__mode===1){ const cand = (availableVoices||[]).filter(x=>(x.lang||"").toLowerCase().replace("_","-").indexOf(__want)===0); const vv = cand.find(x=>x.localService)||cand[0]; if(vv) utter.voice = vv; }
   let started = false, handled = false; const usedVoice = !!utter.voice, t0 = Date.now();
   function failNow(){
     if(handled || myPlaybackId !== ttsPlaybackId || ttsUserPaused) return;
     handled = true; ttsFailStreak++;
-    if(usedVoice && !ttsNoVoice[lang]){ ttsNoVoice[lang] = true; setTimeout(()=>speakVerseQueue(lang, idx, myPlaybackId, 0), 300); return; }
+    if(__mode<2){ ttsMode[lang]=__mode+1; setTimeout(()=>speakVerseQueue(lang, idx, myPlaybackId, 0), 300); return; }
     if(ttsFailStreak >= 2){ ttsGiveUp(); return; }
     setTimeout(()=>speakVerseQueue(lang, idx+1, myPlaybackId, 0), 400);
   }
-  utter.onstart = ()=>{ started = true; ttsFailStreak = 0; };
+  utter.onstart = ()=>{ started = true; ttsFailStreak = 0; ttsMode[lang]=ttsMode[lang]||0; };
   utter.onend = ()=>{
     if(ttsUserPaused || handled) return;
-    if(!started && Date.now()-t0 < 250){ failNow(); return; } // 소리 없이 바로 끝난 경우
+    if(!started && Date.now()-t0 < 250){ ttsLastErr = "즉시 종료"; failNow(); return; } // 소리 없이 바로 끝난 경우
     handled = true; speakVerseQueue(lang, idx+1, myPlaybackId, 0);
   };
   utter.onerror = (ev)=>{
     if(ttsUserPaused) return;
     if(ev && (ev.error === "interrupted" || ev.error === "canceled" || ev.error === "cancelled")) return;
-    failNow();
+    ttsLastErr = (ev && ev.error) || "error"; failNow();
   };
   ttsUtterance = utter;
   window.speechSynthesis.speak(utter);
   // 안드로이드 브라우저는 speak()를 호출해도 음성 엔진이 응답 없이 무시하는 경우가 흔함.
   // 일정 시간 안에 실제로 재생이 시작되지 않으면 같은 절을 다시 시도함(최대 3회).
-  const rc = retryCount||0;
   setTimeout(()=>{
     if(handled || myPlaybackId !== ttsPlaybackId) return;
-    if(!started && !window.speechSynthesis.speaking){
-      handled = true;
-      if(rc < 3){ speakVerseQueue(lang, idx, myPlaybackId, rc+1); }
-      else{ ttsGiveUp(); }
-    }
-  }, 700);
+    if(!started && !window.speechSynthesis.speaking){ ttsLastErr = "시작 안 됨"; failNow(); }
+  }, 900);
 }
 let ttsWakeLock = null;
 async function requestTTSWakeLock(){
@@ -6494,7 +6487,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v91";
+  var V="2026-11-18 · v92";
   /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
   var GFU="https://fonts.googleapis.com/css2?family=";
   var BF={
