@@ -900,6 +900,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
   <button data-voice="play">▶ 내 목소리로 장 듣기</button>
   <button data-church>⛪ 교회·성도 관리</button>
   <button data-learn="stat">📊 학습 통계</button>
+  <button data-gsmenu>🔍 구글검색</button>
 </div>
 <div id="toolsSheetOverlay" class="tools-sheet-overlay" style="display:none;">
   <div class="tools-sheet" id="toolsSheet">
@@ -6490,7 +6491,7 @@ document.addEventListener("change",(e)=>{
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v98";
+  var V="2026-11-18 · v100";
   /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
   var GFU="https://fonts.googleapis.com/css2?family=";
   var BF={
@@ -7174,7 +7175,7 @@ document.addEventListener("change",(e)=>{
       ".gs-lab{font-size:11.5px;opacity:.7;margin:2px 0 6px}.gs-ch{display:flex;flex-wrap:wrap;gap:7px}.gs-ch a{display:inline-flex;align-items:center;padding:8px 13px;border-radius:18px;border:1px solid rgba(201,151,42,.35);background:rgba(127,127,127,.12);color:inherit;text-decoration:none;font-size:12.5px}";
     document.head.appendChild(s);
   }
-  function panel(){ return document.getElementById(isD?"panel-gsr":"p-gsr"); }
+  function panel(){ return document.getElementById("gsDlgBody")||document.getElementById(isD?"panel-gsr":"p-gsr"); }
   function render(){
     var el=panel(); if(!el) return; css(); el.classList.add("gs-p"); var b=base();
     el.innerHTML='<h4>구글 검색</h4><p class="gs-hint">지금 보는 본문('+E(b)+')으로 구글에서 자료를 찾아봅니다. '+(isD?"앱 오른쪽에 별도의 구글 창이 열립니다(창이 차단되면 새 탭으로 열립니다). ":"구글 화면이 새 탭으로 열립니다. ")+'구글은 보안 설정상 앱 안에 끼워 넣어 보여 줄 수 없고, 검색한 내용은 구글의 개인정보 처리방침을 따릅니다.</p>'+
@@ -7196,6 +7197,17 @@ document.addEventListener("change",(e)=>{
     if(e.target.closest&&e.target.closest("[data-gs='go']")) go();
   },true);
   document.addEventListener("keydown",function(e){ if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("gs-in")){ e.preventDefault(); go(); } });
+  function openDlg(){
+    css(); var o=document.getElementById("gsDlg"); if(o) o.remove(); o=document.createElement("div"); o.id="gsDlg";
+    o.style.cssText="position:fixed;inset:0;z-index:2147482300;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px";
+    o.innerHTML='<div style="width:100%;max-width:520px;max-height:90vh;overflow:auto;box-sizing:border-box;padding:16px;border-radius:18px;border:1px solid rgba(201,151,42,.5);background:var(--px-bg1,#222a3f);color:var(--px-tx,#ece7d8)"><div style="display:flex;align-items:center;margin-bottom:8px"><b style="flex:1;font-size:17px">🔍 구글검색</b><button type="button" class="gs-go" data-gs="close">닫기</button></div><div id="gsDlgBody"></div></div>';
+    document.body.appendChild(o); render();
+    ["toolsFabMenu","toolsFabMenuD"].forEach(function(id){ var m=document.getElementById(id); if(m) m.style.display="none"; });
+  }
+  document.addEventListener("click",function(e){
+    var m=e.target.closest&&e.target.closest("[data-gsmenu]"); if(m){ e.preventDefault(); e.stopPropagation(); openDlg(); return; }
+    if(e.target.closest&&e.target.closest("[data-gs='close']")){ var d=document.getElementById("gsDlg"); if(d) d.remove(); }
+  },true);
 })();
 /*GS-END*/
 /*IMG-START*/
@@ -8341,14 +8353,22 @@ document.addEventListener("change",(e)=>{
   function today(){ var d=new Date(); return d.getFullYear()+"."+(d.getMonth()+1)+"."+d.getDate(); }
   /* ---------- 저장소 (IndexedDB · 이 기기 전용) ---------- */
   var DBP=null;
-  function db(){ return DBP||(DBP=new Promise(function(res,rej){ var r=indexedDB.open("dbTopicLab",1); r.onupgradeneeded=function(){ r.result.createObjectStore("topics",{keyPath:"id"}); }; r.onsuccess=function(){res(r.result);}; r.onerror=function(){rej(r.error);}; })); }
-  function tx(mode,fn){ return db().then(function(d){ return new Promise(function(res,rej){ var t=d.transaction("topics",mode),rq=fn(t.objectStore("topics")); t.oncomplete=function(){res(rq&&rq.result);}; t.onerror=function(){rej(t.error);}; t.onabort=function(){rej(t.error);}; }); }); }
+  function db(){ return DBP||(DBP=new Promise(function(res,rej){ var r=indexedDB.open("dbTopicLab",2); r.onupgradeneeded=function(){ var d=r.result; ["topics","folders","media"].forEach(function(n){ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,{keyPath:"id"}); }); }; r.onsuccess=function(){res(r.result);}; r.onerror=function(){rej(r.error);}; })); }
+  function tx(mode,fn,st){ st=st||"topics"; return db().then(function(d){ return new Promise(function(res,rej){ var t=d.transaction(st,mode),rq=fn(t.objectStore(st)); t.oncomplete=function(){res(rq&&rq.result);}; t.onerror=function(){rej(t.error);}; t.onabort=function(){rej(t.error);}; }); }); }
   function dbAll(){ return tx("readonly",function(s){return s.getAll();}); }
   function dbPut(o){ return tx("readwrite",function(s){return s.put(o);}); }
   function dbDel(id){ return tx("readwrite",function(s){return s.delete(id);}); }
+  function fAll(){ return tx("readonly",function(s){return s.getAll();},"folders"); }
+  function fPut(o){ return tx("readwrite",function(s){return s.put(o);},"folders"); }
+  function fDel(id){ return tx("readwrite",function(s){return s.delete(id);},"folders"); }
+  function mPut(o){ return tx("readwrite",function(s){return s.put(o);},"media"); }
+  function mGet(id){ return tx("readonly",function(s){return s.get(id);},"media"); }
+  function mDel(id){ return tx("readwrite",function(s){return s.delete(id);},"media"); }
+  var FOL="", FLIST=[];
+  function fname0(id){ var f=FLIST.filter(function(x){return x.id===id;})[0]; return f?f.name:""; }
   /* ---------- 상태 ---------- */
   var T=null, MODE="edit", LIST=[], saveTm=null, msgTm=null;
-  var BT={h:"소제목",p:"글",q:"말씀",todo:"할 일",img:"이미지",link:"링크",hr:"구분선"};
+  var BT={h:"소제목",p:"글",q:"말씀",todo:"할 일",img:"이미지",vid:"영상",link:"링크",hr:"구분선"};
   function save(now){
     if(!T) return; T.updated=Date.now();
     clearTimeout(saveTm);
@@ -8383,24 +8403,32 @@ document.addEventListener("change",(e)=>{
       else if(b.t==="q") L.push("“"+b.text+"”"+(b.ref?" — "+b.ref:""));
       else if(b.t==="todo") L.push((b.done?"☑ ":"☐ ")+b.text);
       else if(b.t==="img") L.push("[이미지"+(b.cap?": "+b.cap:"")+"]");
+      else if(b.t==="vid") L.push("[영상: "+(b.cap||b.name||"")+"]");
       else if(b.t==="link") L.push("🔗 "+(b.title?b.title+" ":"")+b.url);
       else if(b.t==="hr") L.push("────────");
     });
     return L.join("\n").replace(/\n{3,}/g,"\n\n").trim();
   }
   var HCSS="body{font-family:'Noto Serif KR','Malgun Gothic',serif;color:#2b2210;background:#fffbf1;line-height:1.8;font-size:16px;margin:0}main{max-width:720px;margin:0 auto;padding:28px 18px 60px}h1{font-size:26px;color:#7a5200;margin:0 0 4px}.tg{color:#8a7a5a;font-size:13px;margin-bottom:18px}h3{font-size:19px;color:#7a5200;border-bottom:1px solid #d9c9a8;padding-bottom:4px;margin:26px 0 8px}p{margin:8px 0}blockquote{margin:12px 0;padding:10px 14px;border-left:4px solid #c9972a;background:#f6ecd2;border-radius:0 8px 8px 0}blockquote cite{display:block;font-size:13px;color:#7a5200;margin-top:4px;font-style:normal}figure{margin:14px 0}figure img{max-width:100%;border-radius:8px}figcaption{font-size:13px;color:#7a6a4a;text-align:center}a{color:#7a5200}.lk{display:block;padding:9px 12px;border:1px solid #d9c9a8;border-radius:10px;margin:8px 0;text-decoration:none;background:#fff}.lk small{display:block;color:#8a7a5a}hr{border:0;border-top:1px solid #d9c9a8;margin:20px 0}.ft{margin-top:40px;font-size:12px;color:#9a8a6a;text-align:center}@page{size:A4;margin:16mm}@media print{body{background:#fff}}";
-  function toHtml(t,print){
-    var h=t.blocks.map(function(b){
+  function bodyOf(t){
+    return t.blocks.map(function(b){
       if(b.t==="h") return "<h3>"+E(b.text)+"</h3>";
       if(b.t==="p") return "<p>"+paras(b.text)+"</p>";
       if(b.t==="q") return "<blockquote>"+paras(b.text)+(b.ref?"<cite>— "+E(b.ref)+"</cite>":"")+"</blockquote>";
       if(b.t==="todo") return "<p>"+(b.done?"☑ ":"☐ ")+E(b.text)+"</p>";
       if(b.t==="img") return b.src?'<figure><img src="'+b.src+'">'+(b.cap?"<figcaption>"+E(b.cap)+"</figcaption>":"")+"</figure>":"";
+      if(b.t==="vid") return '<p class="vd">🎞 영상: '+E(b.cap||b.name||"")+" <small>(영상은 PDF·웹페이지 파일에 담기지 않습니다)</small></p>";
       if(b.t==="link"){ var u=norm(b.url); return u?'<a class="lk" href="'+E(u)+'" target="_blank" rel="noopener">🔗 '+E(b.title||hostOf(u))+"<small>"+E(hostOf(u))+"</small></a>":""; }
       if(b.t==="hr") return "<hr>"; return "";
     }).join("\n");
-    return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+E(t.title||"주제 연구")+"</title><style>"+HCSS+"</style></head><body><main><h1>"+E(t.title||"(제목 없음)")+'</h1><div class="tg">'+E(t.tags||"")+(t.tags?" · ":"")+E(today())+"</div>"+h+'<div class="ft">등불 · 주제 연구소</div></main>'+(print?"<script>setTimeout(function(){print()},600)<\/script>":"")+"</body></html>";
   }
+  function docHtml(title,topics,print,cover){
+    var h="";
+    if(cover){ h+='<section class="cv"><h1>'+E(title)+'</h1><div class="tg">'+E(today())+" · "+topics.length+"개 주제</div><ol>"+topics.map(function(t){ return "<li>"+E(t.title||"(제목 없음)")+"</li>"; }).join("")+"</ol></section>"; }
+    topics.forEach(function(t,k){ h+='<section class="tp"'+((cover||k>0)?' style="page-break-before:always"':"")+"><h1>"+E(t.title||"(제목 없음)")+'</h1><div class="tg">'+E(t.tags||"")+(t.tags?" · ":"")+E(today())+"</div>"+bodyOf(t)+"</section>"; });
+    return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+E(title||"주제 연구")+"</title><style>"+HCSS+".vd{color:#8a7a5a}.cv{padding:40px 0}.cv ol{line-height:2}</style></head><body><main>"+h+'<div class="ft">등불 · 주제 연구소</div></main>'+(print?"<script>setTimeout(function(){print()},700)<\/script>":"")+"</body></html>";
+  }
+  function toHtml(t,print){ return docHtml(t.title,[t],print,false); }
   function dl(name,mime,data){ var b=new Blob([data],{type:mime}),u=URL.createObjectURL(b),a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); URL.revokeObjectURL(u); },2000); }
   function fname(t,ext){ return (t.title||"주제연구").replace(/[\\\/:*?"<>|\s]+/g,"_").slice(0,40)+ext; }
   function dataToFile(src,name){ var p=src.split(","),m=/:(.*?);/.exec(p[0])[1],bs=atob(p[1]),n=bs.length,u=new Uint8Array(n); while(n--) u[n]=bs.charCodeAt(n); return new File([u],name,{type:m}); }
@@ -8438,7 +8466,7 @@ document.addEventListener("change",(e)=>{
       ".tl-rd .lk{display:block;padding:10px 12px;border:1px solid var(--px-line,rgba(201,151,42,.5));border-radius:12px;margin:8px 0;text-decoration:none}.tl-rd .lk small{display:block;opacity:.7}"+
       ".tl-rd figcaption{text-align:center;font-size:13px;opacity:.75;margin-top:4px}.tl-rd .td{display:flex;gap:8px;align-items:center;margin:6px 0}"+
       ".tl-note{font-size:12.5px;opacity:.7;line-height:1.55;margin:10px 0}.tl-sh{margin:12px 0;padding:12px;border-radius:14px;border:1px solid var(--px-line,rgba(201,151,42,.5));background:var(--px-in,rgba(255,255,255,.06))}"+
-      "#tlVs{position:fixed;inset:0;z-index:2147482400;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px}#tlVs .tl-sh{width:100%;max-width:460px;background:var(--px-bg1,#222a3f);margin:0}";
+      ".tl-fo{border-left:4px solid #c9972a}.tl-blk video,.tl-rd video{max-width:100%;border-radius:10px;display:block;margin:0 auto;background:#000}.tl-row.nw{flex-wrap:nowrap}#tlVs{position:fixed;inset:0;z-index:2147482400;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px}#tlVs .tl-sh{width:100%;max-width:460px;background:var(--px-bg1,#222a3f);margin:0}";
     document.head.appendChild(s);
   }
   /* ---------- 화면: 목록 ---------- */
@@ -8446,27 +8474,49 @@ document.addEventListener("change",(e)=>{
     css(); var o=$("tlOv"); if(o) o.remove(); o=document.createElement("div"); o.id="tlOv"; document.body.appendChild(o);
     T=null; showList();
   }
+  /* 공과·묵상 모음 옆에 타일 */
+  function ensureTile(){
+    if($("tlBtn")&&$("tlBtn").dataset.ok) { var u=$("uxJr"),t0=$("tlBtn"); if(u&&t0.parentNode!==u) u.appendChild(t0); return; }
+    var n=$("bndBtn"); if(!n||$("tlBtn")) return;
+    var b=document.createElement("button"); b.id="tlBtn"; b.type="button"; b.setAttribute("data-tl","open"); b.setAttribute("data-ux","1"); b.className="ux-tile"; b.dataset.ok="1";
+    b.innerHTML='<span class="ux-ic">🔬</span><span class="ux-tx"><b>주제 연구소</b><small>폴더별로 문서를 쌓아 연구·PDF</small></span><span class="ux-ch">›</span>';
+    var u2=$("uxJr"); if(u2) u2.appendChild(b); else n.parentNode.insertBefore(b,n.nextSibling);
+  }
+  [600,1600,3200,5500,9000,15000].forEach(function(ms){ setTimeout(ensureTile,ms); });
+  var rp=window.renderPassage; if(typeof rp==="function") window.renderPassage=function(){ var r=rp.apply(this,arguments); setTimeout(ensureTile,500); return r; };
   function showList(q){
     var o=$("tlOv"); if(!o) return; T=null; q=(q||"").trim().toLowerCase();
-    o.innerHTML='<div class="tl-top"><b>🔬 주제 연구소</b><span id="tlSt"></span><button class="tl-b sm" data-tl="close">닫기</button></div>'+
-      '<div class="tl-sc"><div class="tl-in"><div class="tl-row"><button class="tl-b pri" data-tl="new">＋ 새 주제</button><button class="tl-b" data-tl="imp">📥 가져오기</button><input type="file" id="tlImpF" accept=".json,application/json" hidden></div>'+
-      '<input id="tlQ" placeholder="🔎 주제·태그·내용 검색" value="'+E(q)+'"><div id="tlLs"><div class="tl-note">불러오는 중…</div></div>'+
-      '<div class="tl-note">하나의 주제(예: 십자가, 은혜, 요한복음의 “나는 …이다”)를 정해 두고, 말씀·메모·사진·링크를 계속 쌓아 가는 곳입니다. 내용은 <b>이 기기에만</b> 저장됩니다. 다른 기기로 옮기거나 남에게 보내려면 주제 안의 「📤 공유·내보내기」를 사용하세요.</div></div></div>';
-    dbAll().then(function(a){
-      LIST=(a||[]).sort(function(x,y){return (y.updated||0)-(x.updated||0);});
-      var ls=LIST.filter(function(t){ if(!q) return true; return (t.title+" "+(t.tags||"")+" "+t.blocks.map(function(b){return (b.text||"")+(b.ref||"")+(b.title||"")+(b.cap||"");}).join(" ")).toLowerCase().indexOf(q)>=0; });
-      var el=$("tlLs"); if(!el) return;
-      if(!ls.length){ el.innerHTML='<div class="tl-note" style="text-align:center;padding:26px 0">'+(q?"검색 결과가 없습니다.":"아직 주제가 없습니다. 「＋ 새 주제」로 시작해 보세요.")+"</div>"; return; }
-      el.innerHTML=ls.map(function(t){
-        var n=function(k){ return t.blocks.filter(function(b){return b.t===k;}).length; };
-        var pv=""; for(var i=0;i<t.blocks.length;i++){ if(t.blocks[i].t==="p"||t.blocks[i].t==="q"){ pv=t.blocks[i].text; break; } }
-        var d=new Date(t.updated||0);
-        return '<button class="tl-card" data-tl="open" data-id="'+E(t.id)+'"><b>'+E(t.title||"(제목 없음)")+'</b><small>'+(t.tags?E(t.tags)+" · ":"")+"블록 "+t.blocks.length+(n("img")?" · 🖼 "+n("img"):"")+(n("link")?" · 🔗 "+n("link"):"")+" · "+d.getFullYear()+"."+(d.getMonth()+1)+"."+d.getDate()+"</small>"+(pv?'<small style="margin-top:4px">'+E(pv.slice(0,70))+(pv.length>70?"…":"")+"</small>":"")+"</button>";
-      }).join("");
-    }).catch(function(){ var el=$("tlLs"); if(el) el.innerHTML='<div class="tl-note">⚠️ 이 브라우저에서는 저장소를 열 수 없습니다(사생활 보호 모드 등).</div>'; });
+    Promise.all([dbAll(),fAll()]).then(function(r){
+      LIST=(r[0]||[]).sort(function(x,y){return (y.updated||0)-(x.updated||0);}); FLIST=(r[1]||[]).sort(function(x,y){return (x.name||"").localeCompare(y.name||"");});
+      if(FOL&&!fname0(FOL)) FOL="";
+      drawList(q);
+    }).catch(function(){ o.innerHTML='<div class="tl-top"><b>🔬 주제 연구소</b><button class="tl-b sm" data-tl="close">닫기</button></div><div class="tl-sc"><div class="tl-note">⚠️ 이 브라우저에서는 저장소를 열 수 없습니다(사생활 보호 모드 등).</div></div>'; });
+  }
+  function card(t,showFol){
+    var n=function(k){ return t.blocks.filter(function(b){return b.t===k;}).length; };
+    var pv=""; for(var i=0;i<t.blocks.length;i++){ if(t.blocks[i].t==="p"||t.blocks[i].t==="q"){ pv=t.blocks[i].text; break; } }
+    var d=new Date(t.updated||0);
+    return '<button class="tl-card" data-tl="open" data-id="'+E(t.id)+'"><b>'+E(t.title||"(제목 없음)")+'</b><small>'+(showFol&&t.folder?"📁 "+E(fname0(t.folder))+" · ":"")+(t.tags?E(t.tags)+" · ":"")+"블록 "+t.blocks.length+(n("img")?" · 🖼 "+n("img"):"")+(n("vid")?" · 🎞 "+n("vid"):"")+(n("link")?" · 🔗 "+n("link"):"")+" · "+d.getFullYear()+"."+(d.getMonth()+1)+"."+d.getDate()+"</small>"+(pv?'<small style="margin-top:4px">'+E(pv.slice(0,70))+(pv.length>70?"…":"")+"</small>":"")+"</button>";
+  }
+  function drawList(q){
+    var o=$("tlOv"); if(!o) return; var inF=!!FOL&&!q, h="";
+    h+='<div class="tl-top">'+(inF?'<button class="tl-b sm" data-tl="root">← 전체</button>':"")+"<b>"+(inF?"📁 "+E(fname0(FOL)):"🔬 주제 연구소")+'</b><span id="tlSt"></span><button class="tl-b sm" data-tl="close">닫기</button></div><div class="tl-sc"><div class="tl-in">';
+    h+='<div class="tl-row"><button class="tl-b pri" data-tl="new">＋ 새 주제</button>'+(inF?'<button class="tl-b" data-tl="f-ren">✏️ 폴더 이름</button><button class="tl-b" data-tl="f-pdf">📄 폴더 PDF</button><button class="tl-b" data-tl="f-json">💾 폴더 백업</button><button class="tl-b" data-tl="f-del">🗑 폴더 삭제</button>':'<button class="tl-b" data-tl="f-new">📁 새 폴더</button><button class="tl-b" data-tl="imp">📥 가져오기</button>')+'<input type="file" id="tlImpF" accept=".json,application/json" hidden></div>';
+    h+='<input id="tlQ" placeholder="🔎 주제·태그·내용 검색 (모든 폴더)" value="'+E(q)+'">';
+    if(q){
+      var ls=LIST.filter(function(t){ return (t.title+" "+(t.tags||"")+" "+t.blocks.map(function(b){return (b.text||"")+(b.ref||"")+(b.title||"")+(b.cap||"");}).join(" ")).toLowerCase().indexOf(q)>=0; });
+      h+=ls.length?ls.map(function(t){return card(t,true);}).join(""):'<div class="tl-note" style="text-align:center;padding:26px 0">검색 결과가 없습니다.</div>';
+    } else {
+      if(!inF) FLIST.forEach(function(f){ var c=LIST.filter(function(t){return t.folder===f.id;}).length; h+='<button class="tl-card tl-fo" data-tl="folder" data-id="'+E(f.id)+'"><b>📁 '+E(f.name)+"</b><small>주제 "+c+"개</small></button>"; });
+      var ts=LIST.filter(function(t){ return inF?t.folder===FOL:!t.folder; });
+      if(!ts.length&&!(!inF&&FLIST.length)) h+='<div class="tl-note" style="text-align:center;padding:26px 0">'+(inF?"이 폴더에 주제가 없습니다.":"아직 주제가 없습니다. 「📁 새 폴더」로 큰 주제를 만들고, 그 안에 문서를 쌓아 보세요.")+"</div>";
+      else h+=(!inF&&ts.length&&FLIST.length?'<div class="tl-note">폴더에 넣지 않은 주제</div>':"")+ts.map(function(t){return card(t,false);}).join("");
+    }
+    h+='<div class="tl-note">큰 주제는 폴더로, 그 아래 문서(주제)를 쌓아 가는 구조입니다. 폴더·문서는 <b>성경 어느 책·장에서 열어도 하나로 모아 관리</b>됩니다. 내용은 <b>이 기기에만</b> 저장되며, 옮기거나 남에게 보내려면 「공유·내보내기」나 「폴더 백업」을 사용하세요.</div></div></div>';
+    o.innerHTML=h;
   }
   function newTopic(){
-    T={id:uid(),title:"",tags:"",created:Date.now(),updated:Date.now(),blocks:[{id:uid(),t:"p",text:""}]};
+    T={id:uid(),title:"",tags:"",folder:FOL||"",created:Date.now(),updated:Date.now(),blocks:[{id:uid(),t:"p",text:""}]};
     MODE="edit"; showEditor(); setTimeout(function(){ var i=$("tlTi"); if(i) i.focus(); },50);
   }
   /* ---------- 화면: 편집/읽기 ---------- */
@@ -8478,6 +8528,7 @@ document.addEventListener("change",(e)=>{
     else if(b.t==="q") body='<textarea data-f="text" data-i="'+i+'" placeholder="말씀 본문">'+E(b.text)+'</textarea><input data-f="ref" data-i="'+i+'" value="'+E(b.ref||"")+'" placeholder="출처 (예: 요 3:16)" style="margin-top:6px">';
     else if(b.t==="todo") body='<div style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-f="done" data-i="'+i+'"'+(b.done?" checked":"")+'><input data-f="text" data-i="'+i+'" value="'+E(b.text)+'" placeholder="할 일 · 더 연구할 것"></div>';
     else if(b.t==="img") body=(b.src?'<img src="'+b.src+'">':'<div class="tl-note">이미지를 불러오지 못했습니다.</div>')+'<input data-f="cap" data-i="'+i+'" value="'+E(b.cap||"")+'" placeholder="사진 설명 (선택)" style="margin-top:6px">';
+    else if(b.t==="vid") body='<video controls playsinline preload="metadata" data-mid="'+E(b.mid)+'"></video><div class="tl-note">'+E(b.name||"")+(b.size?" · "+Math.round(b.size/1048576*10)/10+"MB":"")+'</div><input data-f="cap" data-i="'+i+'" value="'+E(b.cap||"")+'" placeholder="영상 설명 (선택)">';
     else if(b.t==="link") body='<input data-f="url" data-i="'+i+'" value="'+E(b.url||"")+'" placeholder="https://… 주소 붙여넣기" inputmode="url"><input data-f="title" data-i="'+i+'" value="'+E(b.title||"")+'" placeholder="이름 (선택)" style="margin-top:6px">'+(b.url?'<div class="tl-row"><a class="tl-b sm" style="text-decoration:none;display:inline-block" href="'+E(norm(b.url))+'" target="_blank" rel="noopener">🔗 열기 · '+E(hostOf(norm(b.url)))+"</a></div>":"");
     else if(b.t==="hr") body='<hr style="border:0;border-top:1px solid var(--px-line,rgba(201,151,42,.5))">';
     return '<div class="tl-blk '+b.t+'" data-bi="'+i+'">'+ctl+body+"</div>";
@@ -8488,6 +8539,7 @@ document.addEventListener("change",(e)=>{
     if(b.t==="q") return "<blockquote>"+paras(b.text)+(b.ref?"<cite>— "+E(b.ref)+"</cite>":"")+"</blockquote>";
     if(b.t==="todo") return '<div class="td"><input type="checkbox" data-tl="tick" data-i="'+i+'"'+(b.done?" checked":"")+"><span"+(b.done?' style="text-decoration:line-through;opacity:.6"':"")+">"+E(b.text)+"</span></div>";
     if(b.t==="img") return b.src?'<figure style="margin:14px 0"><img src="'+b.src+'">'+(b.cap?"<figcaption>"+E(b.cap)+"</figcaption>":"")+"</figure>":"";
+    if(b.t==="vid") return '<figure style="margin:14px 0"><video controls playsinline preload="metadata" data-mid="'+E(b.mid)+'"></video>'+(b.cap?"<figcaption>"+E(b.cap)+"</figcaption>":"")+"</figure>";
     if(b.t==="link"){ var u=norm(b.url); return u?'<a class="lk" href="'+E(u)+'" target="_blank" rel="noopener">🔗 '+E(b.title||hostOf(u))+"<small>"+E(hostOf(u))+"</small></a>":""; }
     if(b.t==="hr") return '<hr style="border:0;border-top:1px solid var(--px-line,rgba(201,151,42,.5));margin:18px 0">'; return "";
   }
@@ -8496,12 +8548,13 @@ document.addEventListener("change",(e)=>{
     var ed=!rd;
     var inner=rd?
       '<h1 style="font-size:24px;color:var(--px-gold,#f1d27a);margin:4px 0">'+E(T.title||"(제목 없음)")+"</h1>"+(T.tags?'<div class="tl-note" style="margin-top:0">'+E(T.tags)+"</div>":"")+'<div class="tl-rd">'+T.blocks.map(blockRead).join("")+"</div>":
-      '<input id="tlTi" class="tl-title" placeholder="주제 (예: 십자가의 도)" value="'+E(T.title)+'"><input id="tlTg" placeholder="태그 (쉼표로 구분, 선택)" value="'+E(T.tags||"")+'">'+T.blocks.map(function(b,i){ return blockEdit(b,i,T.blocks.length); }).join("");
+      '<input id="tlTi" class="tl-title" placeholder="주제 (예: 십자가의 도)" value="'+E(T.title)+'"><input id="tlTg" placeholder="태그 (쉼표로 구분, 선택)" value="'+E(T.tags||"")+'"><div class="tl-row"><span>📁 폴더</span><select id="tlFo"><option value="">미분류</option>'+FLIST.map(function(f){ return '<option value="'+E(f.id)+'"'+(f.id===T.folder?" selected":"")+">"+E(f.name)+"</option>"; }).join("")+"</select></div>"+T.blocks.map(function(b,i){ return blockEdit(b,i,T.blocks.length); }).join("");
     o.innerHTML='<div class="tl-top"><button class="tl-b sm" data-tl="back">← 목록</button><b>'+E(T.title||"새 주제")+'</b><span id="tlSt"></span><button class="tl-b sm'+(rd?" on":"")+'" data-tl="mode">'+(rd?"✏️ 편집":"👁 읽기")+'</button></div>'+
       '<div class="tl-sc"><div class="tl-in">'+inner+
       '<div class="tl-row" style="margin-top:20px"><button class="tl-b" data-tl="share">📤 공유·내보내기</button><button class="tl-b" data-tl="delete">🗑 이 주제 삭제</button></div><div id="tlShare"></div></div></div>'+
-      (ed?'<div class="tl-add"><div class="tl-row"><button class="tl-b sm" data-tl="add" data-k="h">＋소제목</button><button class="tl-b sm" data-tl="add" data-k="p">＋글</button><button class="tl-b sm" data-tl="verse">＋현재 본문</button><button class="tl-b sm" data-tl="add" data-k="q">＋말씀 직접</button><button class="tl-b sm" data-tl="addimg">＋📷 이미지</button><button class="tl-b sm" data-tl="add" data-k="link">＋🔗 링크</button><button class="tl-b sm" data-tl="add" data-k="todo">＋할 일</button><button class="tl-b sm" data-tl="add" data-k="hr">＋구분선</button></div><input type="file" id="tlImg" accept="image/*" multiple hidden></div>':"");
+      (ed?'<div class="tl-add"><div class="tl-row"><button class="tl-b sm" data-tl="add" data-k="h">＋소제목</button><button class="tl-b sm" data-tl="add" data-k="p">＋글</button><button class="tl-b sm" data-tl="verse">＋현재 본문</button><button class="tl-b sm" data-tl="add" data-k="q">＋말씀 직접</button><button class="tl-b sm" data-tl="addimg">＋📷 이미지</button><button class="tl-b sm" data-tl="addvid">＋🎞 영상</button><button class="tl-b sm" data-tl="add" data-k="link">＋🔗 링크</button><button class="tl-b sm" data-tl="add" data-k="todo">＋할 일</button><button class="tl-b sm" data-tl="add" data-k="hr">＋구분선</button></div><input type="file" id="tlImg" accept="image/*" multiple hidden><input type="file" id="tlVid" accept="video/*" hidden></div>':"");
     o.querySelectorAll("textarea").forEach(grow);
+    o.querySelectorAll("video[data-mid]").forEach(function(v){ mGet(v.getAttribute("data-mid")).then(function(m){ if(m&&m.blob) v.src=URL.createObjectURL(m.blob); else v.outerHTML='<div class="tl-note">영상 파일을 찾을 수 없습니다(다른 기기에서 가져온 주제일 수 있음).</div>'; }); });
     var s2=o.querySelector(".tl-sc"); if(s2&&keepScroll) s2.scrollTop=y;
   }
   function grow(t){ t.style.height="auto"; t.style.height=(t.scrollHeight+2)+"px"; }
@@ -8511,23 +8564,32 @@ document.addEventListener("change",(e)=>{
   }
   /* ---------- 현재 본문 넣기 ---------- */
   function verseDlg(){
-    var vs=verses(); if(!vs.length){ alert("본문 화면에서 성경 본문이 표시된 상태에서 눌러 주세요. (메인 화면의 장을 먼저 여세요)"); return; }
-    var opts=function(sel){ return vs.map(function(v){ return '<option value="'+v.n+'"'+(v.n===sel?" selected":"")+">"+v.n+"절</option>"; }).join(""); };
+    var bks=(typeof BOOKS!=="undefined")?BOOKS:[]; if(!bks.length||!window.localBibleChapter){ alert("성경 본문 데이터를 불러오지 못했습니다."); return; }
     var d=document.createElement("div"); d.id="tlVs";
-    d.innerHTML='<div class="tl-sh"><b style="color:var(--px-gold,#f1d27a)">📖 '+E(bname(cur().b))+" "+cur().c+'장에서 넣기</b><div class="tl-row"><select id="tvA">'+opts(vs[0].n)+'</select> ~ <select id="tvB">'+opts(vs[Math.min(vs.length-1,2)].n)+'</select></div><div class="tl-row"><select id="tvL"><option value="kr">한글</option><option value="en">영어</option><option value="both">한글+영어</option></select><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="tvN" checked> 절 번호</label></div><div class="tl-row"><button class="tl-b pri" data-tl="vgo">넣기</button><button class="tl-b" data-tl="vx">취소</button></div></div>';
-    document.body.appendChild(d); d._vs=vs;
+    d.innerHTML='<div class="tl-sh"><b style="color:var(--px-gold,#f1d27a)">📖 성경 어디서든 구절 넣기</b><div class="tl-row"><select id="tvBk">'+bks.map(function(b){ return '<option value="'+b.code+'"'+(b.code===cur().b?" selected":"")+">"+E(b.name)+"</option>"; }).join("")+'</select><select id="tvCh"></select></div><div class="tl-row"><select id="tvA"></select> ~ <select id="tvB"></select></div><div class="tl-row"><select id="tvL"><option value="kr">한글</option><option value="en">영어</option><option value="both">한글+영어</option></select><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="tvN" checked> 절 번호</label></div><div class="tl-row"><button class="tl-b pri" data-tl="vgo">넣기</button><button class="tl-b" data-tl="vx">취소</button></div></div>';
+    document.body.appendChild(d); vFillCh(cur().c);
+  }
+  function vFillCh(sel){
+    var code=$("tvBk").value, bk=BOOKS.filter(function(b){return b.code===code;})[0], n=bk?bk.chapters:1, h="";
+    for(var i=1;i<=n;i++) h+='<option value="'+i+'"'+(i===+sel?" selected":"")+">"+i+"장</option>";
+    $("tvCh").innerHTML=h; vFillVs();
+  }
+  function vFillVs(){
+    var vs=window.localBibleChapter($("tvBk").value,+$("tvCh").value)||[]; $("tvA")._vs=vs;
+    var o=function(sel){ return vs.map(function(v){ return '<option value="'+v.n+'"'+(v.n===sel?" selected":"")+">"+v.n+"절</option>"; }).join(""); };
+    $("tvA").innerHTML=o(vs.length?vs[0].n:0); $("tvB").innerHTML=o(vs.length?vs[vs.length-1].n:0);
   }
   function verseGo(){
-    var d=$("tlVs"), vs=d._vs, a=+$("tvA").value, b=+$("tvB").value, L=$("tvL").value, N=$("tvN").checked; if(b<a){ var x=a; a=b; b=x; }
-    var sel=vs.filter(function(v){return v.n>=a&&v.n<=b;}), lines=[];
-    sel.forEach(function(v){ var p=N?v.n+" ":""; if(L!=="en"&&v.kr) lines.push(p+v.kr); if(L!=="kr"&&v.en) lines.push((L==="both"&&!v.kr?p:(L==="both"?"":p))+v.en); });
-    d.remove(); addBlock("q",{text:lines.join("\n"),ref:bname(cur().b)+" "+cur().c+":"+(a===b?a:a+"-"+b)});
+    var vs=$("tvA")._vs||[], a=+$("tvA").value, b=+$("tvB").value, L=$("tvL").value, N=$("tvN").checked; if(b<a){ var x=a; a=b; b=x; }
+    var code=$("tvBk").value, ch=$("tvCh").value, sel=vs.filter(function(v){return v.n>=a&&v.n<=b;}), lines=[];
+    sel.forEach(function(v){ var p=N?v.n+" ":""; if(L!=="en"&&v.kr) lines.push(p+v.kr); if(L!=="kr"&&v.en) lines.push((L==="both"&&v.kr?"":p)+v.en); });
+    var bn=bname(code); $("tlVs").remove(); addBlock("q",{text:lines.join("\n"),ref:bn+" "+ch+":"+(a===b?a:a+"-"+b)});
   }
   /* ---------- 공유 ---------- */
   function shareBox(){
     var el=$("tlShare"); if(!el) return; if(el.innerHTML){ el.innerHTML=""; return; }
-    el.innerHTML='<div class="tl-sh"><div class="tl-row"><button class="tl-b" data-tl="s-copy">📋 글만 복사</button><button class="tl-b" data-tl="s-native">📤 앱으로 보내기</button></div><div class="tl-row"><button class="tl-b" data-tl="s-html">🌐 웹페이지 파일(.html)</button><button class="tl-b" data-tl="s-print">🖨 인쇄 / PDF</button><button class="tl-b" data-tl="s-json">💾 백업 파일(.json)</button></div>'+
-      '<div class="tl-note">• <b>앱으로 보내기</b>: 카카오톡·문자 등으로 글과 사진을 보냅니다(폰에서 지원될 때).<br>• <b>웹페이지 파일</b>: 사진·링크가 모두 들어 있어 받는 사람이 설치 없이 열어 볼 수 있습니다.<br>• <b>백업 파일</b>: 내 다른 기기나 등불 사용자에게 주제를 통째로 옮길 때 — 상대는 목록의 「📥 가져오기」로 열면 됩니다.</div></div>';
+    el.innerHTML='<div class="tl-sh"><div class="tl-row"><button class="tl-b pri" data-tl="s-print">📄 PDF로 저장 / 인쇄</button><button class="tl-b" data-tl="s-copy">📋 글만 복사</button><button class="tl-b" data-tl="s-native">📤 앱으로 보내기</button></div><div class="tl-row"><button class="tl-b" data-tl="s-html">🌐 웹페이지 파일(.html)</button><button class="tl-b" data-tl="s-json">💾 백업 파일(.json)</button></div>'+
+      '<div class="tl-note">• <b>PDF</b>: 열린 인쇄 창에서 「PDF로 저장」을 고르세요(A4, 사진 포함). 폴더 전체를 한 권으로 묶으려면 폴더 화면의 「📄 폴더 PDF」를 사용합니다.<br>• <b>영상</b>은 이 기기 안에서만 재생되며 PDF·웹페이지·백업 파일에는 담기지 않습니다(자리 표시만 남음).<br>• <b>앱으로 보내기</b>: 카카오톡·문자 등으로 글과 사진을 보냅니다(폰에서 지원될 때).<br>• <b>백업 파일</b>: 다른 기기나 다른 등불 사용자에게 주제를 옮길 때 — 상대는 목록의 「📥 가져오기」로 열면 됩니다.</div></div>';
   }
   function nativeShare(){
     var t=toText(T), imgs=T.blocks.filter(function(b){return b.t==="img"&&b.src;}).slice(0,6), files=[];
@@ -8537,13 +8599,22 @@ document.addEventListener("change",(e)=>{
     if(files.length&&navigator.canShare&&navigator.canShare({files:files})) data.files=files;
     navigator.share(data).catch(function(){});
   }
-  function doPrint(){ var w=window.open("","_blank"); if(!w){ alert("팝업이 막혀 있습니다. 팝업을 허용해 주세요."); return; } w.document.write(toHtml(T,true)); w.document.close(); }
+  function printDoc(html){ var w=window.open("","_blank"); if(!w){ alert("팝업이 막혀 있습니다. 팝업을 허용해 주세요."); return; } w.document.write(html); w.document.close(); }
+  function exportT(t){ var c=JSON.parse(JSON.stringify(t)); c.blocks=c.blocks.filter(function(b){return b.t!=="vid";}); c.folderName=fname0(t.folder); delete c.folder; return c; }
   function importFile(f){
     var fr=new FileReader(); fr.onload=function(){
       try{ var d=JSON.parse(fr.result), arr=d&&d.deungbulTopics?d.deungbulTopics:null; if(!arr||!arr.length) throw 0;
-        Promise.all(arr.map(function(t){ t.id=uid(); t.updated=Date.now(); t.blocks=(t.blocks||[]).map(function(b){ b.id=uid(); return b; }); return dbPut(t); })).then(function(){ showList(); alert(arr.length+"개의 주제를 가져왔습니다."); });
+        var fid=""; var pre=Promise.resolve();
+        var fn=d.folderName||(arr[0]&&arr[0].folderName)||"";
+        if(fn){ var ex=FLIST.filter(function(x){return x.name===fn;})[0]; if(ex) fid=ex.id; else { fid=uid(); pre=fPut({id:fid,name:fn,created:Date.now()}); } }
+        pre.then(function(){ return Promise.all(arr.map(function(t){ t.id=uid(); t.folder=fid; delete t.folderName; t.updated=Date.now(); t.blocks=(t.blocks||[]).map(function(b){ b.id=uid(); return b; }); return dbPut(t); })); }).then(function(){ showList(); alert(arr.length+"개의 주제를 가져왔습니다."); });
       }catch(e){ alert("등불 주제 연구소 백업 파일(.json)이 아닙니다."); }
     }; fr.readAsText(f);
+  }
+  function readVideo(file){
+    if(file.size>600*1048576){ alert("영상이 너무 큽니다(600MB 이하만 가능). 짧게 줄여서 올려 주세요."); return Promise.resolve(); }
+    var id=uid();
+    return mPut({id:id,blob:file,name:file.name,type:file.type}).then(function(){ T.blocks.push({id:uid(),t:"vid",mid:id,name:file.name,size:file.size,cap:""}); save(true); showEditor(); var sc=$("tlOv")&&$("tlOv").querySelector(".tl-sc"); if(sc) sc.scrollTop=sc.scrollHeight; }).catch(function(){ alert("영상을 저장하지 못했습니다. 저장 공간이 부족할 수 있습니다."); });
   }
   /* ---------- 이벤트 ---------- */
   document.addEventListener("click",function(e){
@@ -8551,24 +8622,32 @@ document.addEventListener("change",(e)=>{
     if(a==="open"&&!x.closest("#tlOv")){ openLab(); return; }
     if(a==="close"){ var o=$("tlOv"); if(o) o.remove(); return; }
     if(a==="new") newTopic();
+    else if(a==="root"){ FOL=""; showList(); }
+    else if(a==="folder"){ FOL=x.dataset.id; showList(); }
+    else if(a==="f-new"){ var nm=prompt("폴더 이름 (예: 십자가, 은혜, 요한복음 연구)"); if(nm&&nm.trim()){ var f={id:uid(),name:nm.trim(),created:Date.now()}; fPut(f).then(function(){ FOL=f.id; showList(); }); } }
+    else if(a==="f-ren"){ var n2=prompt("폴더 이름",fname0(FOL)); if(n2&&n2.trim()){ fPut({id:FOL,name:n2.trim(),created:Date.now()}).then(function(){ showList(); }); } }
+    else if(a==="f-del"){ if(!confirm("「"+fname0(FOL)+"」 폴더를 삭제할까요? 안의 주제는 지워지지 않고 「미분류」로 옮겨집니다.")) return; var fid=FOL; Promise.all(LIST.filter(function(t){return t.folder===fid;}).map(function(t){ t.folder=""; return dbPut(t); })).then(function(){ return fDel(fid); }).then(function(){ FOL=""; showList(); }); }
+    else if(a==="f-pdf"){ var ts=LIST.filter(function(t){return t.folder===FOL;}).sort(function(p,q){return (p.created||0)-(q.created||0);}); if(!ts.length){ alert("이 폴더에 주제가 없습니다."); return; } printDoc(docHtml(fname0(FOL),ts,true,true)); }
+    else if(a==="f-json"){ var ts2=LIST.filter(function(t){return t.folder===FOL;}); if(!ts2.length){ alert("이 폴더에 주제가 없습니다."); return; } dl(fname0(FOL)+".json","application/json",JSON.stringify({deungbulTopics:ts2.map(exportT),folderName:fname0(FOL)})); }
     else if(a==="imp") $("tlImpF").click();
     else if(a==="open"){ var t=LIST.filter(function(v){return v.id===x.dataset.id;})[0]; if(t){ T=t; MODE="read"; showEditor(); } }
-    else if(a==="back"){ save(true); setTimeout(function(){ showList(); },80); }
+    else if(a==="back"){ save(true); FOL=T.folder||FOL; setTimeout(function(){ showList(); },80); }
     else if(a==="mode"){ MODE=MODE==="read"?"edit":"read"; save(true); showEditor(); }
     else if(a==="add") addBlock(x.dataset.k);
     else if(a==="addimg") $("tlImg").click();
+    else if(a==="addvid") $("tlVid").click();
     else if(a==="verse") verseDlg(); else if(a==="vx") $("tlVs").remove(); else if(a==="vgo") verseGo();
     else if(a==="up"&&i>0){ var b=T.blocks.splice(i,1)[0]; T.blocks.splice(i-1,0,b); save(true); showEditor(true); }
     else if(a==="dn"&&i<T.blocks.length-1){ var c=T.blocks.splice(i,1)[0]; T.blocks.splice(i+1,0,c); save(true); showEditor(true); }
     else if(a==="rm"){ var bb=T.blocks[i]; if((bb.text||bb.src||bb.url)&&!confirm("이 블록을 삭제할까요?")) return; T.blocks.splice(i,1); if(!T.blocks.length) T.blocks.push({id:uid(),t:"p",text:""}); save(true); showEditor(true); }
     else if(a==="tick"){ T.blocks[i].done=x.checked; save(true); showEditor(true); }
-    else if(a==="delete"){ if(!confirm("「"+(T.title||"(제목 없음)")+"」 주제를 삭제할까요? 되돌릴 수 없습니다.")) return; var id=T.id; dbDel(id).then(function(){ showList(); }); }
+    else if(a==="delete"){ if(!confirm("「"+(T.title||"(제목 없음)")+"」 주제를 삭제할까요? 되돌릴 수 없습니다.")) return; var id=T.id, vids=T.blocks.filter(function(b){return b.t==="vid";}); Promise.all(vids.map(function(b){return mDel(b.mid);})).then(function(){ return dbDel(id); }).then(function(){ showList(); }); }
     else if(a==="share") shareBox();
     else if(a==="s-copy") copyText(toText(T),x,"📋 글만 복사");
     else if(a==="s-native") nativeShare();
     else if(a==="s-html") dl(fname(T,".html"),"text/html",toHtml(T));
-    else if(a==="s-print") doPrint();
-    else if(a==="s-json") dl(fname(T,".json"),"application/json",JSON.stringify({deungbulTopics:[T]}));
+    else if(a==="s-print") printDoc(toHtml(T,true));
+    else if(a==="s-json") dl(fname(T,".json"),"application/json",JSON.stringify({deungbulTopics:[exportT(T)],folderName:fname0(T.folder)}));
   });
   document.addEventListener("input",function(e){
     var t=e.target; if(!T||!t.closest||!t.closest("#tlOv")) return;
@@ -8582,7 +8661,10 @@ document.addEventListener("change",(e)=>{
     var t=e.target; if(!t) return;
     if(t.id==="tlImg"&&T){ var fs=Array.prototype.slice.call(t.files||[]); t.value="";
       fs.reduce(function(p,f){ return p.then(function(){ return readImg(f).then(function(src){ T.blocks.push({id:uid(),t:"img",src:src,cap:""}); },function(){ alert("이미지를 읽지 못했습니다: "+f.name); }); }); },Promise.resolve()).then(function(){ save(true); showEditor(); var sc=$("tlOv")&&$("tlOv").querySelector(".tl-sc"); if(sc) sc.scrollTop=sc.scrollHeight; }); }
+    else if(t.id==="tlVid"&&T&&t.files&&t.files[0]){ var vf=t.files[0]; t.value=""; readVideo(vf); }
     else if(t.id==="tlImpF"&&t.files&&t.files[0]){ importFile(t.files[0]); t.value=""; }
+    else if(t.id==="tlFo"&&T){ T.folder=t.value; save(true); }
+    else if(t.id==="tvBk"){ vFillCh(1); } else if(t.id==="tvCh"){ vFillVs(); }
     else if(t.dataset&&t.dataset.f==="url"&&T){ showEditor(true); }
   });
   window.__tlOpen=openLab;
@@ -8605,7 +8687,7 @@ document.addEventListener("change",(e)=>{
     b.innerHTML='<span class="ux-ic">'+ic+'</span><span class="ux-tx"><b>'+t+'</b><small>'+sub+'</small></span><span class="ux-ch">›</span>'; return b;
   }
   function ensure(){
-    if(!$("bulBtn")){ var a=$("hlBtn")||$("cardBtn"); if(a) a.parentNode.insertBefore(tile("bulBtn","🔬","주제 연구소","한 주제를 말씀·메모·사진·링크로 쌓아 연구·저장·공유",["data-p3","bul"]),a.nextSibling); }
+    if(!$("bulBtn")){ var a=$("hlBtn")||$("cardBtn"); if(a) a.parentNode.insertBefore(tile("bulBtn","📰","주보용 본문·광고","본문 구절과 광고 문구를 복사·인쇄용으로 정리",["data-p3","bul"]),a.nextSibling); }
     if(!$("bndBtn")){ var j=$(isD?"journalD":"journalM"), o=$("olBtn")||$("summBtn"); if(j&&o) o.parentNode.insertBefore(tile("bndBtn","📚","공과·묵상 모음","책별·기간별로 내 기록을 묶어 인쇄",["data-p3","bnd"]),o.nextSibling); }
   }
   /* ---------- 공통 ---------- */
@@ -8697,7 +8779,7 @@ document.addEventListener("change",(e)=>{
   }
   document.addEventListener("click",function(e){
     var x=e.target.closest("[data-p3]"); if(!x) return; var a=x.dataset.p3;
-    if(a==="bul"){ if(window.__tlOpen) window.__tlOpen(); else openBul(); } else if(a==="bnd") openBnd();
+    if(a==="bul") openBul(); else if(a==="bnd") openBnd();
     else if(a==="close"){ var o=x.closest(".px-ov"); if(o) o.remove(); }
     else if(a==="bcopy"){ upd(); copyText($("buOut").value,x,"📋 복사"); }
     else if(a==="bprint"){ upd(); var t=$("buOut").value.split("\n"); var h=t.map(function(l){ return l.indexOf("[")===0?'<h3>'+E(l)+'</h3>':'<p>'+E(l)+'</p>'; }).join(""); printHtml("주보용 본문","h3{font-size:13pt;color:#7a5200;margin:14px 0 4px;border-bottom:1px solid #d9c9a8}p{margin:3px 0}",h); }
