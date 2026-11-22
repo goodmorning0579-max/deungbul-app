@@ -694,6 +694,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
         <div class="study-tab" data-tab="people">👤 등장 인물</div>
         <div class="study-tab" data-tab="place">🗺️ 지리적 배경</div>
         <div class="study-tab" data-tab="xref">🔗 상호 참조</div>
+        <div class="study-tab" data-tab="gsr">🔍 구글 검색</div>
       </div>
       <div class="study-panel active" id="panel-lang"></div>
       <div class="study-panel" id="panel-history"></div>
@@ -702,6 +703,7 @@ body.light-mode .fschip.active,body.light-mode .fschip-d.active{color:#5e3f05;}
       <div class="study-panel" id="panel-place"></div>
       <div class="study-panel" id="panel-xref"></div>
       <div class="study-panel" id="panel-sermon"></div>
+      <div class="study-panel" id="panel-gsr"></div>
     </div>
 
     <div class="journal" id="journalD">
@@ -6925,7 +6927,7 @@ window.loadApiKey().then(async function(){
 
 /*VER-START*/
 (function(){
-  var V="2026-11-18 · v94";
+  var V="2026-11-18 · v97";
   /* 성경 본문 글꼴: 기본은 명조, 설정에서 고딕 등으로 바꿀 수 있음 */
   var GFU="https://fonts.googleapis.com/css2?family=";
   var BF={
@@ -7592,6 +7594,150 @@ window.loadApiKey().then(async function(){
 })();
 /*SUMM-END*/
 
+/*GS-START*/
+/* ===== 연구 도구 "구글 검색" 탭: 지금 보는 본문으로 구글 검색(새 창) ===== */
+(function(){
+  var isD=(typeof currentPassageKey!=="undefined");
+  function E(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function pass(){ try{ return isD?{b:BOOK_BY_CODE[currentBook].name,c:currentChapter}:{b:BBC[curBook].name,c:curCh}; }catch(e){ return {b:"",c:""}; } }
+  function base(){ var p=pass(); return p.b?(p.b+" "+p.c+"장"):""; }
+  var KW=[["주석","주석"],["배경","배경 설명"],["설교","설교"],["강해","강해"],["묵상","묵상 나눔"],["핵심","핵심 메시지"],["적용","적용 질문"],["이미지","관련 이미지"]];
+  function url(q,img){ return "https://www.google.com/search?q="+encodeURIComponent(q)+(img?"&tbm=isch":""); }
+  function css(){
+    if(document.getElementById("gsCss")) return; var s=document.createElement("style"); s.id="gsCss";
+    s.textContent=".gs-p .gs-hint{font-size:12px;opacity:.75;line-height:1.6;margin:0 0 10px}.gs-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}"+
+      ".gs-in{flex:1;min-width:150px;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid rgba(201,151,42,.4);background:rgba(127,127,127,.12);color:inherit;font:inherit;font-size:14px;min-height:44px}"+
+      ".gs-go{border:1px solid rgba(201,151,42,.6);background:rgba(201,151,42,.2);color:inherit;border-radius:10px;padding:10px 14px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;min-height:44px}"+
+      ".gs-lab{font-size:11.5px;opacity:.7;margin:2px 0 6px}.gs-ch{display:flex;flex-wrap:wrap;gap:7px}.gs-ch a{display:inline-flex;align-items:center;padding:8px 13px;border-radius:18px;border:1px solid rgba(201,151,42,.35);background:rgba(127,127,127,.12);color:inherit;text-decoration:none;font-size:12.5px}";
+    document.head.appendChild(s);
+  }
+  function panel(){ return document.getElementById(isD?"panel-gsr":"p-gsr"); }
+  function render(){
+    var el=panel(); if(!el) return; css(); el.classList.add("gs-p"); var b=base();
+    el.innerHTML='<h4>구글 검색</h4><p class="gs-hint">지금 보는 본문('+E(b)+')으로 구글에서 자료를 찾아봅니다. '+(isD?"앱 오른쪽에 별도의 구글 창이 열립니다(창이 차단되면 새 탭으로 열립니다). ":"구글 화면이 새 탭으로 열립니다. ")+'구글은 보안 설정상 앱 안에 끼워 넣어 보여 줄 수 없고, 검색한 내용은 구글의 개인정보 처리방침을 따릅니다.</p>'+
+      '<div class="gs-row"><input type="search" class="gs-in" value="'+E(b)+'" placeholder="검색어를 입력하세요" enterkeyhint="search"><button type="button" class="gs-go" data-gs="go">🔍 구글에서 검색</button></div>'+
+      '<div class="gs-lab">빠른 검색 (현재 본문 기준)</div><div class="gs-ch">'+KW.map(function(k){ return '<a data-gskw="'+E(k[0])+'" href="'+url(b+" "+k[1],k[0]==="이미지")+'" target="_blank" rel="noopener noreferrer">'+E(k[1])+'</a>'; }).join("")+'</div>';
+  }
+  function openTab(u){ var a=document.createElement("a"); a.href=u; a.target="_blank"; a.rel="noopener noreferrer"; document.body.appendChild(a); a.click(); a.remove(); }
+  /* PC: 앱 오른쪽에 별도의 작은 구글 창을 띄움(차단되면 새 탭). 폰: 새 탭 */
+  function openUrl(u){
+    if(!isD){ openTab(u); return; }
+    try{ var sw=screen.availWidth||1280, sh=screen.availHeight||800, ox=screen.availLeft||0, oy=screen.availTop||0, w=Math.min(980,Math.round(sw*.56)), h=Math.min(900,Math.round(sh*.92)), l=ox+sw-w-8, t=oy+Math.round((sh-h)/2);
+      var win=window.open(u,"_blank","popup=yes,width="+w+",height="+h+",left="+l+",top="+t); if(win){ try{ win.opener=null; }catch(e){} try{ win.focus(); }catch(e){} return; } }catch(e){}
+    openTab(u);
+  }
+  function go(){ var el=panel(), i=el&&el.querySelector(".gs-in"); var q=(i&&i.value||"").trim(); if(!q){ if(i) i.focus(); return; } openUrl(url(q,false)); }
+  document.addEventListener("click",function(e){
+    var t=e.target.closest&&e.target.closest("[data-t='gsr'],[data-tab='gsr']"); if(t){ setTimeout(render,0); return; }
+    var c=e.target.closest&&e.target.closest("a[data-gskw]"); if(c){ var k=c.getAttribute("data-gskw"), w=KW.filter(function(x){ return x[0]===k; })[0]; c.href=url(base()+" "+(w?w[1]:k),k==="이미지"); if(isD){ e.preventDefault(); openUrl(c.href); } return; }
+    if(e.target.closest&&e.target.closest("[data-gs='go']")) go();
+  },true);
+  document.addEventListener("keydown",function(e){ if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("gs-in")){ e.preventDefault(); go(); } });
+})();
+/*GS-END*/
+/*IMG-START*/
+/* ===== 사진·링크 붙이기: 묵상 일지·구절 연구 노트·설교 개요에 사진 첨부 (이 기기 안 IndexedDB에만 저장, 서버·드라이브로 보내지 않음) ===== */
+(function(){
+  var isD=(typeof currentPassageKey!=="undefined"), MAXN=12, FULL={};
+  function pk(){ try{ return isD?currentPassageKey:chapterKey(curBook,curCh); }catch(e){ return ""; } }
+  function E(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function idb(cb){ try{ var r=indexedDB.open("dbNoteImg",1); r.onupgradeneeded=function(){ var s=r.result.createObjectStore("img",{keyPath:"id"}); s.createIndex("ctx","ctx"); }; r.onsuccess=function(){ cb(r.result); }; r.onerror=function(){ cb(null); }; }catch(e){ cb(null); } }
+  function listBy(ctx,cb){ idb(function(db){ if(!db) return cb([]); try{ var q=db.transaction("img","readonly").objectStore("img").index("ctx").getAll(ctx); q.onsuccess=function(){ cb((q.result||[]).sort(function(a,b){ return a.ts-b.ts; })); }; q.onerror=function(){ cb([]); }; }catch(e){ cb([]); } }); }
+  function getOne(id,cb){ idb(function(db){ if(!db) return cb(null); try{ var q=db.transaction("img","readonly").objectStore("img").get(id); q.onsuccess=function(){ cb(q.result||null); }; q.onerror=function(){ cb(null); }; }catch(e){ cb(null); } }); }
+  function putOne(rec,cb){ idb(function(db){ if(!db) return cb(false); try{ var t=db.transaction("img","readwrite"); t.objectStore("img").put(rec); t.oncomplete=function(){ cb(true); }; t.onerror=function(){ cb(false); }; }catch(e){ cb(false); } }); }
+  function delOne(id,cb){ idb(function(db){ if(!db) return cb(); try{ var t=db.transaction("img","readwrite"); t.objectStore("img").delete(id); t.oncomplete=cb; t.onerror=cb; }catch(e){ cb(); } }); }
+  function css(){
+    if(document.getElementById("imgCss")) return; var s=document.createElement("style"); s.id="imgCss";
+    s.textContent=".ib{margin:6px 0 10px;text-align:left}.ib-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ib-btn{border:1px solid rgba(201,151,42,.45);background:rgba(201,151,42,.08);color:inherit;border-radius:9px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;min-height:36px}"+
+      ".ib-cnt{font-size:11.5px;opacity:.7}.ib-th{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.ib-th img{width:68px;height:68px;object-fit:cover;border-radius:8px;border:1px solid rgba(201,151,42,.4);cursor:pointer;background:#222}"+
+      "#imgLb{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}#imgLb img{max-width:100%;max-height:78vh;border-radius:8px;object-fit:contain}"+
+      ".lk-a{color:#d9a83a;text-decoration:underline;word-break:break-all}body.light-mode .lk-a{color:#7a4f00}.lkb{margin:6px 0 2px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px}.lkb-h{font-size:11.5px;opacity:.65}"+
+      "#imgLb .lb-b{display:flex;gap:10px;margin-top:14px}#imgLb button{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;font-family:inherit;cursor:pointer}#imgLb .lb-d{color:#ffb4b4}";
+    document.head.appendChild(s);
+  }
+  function lightbox(id,bar){
+    getOne(id,function(r){ if(!r) return; var o=document.createElement("div"); o.id="imgLb";
+      o.innerHTML='<img alt="첨부한 사진" src="'+r.data+'"><div class="lb-b"><button class="lb-d">🗑 이 사진 삭제</button><button class="lb-c">닫기</button></div>';
+      o.addEventListener("click",function(e){ if(e.target===o||e.target.classList.contains("lb-c")) o.remove(); });
+      o.querySelector(".lb-d").addEventListener("click",function(){ if(!confirm("이 사진을 삭제할까요?")) return; delOne(id,function(){ o.remove(); refresh(bar,true); }); });
+      document.body.appendChild(o); });
+  }
+  function shrink(file,cb){
+    var u=URL.createObjectURL(file), im=new Image();
+    im.onload=function(){ try{ var iw=im.naturalWidth,ih=im.naturalHeight,sc=Math.min(1,1280/Math.max(iw,ih)),c=document.createElement("canvas"); c.width=Math.round(iw*sc); c.height=Math.round(ih*sc); var x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.imageSmoothingQuality="high"; x.drawImage(im,0,0,c.width,c.height);
+        var s2=Math.min(1,150/Math.max(iw,ih)),t=document.createElement("canvas"); t.width=Math.max(2,Math.round(iw*s2)); t.height=Math.max(2,Math.round(ih*s2)); t.getContext("2d").drawImage(im,0,0,t.width,t.height);
+        URL.revokeObjectURL(u); cb({data:c.toDataURL("image/jpeg",.78),th:t.toDataURL("image/jpeg",.7)}); }catch(e){ URL.revokeObjectURL(u); cb(null); } };
+    im.onerror=function(){ URL.revokeObjectURL(u); cb(null); }; im.src=u;
+  }
+  function refresh(bar,force){
+    var ctx=bar._cf(); if(!ctx) return; if(!bar.offsetParent&&!force) return; if(bar._last===ctx&&!force) return; bar._last=ctx;
+    listBy(ctx,function(a){ if(bar._cf()!==ctx) return; if(/^ol:/.test(ctx)) FULL[ctx]=a.map(function(r){ return r.data; });
+      bar._n=a.length; bar.querySelector(".ib-cnt").textContent=a.length?("사진 "+a.length+"장"):"";
+      bar.querySelector(".ib-th").innerHTML=a.map(function(r){ return '<img src="'+r.th+'" alt="" data-ibid="'+E(r.id)+'">'; }).join(""); });
+  }
+  function mkBar(cf,label){
+    var b=document.createElement("div"); b.className="ib"; b.setAttribute("data-imgbar","1"); b._cf=cf; b._last="";
+    b.innerHTML='<div class="ib-row"><button type="button" class="ib-btn">📷 '+E(label||"사진 넣기")+'</button><span class="ib-cnt"></span><input type="file" accept="image/*" multiple hidden></div><div class="ib-th"></div>';
+    var fi=b.querySelector("input"), bt=b.querySelector(".ib-btn");
+    bt.addEventListener("click",function(){ fi.click(); });
+    fi.addEventListener("change",function(){
+      var fs=[].slice.call(fi.files||[]); fi.value=""; if(!fs.length) return; var ctx=b._cf(); if(!ctx) return;
+      var room=MAXN-(b._n||0); if(room<=0){ alert("사진은 한 곳에 "+MAXN+"장까지 붙일 수 있습니다."); return; }
+      if(fs.length>room){ alert("사진은 한 곳에 "+MAXN+"장까지 붙일 수 있어 "+room+"장만 넣습니다."); fs=fs.slice(0,room); }
+      var i=0, bad=0; (function next(){ if(i>=fs.length){ if(bad) alert("열 수 없는 파일 "+bad+"개는 건너뛰었습니다."); refresh(b,true); return; }
+        shrink(fs[i++],function(r){ if(!r){ bad++; return next(); } putOne({id:Date.now()+"-"+Math.random().toString(36).slice(2,7),ctx:ctx,data:r.data,th:r.th,ts:Date.now()},function(ok){ if(!ok){ bad++; } next(); }); }); })();
+    });
+    b.addEventListener("click",function(e){ var im=e.target.closest&&e.target.closest("[data-ibid]"); if(im) lightbox(im.getAttribute("data-ibid"),b); });
+    return b;
+  }
+
+  /* ---- 링크 바로가기: 붙여넣은 주소를 눌러 열 수 있게 표시 ---- */
+  var URLRE=/(?:https?:\/\/|www\.)[A-Za-z0-9\-._~:\/?#\[\]@!$&*+,;=%()]+/gi;
+  var TASEL="#jtext,#journal-text,textarea.vstudy-ta,textarea.vstudy-ta-d,#olOv textarea[data-olf],textarea[id^='sm-note'],#dayNoteInput,#dayNoteInputD";
+  var DISPSEL=".etext,.entry-card > p,.daynote-item,.daynote-item-d,div[id^='sm-note-'],.sm-txt";
+  function trimU(u){ var t=u,tail=""; while(t.length>4&&/[.,;:!?)\]}]$/.test(t)){ if(t.slice(-1)===")"&&(t.match(/\(/g)||[]).length>=(t.match(/\)/g)||[]).length) break; tail=t.slice(-1)+tail; t=t.slice(0,-1); } return [t,tail]; }
+  function hrefOf(u){ return /^www\./i.test(u)?"https://"+u:u; }
+  function lbl(u){ var s=u.replace(/^https?:\/\//i,"").replace(/^www\./i,"").replace(/\/$/,""); return "🔗 "+(s.length>38?s.slice(0,36)+"…":s); }
+  function mkA(u){ var a=document.createElement("a"); a.className="lk-a"; a.href=hrefOf(u); a.target="_blank"; a.rel="noopener noreferrer"; a.title=u; a.textContent=lbl(u); return a; }
+  function linkify(el){
+    var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:function(n){ var p=n.parentNode; if(!p||/^(A|TEXTAREA|SCRIPT|STYLE|INPUT|BUTTON)$/.test(p.nodeName)) return NodeFilter.FILTER_REJECT; return /(?:https?:\/\/|www\.)/i.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT; }}), list=[], n;
+    while((n=w.nextNode())) list.push(n);
+    list.forEach(function(tn){
+      var s=tn.nodeValue, frag=document.createDocumentFragment(), last=0, m, any=false; URLRE.lastIndex=0;
+      while((m=URLRE.exec(s))){ var pr=trimU(m[0]); if(pr[0].length<8) continue; any=true; if(m.index>last) frag.appendChild(document.createTextNode(s.slice(last,m.index))); frag.appendChild(mkA(pr[0])); last=m.index+pr[0].length; URLRE.lastIndex=last; }
+      if(!any) return; if(last<s.length) frag.appendChild(document.createTextNode(s.slice(last))); tn.parentNode.replaceChild(frag,tn);
+    });
+  }
+  function urlsIn(v){ var out=[],m; URLRE.lastIndex=0; while((m=URLRE.exec(v))){ var u=trimU(m[0])[0]; if(u.length>=8&&out.indexOf(u)<0) out.push(u); } return out.slice(0,6); }
+  function updLk(ta){
+    var us=urlsIn(ta.value||""), box=ta._lk;
+    if(!us.length){ if(box){ box.remove(); ta._lk=null; } return; }
+    var key=us.join("\n"); if(box&&box._key===key&&box.isConnected) return;
+    if(!box||!box.isConnected){ box=document.createElement("div"); box.className="lkb"; ta._lk=box; ta.insertAdjacentElement("afterend",box); }
+    box._key=key; box.innerHTML=""; var h=document.createElement("span"); h.textContent="바로가기"; h.className="lkb-h"; box.appendChild(h); us.forEach(function(u){ box.appendChild(mkA(u)); });
+  }
+  document.addEventListener("click",function(e){ var a=e.target.closest&&e.target.closest("a.lk-a"); if(a) e.stopPropagation(); },true);
+  document.addEventListener("input",function(e){ var t=e.target; if(t&&t.matches&&t.matches(TASEL)) updLk(t); },true);
+  function scan(){
+    css();
+    var j=document.getElementById(isD?"journal-text":"jtext");
+    if(j&&!j._ib){ j._ib=1; j.insertAdjacentElement("afterend",mkBar(function(){ var p=pk(); return p?"j:"+p:""; },"이 장 묵상 사진 넣기")); }
+    document.querySelectorAll("textarea.vstudy-ta,textarea.vstudy-ta-d").forEach(function(t){
+      var k=t.getAttribute("data-studykey"); if(!k) return;
+      if(!t._ib){ t._ib=1; t.insertAdjacentElement("afterend",mkBar(function(){ return "vs:"+k; },"사진 넣기")); }
+    });
+    var ob=document.querySelector("#olOv .ol-body");
+    if(ob&&!ob.querySelector("[data-imgbar]")) ob.appendChild(mkBar(function(){ var p=pk(); return p?"ol:"+p:""; },"설교 개요에 사진 넣기"));
+    document.querySelectorAll("[data-imgbar]").forEach(function(b){ refresh(b,false); });
+    document.querySelectorAll(TASEL).forEach(updLk);
+    document.querySelectorAll(DISPSEL).forEach(linkify);
+  }
+  window.__olImgHtml=function(){ var a=FULL["ol:"+pk()]||[]; if(!a.length) return ""; return '<div class="s"><h3>사진</h3>'+a.map(function(d){ return '<img src="'+d+'" style="max-width:100%;max-height:230mm;margin:6px 0;display:block;page-break-inside:avoid">'; }).join("")+'</div>'; };
+  var tm=null; function later(){ clearTimeout(tm); tm=setTimeout(scan,250); }
+  try{ new MutationObserver(later).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+  setInterval(scan,1500); scan();
+})();
+/*IMG-END*/
 /*CARD-START*/
 /* ===== 말씀 카드: 선택한 구절을 예쁜 그림(PNG)으로 만들어 저장·공유 (본문은 원문 그대로) ===== */
 (function(){
@@ -8109,7 +8255,7 @@ window.loadApiKey().then(async function(){
     var w=window.open("","_blank"); if(!w){ alert("팝업이 막혀 있습니다. 팝업을 허용해 주세요."); return; }
     var g=function(k){return E((OD[k]||"").trim()).replace(/\n/g,"<br>");};
     var sec=function(t,b){ return b?'<div class="s"><h3>'+t+'</h3><p>'+b+'</p></div>':""; };
-    var body=sec("도입",g("intro"))+[1,2,3].map(function(i){ return (g("p"+i)||g("p"+i+"d"))?'<div class="s"><h3>대지 '+i+'. '+g("p"+i)+'</h3><p>'+g("p"+i+"d")+'</p></div>':""; }).join("")+sec("적용",g("apply"))+sec("예화",g("illu"))+sec("결론 · 기도",g("pray"));
+    var body=sec("도입",g("intro"))+[1,2,3].map(function(i){ return (g("p"+i)||g("p"+i+"d"))?'<div class="s"><h3>대지 '+i+'. '+g("p"+i)+'</h3><p>'+g("p"+i+"d")+'</p></div>':""; }).join("")+sec("적용",g("apply"))+sec("예화",g("illu"))+sec("결론 · 기도",g("pray"))+(window.__olImgHtml?window.__olImgHtml():"");
     w.document.write('<!doctype html><meta charset="utf-8"><title>설교 개요</title><style>@page{size:A4;margin:18mm}body{font-family:"Noto Serif KR","Malgun Gothic",serif;color:#222;line-height:1.7;font-size:12.5pt}h1{font-size:20pt;margin:0 0 4px}.v{color:#8a5b00;margin-bottom:14px;font-size:12pt}.s{margin:12px 0}h3{font-size:13pt;margin:0 0 3px;border-bottom:1px solid #d9c9a8}p{margin:3px 0}</style><h1>'+(g("title")||"설교 제목")+'</h1><div class="v">본문: '+g("verse")+'</div>'+body+'<script>setTimeout(function(){print()},400)<\/script>');
     w.document.close();
   }
